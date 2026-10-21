@@ -1,6 +1,10 @@
 {
   "name": "maquetador-dtf",
-  "version": "1.0.0",
+  "version": "1.1.0",
+  "description": "Maquetador DTF local con exportación PDF a tamaño real",
+  "author": "PKprint",
+  "license": "UNLICENSED",
+  "main": "electron/main.mjs",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,7 +13,11 @@
     "start": "node scripts/serve.mjs",
     "test": "vitest run",
     "test:e2e": "npm run build && playwright test",
-    "check": "npm test && npm run build && npm run test:e2e"
+    "check": "npm run build && npm test && npm run test:e2e && npm run test:desktop",
+    "desktop:dev": "npm run build && electron .",
+    "test:desktop": "npm run build && playwright test -c playwright.desktop.config.ts",
+    "dist:win": "npm run build && node scripts/prepare-desktop.mjs && electron-builder --win nsis portable --x64 --publish never && node scripts/checksums.mjs",
+    "dist:dir": "npm run build && node scripts/prepare-desktop.mjs && electron-builder --win --x64 --dir --publish never"
   },
   "dependencies": {
     "pdf-lib": "^1.17.1",
@@ -23,6 +31,8 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
+    "electron": "^45.0.0",
+    "electron-builder": "^26.15.3",
     "pngjs": "^7.0.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.5",

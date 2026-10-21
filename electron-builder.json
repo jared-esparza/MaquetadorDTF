@@ -1,0 +1,30 @@
+{
+  "appId": "com.pkprint.maquetadordtf",
+  "productName": "Maquetador DTF",
+  "executableName": "MaquetadorDTF",
+  "asar": true,
+  "directories": { "output": "release", "buildResources": "build" },
+  "files": ["dist/**/*", "electron/**/*", "build/icon.ico", "package.json", "!node_modules/**/*"],
+  "extraResources": [
+    { "from": "artifacts/calibracion-100mm.pdf", "to": "calibracion-100mm.pdf" },
+    { "from": "docs/USO-WINDOWS.md", "to": "LEEME.txt" },
+    { "from": "build/THIRD_PARTY_NOTICES.txt", "to": "THIRD_PARTY_NOTICES.txt" }
+  ],
+  "win": { "target": ["nsis", "portable"], "icon": "build/icon.ico", "signAndEditExecutable": true, "forceCodeSigning": false },
+  "nsis": {
+    "artifactName": "MaquetadorDTF-Setup-${version}-${arch}.${ext}",
+    "oneClick": false,
+    "perMachine": false,
+    "allowElevation": false,
+    "allowToChangeInstallationDirectory": true,
+    "installerLanguages": ["es_ES"],
+    "language": "3082",
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "Maquetador DTF",
+    "runAfterFinish": true,
+    "deleteAppDataOnUninstall": false,
+    "include": "build/installer.nsh"
+  },
+  "portable": { "artifactName": "MaquetadorDTF-Portable-${version}-${arch}.${ext}", "requestExecutionLevel": "user" }
+}

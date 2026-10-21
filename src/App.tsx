@@ -6,10 +6,13 @@ import { hasOpaqueBackground } from './core/images';
 import { DesignCard } from './components/DesignCard';
 import { ProfileEditor } from './components/ProfileEditor';
 import { SheetPreview } from './components/SheetPreview';
+import { Welcome } from './components/Welcome';
+import { desktop } from './platform/desktop';
 
 const STORAGE_KEY = 'pkprint-dtf-profiles-v1';
 const initialProfiles = [DEFAULT_PROFILE, { ...DEFAULT_PROFILE, id: 'a3', name: 'A3', widthMm: 297, heightMm: 420 }, { ...DEFAULT_PROFILE, id: 'a4', name: 'A4', widthMm: 210, heightMm: 297 }];
 function readProfiles(): { profiles: SheetProfile[]; selected: string } {
+  if (desktop) return { profiles: initialProfiles, selected: DEFAULT_PROFILE.id };
   try {
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null');
     if (stored && Array.isArray(stored.profiles) && stored.profiles.length > 0 && stored.profiles.every((p: SheetProfile) => p && typeof p.id === 'string' && typeof p.name === 'string' && p.margins && !validateProfile(p)) && stored.profiles.some((p: SheetProfile) => p.id === stored.selected)) return stored;
@@ -27,6 +30,11 @@ export default function App() {
   const [busy, setBusy] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formatOpen, setFormatOpen] = useState(false);
+  const [preferencesReady, setPreferencesReady] = useState(!desktop);
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [desktopVersion, setDesktopVersion] = useState('');
+  const [dirty, setDirty] = useState(false);
+  const documentState = useRef({ dirty: false, busy: false });
   const [errors, setErrors] = useState<string[]>([]);
   const [invalidFields, setInvalidFields] = useState<Set<string>>(new Set());
   const [acceptedLowDpi, setAcceptedLowDpi] = useState(false);
@@ -42,14 +50,32 @@ export default function App() {
   const layoutKey = JSON.stringify({ items, profile: packingProfile, gapMm });
   const pending = layoutState.key !== layoutKey;
   const layout = pending ? null : layoutState.result;
-  const blocked = !!busy || editingId !== null;
+  const blocked = !!busy || editingId !== null || !preferencesReady || showWelcome;
   const lowDpi = designs.some(d => designMetrics(d.raster, d.widthMm).quality === 'low');
   const canExport = !blocked && !formatOpen && !pending && invalidFields.size === 0 && !!layout?.pages.length && layout.unplacedIds.length === 0 && (!lowDpi || acceptedLowDpi);
 
   useEffect(() => {
+    if (!preferencesReady) return;
+    if (desktop) { desktop.updatePreferences({ profileState: stored }).catch(() => setErrors(['No se han podido guardar los formatos. Comprueba los permisos de la carpeta de datos.'])); return; }
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(stored)); }
     catch { setErrors(previous => previous.includes('No se han podido guardar los formatos en este navegador.') ? previous : [...previous, 'No se han podido guardar los formatos en este navegador.']); }
-  }, [stored]);
+  }, [stored, preferencesReady]);
+  useEffect(() => {
+    if (!desktop) return;
+    let active = true;
+    desktop.getPreferences().then(preferences => {
+      if (!active) return;
+      if (preferences.profileState) setStored(preferences.profileState);
+      setShowWelcome(!preferences.hideWelcome); setDesktopVersion(preferences.version); setPreferencesReady(true);
+    }).catch(() => { if (active) { setErrors(['No se han podido leer las preferencias. Se usarán los formatos iniciales.']); setShowWelcome(true); setPreferencesReady(true); } });
+    const unsubscribe = desktop.onHelp(topic => { if (topic === 'welcome') setShowWelcome(true); });
+    return () => { active = false; unsubscribe(); };
+  }, []);
+  useEffect(() => { setDirty(designs.length > 0); }, [designs, profile, gapMm, mirror]);
+  useEffect(() => {
+    const state = { dirty: dirty || editingId !== null || formatOpen, busy: !!busy };
+    documentState.current = state; desktop?.setDocumentState(state);
+  }, [dirty, editingId, formatOpen, busy]);
   useEffect(() => {
     const controller = new AbortController();
     const snapshot = JSON.parse(layoutKey) as { items: typeof items; profile: SheetProfile; gapMm: number };
@@ -64,7 +90,7 @@ export default function App() {
   }, [layoutKey]);
   useEffect(() => {
     mounted.current = true;
-    const warn = (event: BeforeUnloadEvent) => { if (urls.current.size) event.preventDefault(); };
+    const warn = (event: BeforeUnloadEvent) => { if (!desktop && (documentState.current.dirty || documentState.current.busy)) event.preventDefault(); };
     window.addEventListener('beforeunload', warn);
     return () => { mounted.current = false; window.removeEventListener('beforeunload', warn); urls.current.forEach(url => URL.revokeObjectURL(url)); urls.current.clear(); };
   }, []);
@@ -128,19 +154,29 @@ export default function App() {
       for (const design of designs) assets.push({ id: design.id, png: new Uint8Array(await (await rasterPng(design.raster)).arrayBuffer()), widthMm: design.widthMm, heightMm: designMetrics(design.raster, design.widthMm).heightMm, copies: design.copies });
       const { createPrintPdf } = await import('./core/pdf');
       const bytes = await createPrintPdf(assets, layout, profile, { gapMm, mirror });
+      const filename = `DTF-${profile.widthMm}x${profile.heightMm}mm-${layout.pages.length}pliegos${mirror ? '-espejo' : ''}.pdf`;
+      if (desktop) {
+        const result = await desktop.savePdf({ filename, bytes });
+        if (result.status === 'cancelled') { setExported('Guardado cancelado. El montaje sigue disponible.'); return; }
+        setDirty(false);
+        setExported(`PDF guardado: ${result.filename}. Imprime al 100 % o «Tamaño real».`);
+        if (result.warning) setErrors([result.warning]);
+        return;
+      }
       const blob = new Blob([new Uint8Array(bytes)], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a'); link.href = url;
-      link.download = `DTF-${profile.widthMm}x${profile.heightMm}mm-${layout.pages.length}pliegos${mirror ? '-espejo' : ''}.pdf`;
+      link.download = filename;
       document.body.append(link); link.click(); link.remove();
       setTimeout(() => URL.revokeObjectURL(url), 60000);
       setExported('PDF generado. Imprime al 100 % o «Tamaño real», sin ajustar a página.');
+      setDirty(false);
     } catch (e) { setErrors([errorText(e)]); }
     finally { setBusy(''); }
   };
 
   return <div className="app-shell">
-    <header className="app-header"><div className="brand">PK<span>print</span></div><h1>Maquetador DTF</h1><p>Prepara tu film. Descarga tu PDF a tamaño real.</p><span className="local-badge"><i />Todo en tu equipo</span></header>
+    <header className="app-header"><div className="brand">PK<span>print</span></div><h1>Maquetador DTF</h1><p>Prepara tu film. Descarga tu PDF a tamaño real.</p><span className="local-badge"><i />Todo en tu equipo</span>{desktop && <button className="text-button" onClick={() => void desktop?.showHelp('guide')}>Ayuda</button>}</header>
     <main className="workspace">
       <section className="panel designs-panel" aria-labelledby="designs-title">
         <h2 id="designs-title"><span className="step">1</span>Diseños <span className="panel-count">{designs.length > 0 ? designs.length : ''}</span></h2>
@@ -183,10 +219,12 @@ export default function App() {
           {errors.length > 0 && <div className="error-box" role="alert">{errors.map((error, i) => <p key={i}>{error}</p>)}<button className="text-button" onClick={() => setErrors([])}>Cerrar aviso</button></div>}
           <button className="download-button" disabled={!canExport} onClick={() => void exportPdf()}>{busy === 'Generando PDF…' ? 'Generando PDF…' : 'Descargar PDF'}<span aria-hidden="true">↓</span></button>
           {exported && <p className="success-note" role="status">{exported}</p>}
+          {desktop && exported.startsWith('PDF guardado') && <button className="text-button" onClick={() => void desktop?.showExportFolder()}>Abrir carpeta</button>}
           <p className="export-caption">Un PDF con todos los pliegos, sin marcas ni guías.</p>
         </div>
       </section>
     </main>
-    <footer className="app-footer">Maquetador DTF · PKprint<span>Los archivos se procesan localmente y no se suben a Internet.</span></footer>
+    <footer className="app-footer">Maquetador DTF{desktopVersion ? ` ${desktopVersion}` : ''} · PKprint<span>Los archivos se procesan localmente y no se suben a Internet.</span></footer>
+    {desktop && showWelcome && <Welcome onStart={async hide => { await desktop?.updatePreferences({ hideWelcome: hide }); setShowWelcome(false); }} />}
   </div>;
 }
