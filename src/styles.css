@@ -645,6 +645,14 @@ strong {
   to {
   transform:rotate(360deg)}
 }
+.welcome-backdrop { position:fixed; inset:0; z-index:100; background:rgba(25,40,20,.35); display:grid; place-items:center; padding:24px; }
+.welcome-dialog { width:100%; max-width:540px; border:1px solid #b3c6a8; border-radius:14px; background:white; padding:28px; box-shadow:0 8px 40px rgba(0,0,0,.15); }
+.welcome-dialog h2 { margin:18px 0 10px; font-size:23px; }
+.welcome-dialog ol { padding-left:23px; }
+.welcome-dialog li { margin:13px 0; }
+.welcome-dialog p { color:#60675f; margin:18px 0; font-size:13px; }
+.welcome-dialog .checkbox-label { margin:20px 0; }
+.welcome-dialog>.primary-button { width:100%; padding:12px; }
 
 @media(min-width:1600px) {
   .panel {

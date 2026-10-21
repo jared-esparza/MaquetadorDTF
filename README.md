@@ -2,6 +2,16 @@
 
 Editor local para cargar PNG, indicar medidas y copias, quitar fondos y repartir automáticamente los diseños sobre film. Descarga un PDF multipágina con transparencia y medidas físicas exactas.
 
+## Aplicación de escritorio para Windows
+
+El código fuente vive en https://github.com/jared-esparza/MaquetadorDTF. La etiqueta **v1.0.0-web** conserva el editor anterior a Electron. Se mantiene una única base de código para web y escritorio.
+
+Para usuarios finales, descarga el **instalador** o la **versión portátil** de GitHub Releases. Ambos incluyen Electron: no requieren Node.js ni conexión a Internet para usarlos. Consulta [las instrucciones de Windows](docs/USO-WINDOWS.md). La primera versión es sin firma y puede ser bloqueada por políticas de Control de aplicaciones de Windows; no desactives esas protecciones para probarla.
+
+La aplicación instalada guarda preferencias en `%APPDATA%/PKprint/MaquetadorDTF`. La portátil las guarda en `MaquetadorDTF-datos` junto al exe; copia también esa carpeta si quieres llevarte la configuración. Los formatos del navegador anterior deben configurarse inicialmente en la aplicación de escritorio.
+
+La licencia de reutilización del código propio está pendiente. No se declara licencia MIT/GPL para este proyecto. Se incluyen los avisos y licencias de los componentes de terceros distribuidos.
+
 ## Abrir en Windows
 
 Haz doble clic en **Iniciar Maquetador.cmd**. La aplicación se abre en el navegador en **http://127.0.0.1:47831**. Mantén abierta la ventana del lanzador mientras trabajas; ciérrala con Ctrl+C.
@@ -45,6 +55,9 @@ npm ci
 npm run dev
 npm test
 npm run test:e2e
+npm run test:desktop
+npm run desktop:dev
+npm run dist:win
 ```
 
 `npm run test:e2e` compila y comprueba el **servidor de producción** en Chrome instalado, incluido el PDF descargado. `npm test` ejecuta las pruebas de imagen, montaje, PDF y servidor; el test de servidor necesita una compilación en `dist`, que ya se incluye en el equipo de trabajo. En una instalación limpia, ejecuta primero `npm run build`.
@@ -58,6 +71,22 @@ python scripts/verify-pdf.py
 ```
 
 Las muestras se regeneran con `npm test`. Los informes y renders quedan en `artifacts/qa/`; las capturas y descargas del flujo real, en `test-results/`. La prueba de calibración verifica digitalmente la geometría; la impresión física depende del RIP y de la impresora.
+
+Para PDF independiente en otro equipo de desarrollo: `python -m pip install -r requirements-test.txt`. Los comandos de escritorio necesitan las dependencias de desarrollo, que se instalan con `npm ci`; el usuario final usa únicamente los ejecutables.
+
+`npm run dist:win` produce instalador, portátil y SHA256SUMS.txt en `release`. Ejecuta previamente `npm test` para regenerar las muestras de calibración. `npm run test:desktop` prueba Electron de desarrollo; para probar el paquete compilado establece `DTF_ELECTRON_EXE` con la ruta absoluta de `release/win-unpacked/MaquetadorDTF.exe` y ejecuta `npx playwright test -c playwright.desktop.config.ts`.
+
+`powershell -NoProfile -File scripts/create-sandbox-check.ps1 -Start` prepara e inicia la comprobación en Windows Sandbox sin red. No añade Node al invitado. El informe de `artifacts/sandbox-qa/verification.json` indica el resultado real, los hashes y el sistema probado. Un bloqueo de Control de aplicaciones queda registrado como fallo de esa comprobación, no como una validación exitosa.
+
+## Cómo mantener y publicar versiones
+
+1. Crea una rama para el cambio y modifica el código compartido en `src`; el contenedor vive en `electron`.
+2. Ejecuta `npm run check` y la verificación independiente del PDF.
+3. Actualiza versión, archivo de dependencias y CHANGELOG. Abre una PR hacia `main`; GitHub Actions ejecuta pruebas y genera los binarios.
+4. Tras integrar, crea una etiqueta `vX.Y.Z`. El workflow prepara una Release en borrador con instalador, portátil y sumas SHA256.
+5. Verifica los ejecutables concretos de esa Release en Windows limpio y publica únicamente cuando la comprobación sea satisfactoria. Si permanece una limitación, mantén el borrador o identifícala explícitamente como versión preliminar.
+
+No subas `node_modules`, `dist`, `release`, ZIP, datos de usuario ni informes temporales a Git. Los instaladores se distribuyen como archivos de Release. No hay actualizaciones automáticas: se ejecuta el nuevo instalador o se reemplaza el portátil conservando su carpeta de datos.
 
 ## Estructura
 

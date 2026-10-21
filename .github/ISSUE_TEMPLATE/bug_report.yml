@@ -1,0 +1,21 @@
+name: Informar de un problema
+description: Fallos del editor, montaje, PDF o instalación.
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Versión y modalidad
+      description: Por ejemplo, 1.1.0 instalada o portátil.
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Qué ocurrió y cómo reproducirlo
+      description: Incluye Windows, formato de film y pasos. No adjuntes diseños privados.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Resultado esperado

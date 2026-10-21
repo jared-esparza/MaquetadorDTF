@@ -1,0 +1,89 @@
+name: Windows · pruebas y ejecutables
+on:
+  push:
+    branches: [main, feat/electron-desktop]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - run: npm ci
+      - run: python -m pip install -r requirements-test.txt
+      - run: npm run build
+      - run: npm test
+      - run: npm run test:e2e
+      - run: python scripts/verify-pdf.py
+      - run: npm run test:desktop
+      - run: npm run dist:win
+      - name: Probar ejecutable empaquetado
+        shell: pwsh
+        run: |
+          $env:DTF_ELECTRON_EXE=(Resolve-Path 'release/win-unpacked/MaquetadorDTF.exe').Path
+          npx playwright test -c playwright.desktop.config.ts
+      - name: Verificar PDF exportado por el paquete
+        run: python scripts/verify-pdf.py
+      - uses: actions/upload-artifact@v7
+        with:
+          name: windows-dist
+          path: |
+            release/MaquetadorDTF-Setup-*.exe
+            release/MaquetadorDTF-Portable-*.exe
+            release/SHA256SUMS.txt
+            docs/USO-WINDOWS.md
+            build/THIRD_PARTY_NOTICES.txt
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: windows-test-results
+          path: |
+            artifacts/qa/
+            test-results/
+            desktop-test-results/
+          retention-days: 14
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: windows
+    runs-on: ubuntu-latest
+    concurrency:
+      group: release-${{ github.ref }}
+      cancel-in-progress: false
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: windows-dist
+          path: distribution
+      - name: Preparar Release en borrador
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          if gh release view "$TAG" --json isDraft >/dev/null 2>&1; then
+            test "$(gh release view "$TAG" --json isDraft --jq .isDraft)" = true || { echo 'No se sobrescribe una versión publicada.'; exit 1; }
+          else
+            gh release create "$TAG" --draft --title "Maquetador DTF $TAG" --notes-file docs/RELEASE.md
+          fi
+          mapfile -d '' assets < <(find distribution -type f \( -name '*.exe' -o -name 'SHA256SUMS.txt' -o -name 'USO-WINDOWS.md' -o -name 'THIRD_PARTY_NOTICES.txt' \) -print0)
+          test "${#assets[@]}" -eq 5 || { echo 'Faltan archivos de distribución.'; exit 1; }
+          gh release upload "$TAG" "${assets[@]}" --clobber

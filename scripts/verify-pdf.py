@@ -61,5 +61,28 @@ for actual, expected in zip(physical_bounds, [10, 5, 170, 95]):
     assert abs(actual - expected) < .1, (physical_bounds, box)
 reports.append({"file": "margenes-espejo.pdf", "visible_bounds_mm": [round(n, 3) for n in physical_bounds], "result": "PASS"})
 bitmap.close(); page.close(); doc.close()
+desktop_pdf = ROOT / 'artifacts' / 'qa' / 'desktop-export.pdf'
+if desktop_pdf.exists():
+    reader = PdfReader(desktop_pdf)
+    assert len(reader.pages) == 3
+    doc = pdfium.PdfDocument(str(desktop_pdf))
+    pieces = 0
+    for index, pdf_page in enumerate(reader.pages):
+        assert abs(float(pdf_page.mediabox.width) * 25.4 / 72 - 550) < .0001
+        assert abs(float(pdf_page.mediabox.height) * 25.4 / 72 - 1000) < .0001
+        # Count actual drawing operations, independently of the editor summary.
+        operations = pdf_page.get_contents().operations
+        pieces += sum(operator == b'Do' for _, operator in operations)
+        images = pdf_page['/Resources']['/XObject'].get_object()
+        assert all('/SMask' in obj.get_object() for obj in images.values())
+        page = doc[index]
+        bitmap = page.render(scale=25.4 / 72, fill_color=(0, 0, 0, 0))
+        image = bitmap.to_pil().convert('RGBA')
+        assert image.getpixel((0, 0))[3] == 0
+        assert image.getbbox() is not None
+        bitmap.close(); page.close()
+    doc.close()
+    assert pieces == 60, pieces
+    reports.append({'file': desktop_pdf.name, 'pages': 3, 'pieces': pieces, 'size_mm': [550, 1000], 'alpha': True, 'result': 'PASS'})
 (ROOT / "artifacts" / "qa" / "verification.json").write_text(json.dumps(reports, indent=2), encoding="utf-8")
 print(json.dumps(reports, indent=2))
