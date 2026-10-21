@@ -1,0 +1,13 @@
+node_modules/
+dist/
+test-results/
+playwright-report/
+*.tsbuildinfo
+.superpowers/
+artifacts/
+release/
+desktop-test-results/
+.tools/
+*.zip
+*.exe
+*.log
