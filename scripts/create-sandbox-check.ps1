@@ -1,11 +1,14 @@
 param([switch]$Start)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
-$inputFolder = Join-Path $root 'artifacts\sandbox-input'
+$version = (Get-Content -LiteralPath (Join-Path $root 'package.json') -Raw | ConvertFrom-Json).version
+$inputFolder = Join-Path $root "artifacts\sandbox-input-$version"
 $resultsFolder = Join-Path $root 'artifacts\sandbox-qa'
 New-Item -ItemType Directory -Force -Path $resultsFolder | Out-Null
 New-Item -ItemType Directory -Force -Path $inputFolder | Out-Null
-Get-ChildItem -LiteralPath (Join-Path $root 'release') -Filter 'MaquetadorDTF-*.exe' | Where-Object { $_.Name -match '^MaquetadorDTF-(Setup|Portable)-' } | Copy-Item -Destination $inputFolder
+foreach ($targetName in @('Setup', 'Portable')) {
+  Copy-Item -LiteralPath (Join-Path $root "release\MaquetadorDTF-$targetName-$version-x64.exe") -Destination $inputFolder
+}
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'verify-clean-windows.ps1') -Destination (Join-Path $inputFolder 'verify-clean-windows.ps1')
 $source = [Security.SecurityElement]::Escape($inputFolder)
 $target = [Security.SecurityElement]::Escape($resultsFolder)

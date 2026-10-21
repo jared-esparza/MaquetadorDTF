@@ -95,5 +95,3 @@ No subas `node_modules`, `dist`, `release`, ZIP, datos de usuario ni informes te
 - `src/components` y `src/App.tsx`: editor, perfiles y vista previa SVG.
 - `scripts/serve.mjs`: servidor local que solo publica `dist` en loopback.
 - `tests`: pruebas unitarias, de servidor y de navegador.
-
-Referencia funcional y visual: https://imprimirlo.com/pages/montador-uv-dtf. Implementación independiente adaptada a uso local y exportación PDF.

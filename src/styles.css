@@ -1,15 +1,15 @@
 :root {
   font-family:Arial,Helvetica,sans-serif;
-  color:#202820;
+  color:#202d3c;
   background:#fff;
   font-synthesis:none;
   font-size:14px;
   line-height:1.45;
   font-weight:400;
-  --green:#278c25;
-  --light-green:#f1f9e9;
-  --border:#d5d8d3;
-  --muted:#60675f}
+  --brand:#1269b0;
+  --brand-soft:#edf5fd;
+  --border:#d3dde7;
+  --muted:#5d6b7a}
 
 * {
   box-sizing:border-box}
@@ -28,23 +28,23 @@ button {
   font-weight:600;
   line-height:1.2}
 button:hover:not(:disabled) {
-  border-color:var(--green);
-  background:#f2f8ee}
+  border-color:var(--brand);
+  background:#eef3f8}
 button:disabled {
   opacity:.48;
   cursor:not-allowed}
 input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),select {
-  border:1px solid #b5bdb0;
+  border:1px solid #b0b7bd;
   border-radius:5px;
   padding:7px 8px;
   background:#fff;
   min-width:0;
   width:100%}
 input:focus,select:focus,button:focus-visible {
-  outline:2px solid var(--green);
+  outline:2px solid var(--brand);
   outline-offset:2px}
 input[type=checkbox],input[type=radio] {
-  accent-color:var(--green);
+  accent-color:var(--brand);
   width:15px;
   height:15px;
   flex-shrink:0}
@@ -79,7 +79,7 @@ strong {
   letter-spacing:-1px;
   white-space:nowrap}
 .brand span {
-  color:var(--green);
+  color:var(--brand);
   font-weight:500}
 .app-header p {
   color:var(--muted);
@@ -88,14 +88,14 @@ strong {
   margin-left:auto;
   font-size:12px;
   white-space:nowrap;
-  color:#4d604a;
+  color:#4a5660;
   display:flex;
   align-items:center;
   gap:6px}
 .local-badge i {
   width:7px;
   height:7px;
-  background:#3ba736;
+  background:#1674c4;
   border-radius:50%}
 .workspace {
   display:grid;
@@ -106,13 +106,13 @@ strong {
 .panel {
   border:1px solid var(--border);
   border-radius:12px;
-  background:#f7f8f6;
+  background:#f6f8fb;
   padding:12px;
   min-height:calc(100vh - 116px)}
 .panel>h2 {
   margin-bottom:12px}
 .step {
-  background:#31a326;
+  background:#1674c4;
   color:#fff;
   width:22px;
   height:22px;
@@ -127,14 +127,14 @@ strong {
   margin-left:auto;
   color:var(--muted)}
 .upload-area {
-  border:2px dashed #92c383;
+  border:2px dashed #83a5c3;
   border-radius:11px;
-  background:var(--light-green);
+  background:var(--brand-soft);
   position:relative;
   margin-bottom:17px}
 .upload-area.dragging {
-  background:#def3cf;
-  border-color:var(--green)}
+  background:#cfe2f3;
+  border-color:var(--brand)}
 .file-input {
   position:absolute;
   width:1px;
@@ -161,7 +161,7 @@ strong {
   font-size:12px;
   color:var(--muted)}
 .upload-plus {
-  background:#36a52a;
+  background:#1674c4;
   color:#fff;
   width:24px;
   height:24px;
@@ -181,7 +181,7 @@ strong {
 .design-card {
   border:1px solid var(--border);
   border-radius:11px;
-  background:#f1f3ef;
+  background:#eff1f3;
   padding:9px}
 .design-card-top {
   display:flex;
@@ -191,7 +191,7 @@ strong {
   width:41px;
   height:41px;
   object-fit:contain;
-  border:1px solid #c9cec5;
+  border:1px solid #c5cace;
   border-radius:6px}
 .design-name {
   font-size:13px;
@@ -208,7 +208,7 @@ strong {
   background:transparent;
   font-size:20px;
   border-color:transparent;
-  color:#64705f}
+  color:#5f6870}
 .design-inputs {
   display:flex;
   gap:9px;
@@ -223,14 +223,14 @@ strong {
 .number-field>span {
   font-size:11px;
   font-weight:700;
-  color:#39702b}
+  color:#2b5070}
 .number-field input {
   font-size:18px;
   font-weight:700;
-  color:#27751e;
+  color:#1e4c75;
   height:34px;
-  background:#e8efdf!important;
-  border-color:#8eba79!important}
+  background:#dfe8ef!important;
+  border-color:#799cba!important}
 .number-field input[aria-invalid=true] {
   border-color:#b02e25!important;
   background:#fff2ee!important;
@@ -247,16 +247,16 @@ strong {
   padding:1px 6px;
   font-size:16px;
   line-height:16px;
-  border-color:#a5c496;
-  color:#367b29;
-  background:#f2f8eb}
+  border-color:#96afc4;
+  color:#29557b;
+  background:#ebf2f8}
 .disclosure {
   margin-top:16px}
 .design-details {
   margin:7px 0 0 49px;
   font-size:12px}
 .quality.good {
-  color:#3c7430}
+  color:#305474}
 .quality.fair {
   color:#86600c}
 .quality.low {
@@ -274,18 +274,18 @@ strong {
 .small-button {
   padding:5px 8px;
   font-size:12px;
-  color:#2e6c23;
-  border:1px solid #a6c395;
+  color:#234a6c;
+  border:1px solid #95aec3;
   border-radius:18px;
-  background:#f7fbf0}
+  background:#f0f6fb}
 .design-details>.small-button {
   margin-top:7px}
 .small-button.selected {
-  background:#d9eecd;
-  border-color:var(--green)}
+  background:#cddfee;
+  border-color:var(--brand)}
 .session-note {
   font-size:11px;
-  color:#747b70;
+  color:#70767b;
   margin:20px 0 3px}
 .panel-heading {
   display:flex;
@@ -302,27 +302,27 @@ strong {
   width:auto;
   padding:4px}
 .checker {
-  background-color:#e7e9e4;
-  background-image:linear-gradient(45deg,#d5d8d1 25%,transparent 25%),linear-gradient(-45deg,#d5d8d1 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#d5d8d1 75%),linear-gradient(-45deg,transparent 75%,#d5d8d1 75%);
+  background-color:#e8ebef;
+  background-image:linear-gradient(45deg,#d5dbe2 25%,transparent 25%),linear-gradient(-45deg,#d5dbe2 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#d5dbe2 75%),linear-gradient(-45deg,transparent 75%,#d5dbe2 75%);
   background-size:16px 16px;
   background-position:0 0,0 8px,8px -8px,-8px 0}
 .sheet-frame {
   padding:8px;
-  background:#edf0e9;
+  background:#e9edf0;
   border-radius:10px;
-  border:1px solid #d8ddd3;
+  border:1px solid #d3d8dd;
   max-width:min(100%,calc((100vh - 260px) * var(--sheet-ratio) + 18px));
   margin:0 auto}
 .sheet-svg {
   display:block;
   width:100%;
   height:auto;
-  border:1px solid #9da696}
+  border:1px solid #969fa6}
 .sheet-frame>.sheet-svg {
   aspect-ratio:var(--sheet-ratio)}
 .print-area {
   fill:none;
-  stroke:#76856b;
+  stroke:#6b7985;
   stroke-width:1;
   stroke-dasharray:5 5;
   vector-effect:non-scaling-stroke}
@@ -358,12 +358,12 @@ strong {
   border-radius:5px;
   background:transparent}
 .page-thumbnail.active {
-  border-color:var(--green)}
+  border-color:var(--brand)}
 .page-thumbnail>span {
   position:absolute;
   left:-2px;
   top:-6px;
-  background:var(--green);
+  background:var(--brand);
   color:#fff;
   min-width:16px;
   height:16px;
@@ -374,13 +374,13 @@ strong {
   height:77px}
 .preview-caption {
   font-size:11px;
-  color:#71796b;
+  color:#6b7279;
   text-align:center;
   margin-top:12px}
 .mirror-note {
   text-align:center;
   font-size:12px;
-  color:#2e7023;
+  color:#234c70;
   margin-top:7px}
 .empty-preview {
   display:flex;
@@ -394,14 +394,14 @@ strong {
 .empty-sheet {
   width:126px;
   height:184px;
-  border:1px solid #bac6b1;
-  background:repeating-linear-gradient(0deg,transparent 0 15px,#e2e8dc 15px 16px),repeating-linear-gradient(90deg,#f1f5ed 0 15px,#e2e8dc 15px 16px);
+  border:1px solid #b1bcc6;
+  background:repeating-linear-gradient(0deg,transparent 0 15px,#dce2e8 15px 16px),repeating-linear-gradient(90deg,#edf1f5 0 15px,#dce2e8 15px 16px);
   border-radius:3px;
   display:grid;
   place-items:center}
 .empty-sheet span {
   font-size:33px;
-  color:#a2b798;
+  color:#98a9b7;
   font-weight:300}
 .export-panel {
   display:flex;
@@ -413,7 +413,7 @@ strong {
   color:var(--muted);
   font-size:12px}
 .select-label select {
-  color:#202820;
+  color:#202d3c;
   font-size:13px}
 .profile-line {
   display:flex;
@@ -425,7 +425,7 @@ strong {
 .text-button {
   border:0;
   background:transparent;
-  color:#387a2b;
+  color:#2b557a;
   padding:3px 0;
   font-size:12px;
   text-decoration:underline;
@@ -433,7 +433,7 @@ strong {
 .profile-editor {
   margin-top:13px;
   padding:11px;
-  border:1px solid #c7d6bd;
+  border:1px solid #bdcad6;
   border-radius:7px;
   background:#fff}
 .profile-editor label {
@@ -441,9 +441,9 @@ strong {
   flex-direction:column;
   gap:4px;
   font-size:11px;
-  color:#53624a}
+  color:#4a5762}
 .profile-editor input {
-  color:#202820;
+  color:#202d3c;
   font-size:13px}
 .form-grid {
   display:grid;
@@ -459,26 +459,26 @@ strong {
 .editor-actions button {
   font-size:12px}
 .primary-button {
-  background:var(--green);
-  border-color:var(--green);
+  background:var(--brand);
+  border-color:var(--brand);
   color:#fff}
 .primary-button:hover:not(:disabled) {
-  background:#20751e;
+  background:#0d528d;
   color:#fff}
 .layout-summary {
   display:flex;
   flex-direction:column;
   gap:4px;
   margin-top:24px;
-  border:2px solid #60ab43;
-  background:#f1f8e8;
+  border:2px solid #559bd6;
+  background:#e8f1f8;
   border-radius:10px;
   padding:13px}
 .layout-summary strong {
   font-size:16px}
 .layout-summary span {
   font-size:12px;
-  color:#4d6940}
+  color:#405669}
 .summary-empty {
   margin-top:26px;
   text-align:center;
@@ -499,12 +499,12 @@ strong {
   margin-top:23px}
 .print-note {
   font-size:12px;
-  color:#65715e;
+  color:#5e6871;
   margin-top:24px;
   padding-top:17px;
-  border-top:1px solid #dde2d8}
+  border-top:1px solid #d8dde2}
 .print-note strong {
-  color:#46533f}
+  color:#3f4a53}
 .print-note p {
   margin-top:6px}
 .export-bottom {
@@ -515,8 +515,8 @@ strong {
   align-items:center;
   justify-content:space-between;
   width:100%;
-  background:#2d8e28;
-  border-color:#2d8e28;
+  background:#1269b0;
+  border-color:#1269b0;
   color:white;
   padding:13px 15px;
   font-size:16px;
@@ -526,17 +526,17 @@ strong {
   line-height:16px;
   font-weight:400}
 .download-button:hover:not(:disabled) {
-  background:#22731e;
+  background:#0d528d;
   color:#fff}
 .download-button:disabled {
   opacity:1;
-  background:#a4c496;
-  border-color:#a4c496;
-  color:#f8fbf5}
+  background:#9dbad3;
+  border-color:#9dbad3;
+  color:#f5f8fb}
 .export-caption {
   font-size:11px;
   text-align:center;
-  color:#70796a;
+  color:#6a7279;
   margin-top:9px}
 .low-dpi {
   padding:12px;
@@ -564,7 +564,7 @@ strong {
   line-height:1.3}
 .success-note {
   font-size:12px;
-  color:#32752a;
+  color:#2a5275;
   margin-top:9px}
 .muted {
   color:var(--muted);
@@ -573,21 +573,21 @@ strong {
   display:flex;
   align-items:center;
   gap:8px;
-  color:#497b36;
+  color:#365b7b;
   font-size:12px;
   margin:10px 0}
 .spinner {
   display:inline-block;
   width:13px;
   height:13px;
-  border:2px solid #c9ddbe;
-  border-top-color:var(--green);
+  border:2px solid #becfdd;
+  border-top-color:var(--brand);
   border-radius:50%;
   animation:spin 1s linear infinite}
 .image-editor {
   margin-top:10px;
-  background:#f1f9e9;
-  border:1px solid #bad3ad;
+  background:#edf5fd;
+  border:1px solid #adc1d3;
   border-radius:8px;
   padding:10px;
   font-size:12px}
@@ -600,7 +600,7 @@ strong {
 .tolerance-label input {
   width:100%;
   margin:6px 0;
-  accent-color:var(--green)}
+  accent-color:var(--brand)}
 .radio-label {
   display:flex;
   align-items:center;
@@ -617,13 +617,13 @@ strong {
   min-width:0}
 .comparison figcaption {
   font-size:11px;
-  color:#506445;
+  color:#455664;
   margin-bottom:4px}
 .comparison img {
   display:block;
   width:100%;
   height:auto;
-  border:1px solid #b6c5ab;
+  border:1px solid #abb9c5;
   object-fit:fill;
   border-radius:4px}
 .wand-cursor {
@@ -638,19 +638,19 @@ strong {
   align-items:center;
   justify-content:space-between;
   padding:3px 17px 12px;
-  color:#78816f;
+  color:#6f7981;
   font-size:11px}
 
 @keyframes spin {
   to {
   transform:rotate(360deg)}
 }
-.welcome-backdrop { position:fixed; inset:0; z-index:100; background:rgba(25,40,20,.35); display:grid; place-items:center; padding:24px; }
-.welcome-dialog { width:100%; max-width:540px; border:1px solid #b3c6a8; border-radius:14px; background:white; padding:28px; box-shadow:0 8px 40px rgba(0,0,0,.15); }
+.welcome-backdrop { position:fixed; inset:0; z-index:100; background:rgba(20,35,55,.35); display:grid; place-items:center; padding:24px; }
+.welcome-dialog { width:100%; max-width:540px; border:1px solid #a8b8c6; border-radius:14px; background:white; padding:28px; box-shadow:0 8px 40px rgba(0,0,0,.15); }
 .welcome-dialog h2 { margin:18px 0 10px; font-size:23px; }
 .welcome-dialog ol { padding-left:23px; }
 .welcome-dialog li { margin:13px 0; }
-.welcome-dialog p { color:#60675f; margin:18px 0; font-size:13px; }
+.welcome-dialog p { color:#5d6b7a; margin:18px 0; font-size:13px; }
 .welcome-dialog .checkbox-label { margin:20px 0; }
 .welcome-dialog>.primary-button { width:100%; padding:12px; }
 
