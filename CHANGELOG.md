@@ -1,5 +1,10 @@
 # Cambios
 
+## 1.1.1
+- Gama azul PKprint en el editor, bienvenida, ayuda e iconos de Windows.
+- Eliminadas las referencias a servicios ajenos en la documentación actual.
+- Sumatorio SHA-256 limitado a la versión actual para conservar paquetes anteriores.
+
 ## 1.1.0
 - Aplicación Electron para Windows x64, instalador guiado en español y ejecutable portátil.
 - Preferencias propias, guardado nativo PDF y última carpeta utilizada.

@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
-import { readdir, readFile, writeFile } from 'node:fs/promises';
-const files = (await readdir('release')).filter(name => /^MaquetadorDTF-(Setup|Portable)-.*\.exe$/.test(name)).sort();
-if (files.length !== 2) throw new Error('Deben existir exactamente dos ejecutables de esta versión.');
+import { readFile, writeFile } from 'node:fs/promises';
+const { version } = JSON.parse(await readFile('package.json', 'utf8'));
+const files = ['Portable', 'Setup'].map(target => `MaquetadorDTF-${target}-${version}-x64.exe`);
 const lines = [];
 for (const file of files) lines.push(`${createHash('sha256').update(await readFile('release/' + file)).digest('hex')}  ${file}`);
 await writeFile('release/SHA256SUMS.txt', lines.join('\n') + '\n');
