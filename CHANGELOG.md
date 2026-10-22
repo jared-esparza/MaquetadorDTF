@@ -1,5 +1,10 @@
 # Cambios
 
+## Web · octubre de 2026
+- Descargas de Windows desde la publicación más reciente que incluya instalador y portátil x64, también preliminares, con comprobación al descargar.
+- Avisos sobre almacenamiento privado por navegador y restauración de formatos originales conservando formatos personalizados y selección.
+- Sin cambios de comportamiento en Electron ni nuevos ejecutables en esta entrega.
+
 ## 1.1.1
 - Gama azul PKprint en el editor, bienvenida, ayuda e iconos de Windows.
 - Eliminadas las referencias a servicios ajenos en la documentación actual.

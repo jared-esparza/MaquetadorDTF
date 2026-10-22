@@ -80,6 +80,10 @@ Para PDF independiente en otro equipo de desarrollo: `python -m pip install -r r
 
 ## Cómo mantener y publicar versiones
 
+En la web, los formatos se guardan únicamente en el navegador de cada visitante: editarlos no modifica los de otras personas. «Restaurar formatos predeterminados» recupera los nombres, medidas y márgenes originales de Film 55 × 100 cm, A3 y A4, conservando los formatos personalizados y la selección. Borrar los datos del sitio o cambiar de navegador o dominio puede dejar esas preferencias fuera de alcance.
+
+El bloque «Versión para Windows» consulta la API pública de GitHub, sin credenciales, al abrir la web y al descargar. Escoge por fecha de publicación la Release no borrador más reciente con ambos ejecutables x64, incluidas las preliminares, e identifica estas últimas. Las descargas usan las URL reales de sus archivos; una nueva Release no requiere desplegar otra vez la web. Si la consulta falla o no hay una publicación completa, se ofrece el listado de versiones sin mantener enlaces desactualizados. Este bloque solo aparece en la web.
+
 La versión web se despliega automáticamente en IONOS con cada push a `main` que supere los controles. La URL se configura mediante `WEB_URL` en GitHub; los datos SFTP permanecen como secretos. Consulta [la configuración y el procedimiento de despliegue](docs/DEPLOY-WEB.md).
 
 1. Crea una rama para el cambio y modifica el código compartido en `src`; el contenedor vive en `electron`.
