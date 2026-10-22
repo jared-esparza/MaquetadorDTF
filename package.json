@@ -1,7 +1,7 @@
 {
   "name": "maquetador-dtf",
-  "version": "1.1.1",
-  "description": "Maquetador DTF local con exportación PDF a tamaño real",
+  "version": "1.2.0",
+  "description": "Maquetador DTF local con exportaci\u00f3n PDF a tama\u00f1o real",
   "author": "PKprint",
   "license": "UNLICENSED",
   "main": "electron/main.mjs",
@@ -18,10 +18,12 @@
     "check": "npm run build && npm test && npm run test:e2e && npm run test:desktop",
     "desktop:dev": "npm run build && electron .",
     "test:desktop": "npm run build && playwright test -c playwright.desktop.config.ts",
-    "dist:win": "npm run build && node scripts/prepare-desktop.mjs && electron-builder --win nsis portable --x64 --publish never && node scripts/checksums.mjs",
-    "dist:dir": "npm run build && node scripts/prepare-desktop.mjs && electron-builder --win --x64 --dir --publish never"
+    "dist:win": "npm run build && npm run dist:win:built",
+    "dist:dir": "npm run build && node scripts/prepare-desktop.mjs && electron-builder --win --x64 --dir --publish never",
+    "dist:win:built": "node scripts/prepare-desktop.mjs && electron-builder --win nsis portable --x64 --publish never && node scripts/checksums.mjs"
   },
   "dependencies": {
+    "fflate": "^0.8.3",
     "pdf-lib": "^1.17.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"

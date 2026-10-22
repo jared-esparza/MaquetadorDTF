@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { decodePng, rasterPng, rasterUrl } from './browser/images';
-import { runImage, runLayout } from './browser/workerClient';
+import { runImage, runLayout, runPngExport } from './browser/workerClient';
+import { pngDimensions } from './core/png';
+import type { ExportProgress } from './browser/printPng';
 import { DEFAULT_PROFILE, MAX_TOTAL_PIXELS, designMetrics, formatMm, pixelsAfterEdit, profileForLayout, retainedPixelCount, validateProfile, type Design, type LayoutResult, type Raster, type SheetProfile } from './core/model';
 import { hasOpaqueBackground } from './core/images';
 import { DesignCard } from './components/DesignCard';
@@ -21,6 +23,11 @@ function readProfiles(): { profiles: SheetProfile[]; selected: string } {
   return { profiles: initialProfiles, selected: DEFAULT_PROFILE.id };
 }
 const errorText = (e: unknown) => e instanceof Error ? e.message : 'No se ha podido completar la operación.';
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob), link = document.createElement('a');
+  link.href = url; link.download = filename; document.body.append(link); link.click(); link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
 
 export default function App() {
   const [stored, setStored] = useState(readProfiles);
@@ -28,6 +35,9 @@ export default function App() {
   const [designs, setDesigns] = useState<Design[]>([]);
   const [gapMm, setGapMm] = useState(7);
   const [mirror, setMirror] = useState(false);
+  const [pngDpi, setPngDpi] = useState(300);
+  const [exportProgress, setExportProgress] = useState<ExportProgress | null>(null);
+  const exportController = useRef<AbortController | null>(null);
   const [busy, setBusy] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formatOpen, setFormatOpen] = useState(false);
@@ -54,6 +64,9 @@ export default function App() {
   const blocked = !!busy || editingId !== null || !preferencesReady || showWelcome;
   const lowDpi = designs.some(d => designMetrics(d.raster, d.widthMm).quality === 'low');
   const canExport = !blocked && !formatOpen && !pending && invalidFields.size === 0 && !!layout?.pages.length && layout.unplacedIds.length === 0 && (!lowDpi || acceptedLowDpi);
+  let pngSize = '', pngError = '';
+  try { const size = pngDimensions(profile, pngDpi); pngSize = `${size.width} × ${size.height} píxeles por pliego`; }
+  catch (error) { pngError = errorText(error); }
 
   useEffect(() => {
     if (!preferencesReady) return;
@@ -93,7 +106,7 @@ export default function App() {
     mounted.current = true;
     const warn = (event: BeforeUnloadEvent) => { if (!desktop && (documentState.current.dirty || documentState.current.busy)) event.preventDefault(); };
     window.addEventListener('beforeunload', warn);
-    return () => { mounted.current = false; window.removeEventListener('beforeunload', warn); urls.current.forEach(url => URL.revokeObjectURL(url)); urls.current.clear(); };
+    return () => { mounted.current = false; exportController.current?.abort(); window.removeEventListener('beforeunload', warn); urls.current.forEach(url => URL.revokeObjectURL(url)); urls.current.clear(); };
   }, []);
 
   const rememberUrl = async (raster: Raster) => {
@@ -165,15 +178,40 @@ export default function App() {
         return;
       }
       const blob = new Blob([new Uint8Array(bytes)], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a'); link.href = url;
-      link.download = filename;
-      document.body.append(link); link.click(); link.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      downloadBlob(blob, filename);
       setExported('PDF generado. Imprime al 100 % o «Tamaño real», sin ajustar a página.');
       setDirty(false);
     } catch (e) { setErrors([errorText(e)]); }
     finally { setBusy(''); }
+  };
+
+  const exportPng = async () => {
+    if (!canExport || !layout || pngError) return;
+    const controller = new AbortController(); exportController.current = controller;
+    setBusy('Generando PNG…'); setErrors([]); setExported('');
+    setExportProgress({ page: 1, pages: layout.pages.length, percent: 0 });
+    try {
+      const assets = [];
+      for (const design of designs) {
+        controller.signal.throwIfAborted();
+        const png = new Uint8Array(await (await rasterPng(design.raster)).arrayBuffer());
+        assets.push({ id: design.id, png, widthMm: design.widthMm, heightMm: designMetrics(design.raster, design.widthMm).heightMm, copies: design.copies });
+      }
+      const blob = await runPngExport({ assets, layout, profile, dpi: pngDpi, gapMm, mirror }, controller.signal, setExportProgress);
+      controller.signal.throwIfAborted();
+      const type = layout.pages.length > 1 ? 'zip' : 'png';
+      const filename = `DTF-${profile.widthMm}x${profile.heightMm}mm-${pngDpi}ppp${mirror ? '-espejo' : ''}-${type === 'png' ? 'pliego-001' : `${layout.pages.length}pliegos`}.${type}`;
+      if (desktop) {
+        const result = await desktop.saveRaster({ filename, type, bytes: new Uint8Array(await blob.arrayBuffer()) });
+        if (result.status === 'cancelled') { setExported('Guardado cancelado. El montaje sigue disponible.'); return; }
+        setExported(`${type.toUpperCase()} guardado: ${result.filename}. Importa al RIP conservando el tamaño real.`);
+        if (result.warning) setErrors([result.warning]);
+      } else { downloadBlob(blob, filename); setExported(`${type.toUpperCase()} generado. Importa al RIP conservando el tamaño real.`); }
+      setDirty(false);
+    } catch (error) {
+      if (controller.signal.aborted) setExported('Exportación cancelada. El montaje sigue disponible.');
+      else setErrors([errorText(error)]);
+    } finally { exportController.current = null; setExportProgress(null); setBusy(''); }
   };
 
   return <div className="app-shell">
@@ -195,7 +233,7 @@ export default function App() {
           onApply={async raster => { setBusy('Aplicando fondo…'); try { await applyRaster(design, raster, 'Fondo quitado.'); setEditingId(null); } finally { setBusy(''); } }}
           onRefine={() => void refine(design)}
           onUndo={() => { if (!design.undo) return; release(design.url); const undo = design.undo; setDesigns(current => current.map(d => d.id === design.id ? { ...d, raster: undo.raster, url: undo.url, note: undo.note, opaque: undo.opaque, undo: undefined } : d)); setExported(''); }} />)}</div>
-        <p className="session-note">Los diseños permanecen en esta sesión. Descarga tu PDF antes de cerrar.</p>
+        <p className="session-note">Los diseños permanecen en esta sesión. Exporta tu trabajo antes de cerrar.</p>
       </section>
 
       <section className="panel preview-panel" aria-labelledby="preview-title">
@@ -207,7 +245,7 @@ export default function App() {
       </section>
 
       <section className="panel export-panel" aria-labelledby="export-title">
-        <h2 id="export-title"><span className="step">3</span>Exportar PDF</h2>
+        <h2 id="export-title"><span className="step">3</span>Exportar</h2>
         <ProfileEditor profiles={stored.profiles} profile={profile} disabled={blocked} onOpenChange={setFormatOpen} onSelect={selected => setStored(current => ({ ...current, selected }))} onSave={(updated, asNew) => setStored(current => ({ profiles: asNew ? [...current.profiles, updated] : current.profiles.map(p => p.id === updated.id ? updated : p), selected: updated.id }))}
           resetDisabled={pending} onReset={desktop ? undefined : () => {
             if (window.confirm('Se restaurarán los nombres, medidas y márgenes de Film 55 × 100 cm, A3 y A4. Los formatos creados con «Guardar como nuevo» se conservarán. ¿Continuar?')) {
@@ -224,9 +262,16 @@ export default function App() {
           {invalidFields.size > 0 && <p className="error" role="alert">Corrige las medidas o cantidades marcadas.</p>}
           {errors.length > 0 && <div className="error-box" role="alert">{errors.map((error, i) => <p key={i}>{error}</p>)}<button className="text-button" onClick={() => setErrors([])}>Cerrar aviso</button></div>}
           <button className="download-button" disabled={!canExport} onClick={() => void exportPdf()}>{busy === 'Generando PDF…' ? 'Generando PDF…' : 'Descargar PDF'}<span aria-hidden="true">↓</span></button>
+          <div className="png-export">
+            <label>Resolución PNG<select aria-label="Resolución PNG" value={pngDpi} disabled={blocked || formatOpen} onChange={event => setPngDpi(Number(event.target.value))}>{[150, 300, 600].map(dpi => <option key={dpi} value={dpi}>{dpi} ppp</option>)}</select></label>
+            <p className="muted">{pngSize || pngError}</p>
+            <p className="muted">Más ppp no recuperan detalle ausente en el original. Se conserva la transparencia y se aplica el mismo espejo que al PDF.</p>
+            <button className="download-button" disabled={!canExport || !!pngError} onClick={() => void exportPng()}>{layout && layout.pages.length > 1 ? 'Descargar PNG en ZIP' : 'Descargar PNG'}<span aria-hidden="true">↓</span></button>
+            {exportProgress && <div role="status"><p>Pliego {exportProgress.page} de {exportProgress.pages} · {exportProgress.percent} %</p><progress aria-label="Progreso de exportación PNG" max="100" value={exportProgress.percent} /><button type="button" onClick={() => exportController.current?.abort()}>Cancelar exportación</button></div>}
+          </div>
           {exported && <p className="success-note" role="status">{exported}</p>}
-          {desktop && exported.startsWith('PDF guardado') && <button className="text-button" onClick={() => void desktop?.showExportFolder()}>Abrir carpeta</button>}
-          <p className="export-caption">Un PDF con todos los pliegos, sin marcas ni guías.</p>
+          {desktop && /^(PDF|PNG|ZIP) guardado:/.test(exported) && <button className="text-button" onClick={() => void desktop?.showExportFolder()}>Abrir carpeta</button>}
+          <p className="export-caption">PDF con todos los pliegos o un PNG por pliego. Varios PNG se entregan en ZIP, sin marcas ni guías.</p>
         </div>
       </section>
     </main>

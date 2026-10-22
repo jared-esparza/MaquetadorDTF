@@ -86,13 +86,27 @@ export function validatePdfRequest(request) {
 
 export async function savePdf({ directory, request, choosePath }) {
   validatePdfRequest(request);
+  return saveValidated({ directory, request, choosePath, extension: 'pdf' });
+}
+
+export function validateRasterRequest(request) {
+  if (!request || !['png', 'zip'].includes(request.type) || typeof request.filename !== 'string' || request.filename.includes('..') || !/^[^<>:"/\\|?*\x00-\x1f]{1,180}\.(png|zip)$/i.test(request.filename) || path.extname(request.filename).toLowerCase() !== '.' + request.type) throw new Error('Nombre o tipo de exportación no válido.');
+  const bytes = request.bytes;
+  const signature = request.type === 'png' ? [137, 80, 78, 71, 13, 10, 26, 10] : [80, 75, 3, 4];
+  if (!(bytes instanceof Uint8Array) || bytes.byteLength < (request.type === 'png' ? 33 : 30) || bytes.byteLength > 256 * 1024 * 1024 || signature.some((value, index) => bytes[index] !== value)) throw new Error('Contenido PNG/ZIP no válido o demasiado grande.');
+}
+export async function saveRaster({ directory, request, choosePath }) {
+  validateRasterRequest(request);
+  return saveValidated({ directory, request, choosePath, extension: request.type });
+}
+async function saveValidated({ directory, request, choosePath, extension }) {
   const preferences = await readPreferences(directory);
   const result = await choosePath({ defaultPath: preferences.lastExportDirectory ? path.join(preferences.lastExportDirectory, request.filename) : request.filename });
   if (result.canceled || !result.filePath) return { status: 'cancelled' };
-  if (!path.isAbsolute(result.filePath) || path.extname(result.filePath).toLowerCase() !== '.pdf') throw new Error('Elige un archivo con extensión .pdf.');
+  if (!path.isAbsolute(result.filePath) || path.extname(result.filePath).toLowerCase() !== '.' + extension) throw new Error(`Elige un archivo con extensión .${extension}.`);
   await atomicWrite(result.filePath, request.bytes);
   let warning;
   try { await commitPreferences(directory, { lastExportDirectory: path.dirname(result.filePath) }); }
-  catch { warning = 'El PDF se guardó, pero no se pudo recordar la carpeta.'; }
+  catch { warning = 'El archivo se guardó, pero no se pudo recordar la carpeta.'; }
   return { status: 'saved', filename: path.basename(result.filePath), filePath: result.filePath, ...(warning ? { warning } : {}) };
 }

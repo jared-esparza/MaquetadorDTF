@@ -5,6 +5,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { PNG } from 'pngjs';
 import { PDFDocument } from 'pdf-lib';
+import { unzipSync } from 'fflate';
 
 const require = createRequire(import.meta.url);
 let application: ElectronApplication;
@@ -91,6 +92,52 @@ test('un error de escritura conserva el montaje y permite exportarlo después', 
   await page.getByRole('button', { name: 'Descargar PDF', exact: true }).click();
   await expect(page.getByRole('status').filter({ hasText: 'PDF guardado' })).toBeVisible();
   expect((await PDFDocument.load(await readFile(target))).getPageCount()).toBe(1);
+});
+
+test('guarda PNG y ZIP con diálogo restringido, cancelación, errores y carpeta recordada', async () => {
+  await closeWelcome();
+  await page.getByRole('button', { name: 'Configurar formato' }).click();
+  await page.getByLabel('Ancho del pliego (mm)').fill('60');
+  await page.getByLabel('Largo del pliego (mm)').fill('50');
+  await page.getByRole('button', { name: 'Guardar formato', exact: true }).click();
+  await importDesign();
+  await page.getByLabel('Ancho (cm)', { exact: true }).fill('2');
+  await page.getByLabel('Ancho (cm)', { exact: true }).blur();
+  await expect(page.getByRole('button', { name: 'Descargar PNG', exact: true })).toBeEnabled();
+  await application.evaluate(({ dialog }) => { dialog.showSaveDialog = async () => ({ canceled: true, filePath: '' }); });
+  await page.getByRole('button', { name: 'Descargar PNG', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Guardado cancelado' })).toBeVisible();
+  const pngTarget = path.join(directory, 'impresión ñ.png');
+  await application.evaluate(({ dialog }, filePath) => {
+    dialog.showSaveDialog = async (...args: unknown[]) => { const options = args[1] ?? args[0];
+      (globalThis as unknown as { saveOptions: unknown }).saveOptions = options;
+      return { canceled: false, filePath };
+    };
+  }, path.join(directory, 'inexistente', 'error.png'));
+  await page.getByRole('button', { name: 'Descargar PNG', exact: true }).click();
+  await expect(page.getByRole('alert')).toBeVisible();
+  await expect(page.getByTestId('design-card')).toHaveCount(1);
+  await application.evaluate(({ dialog }, filePath) => { dialog.showSaveDialog = async (...args: unknown[]) => { const options = args[1] ?? args[0]; (globalThis as unknown as { saveOptions: unknown }).saveOptions = options; return { canceled: false, filePath }; }; }, pngTarget);
+  await page.getByRole('button', { name: 'Descargar PNG', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'PNG guardado' })).toBeVisible();
+  expect(PNG.sync.read(await readFile(pngTarget)).width).toBe(709);
+  const options = await application.evaluate(() => (globalThis as unknown as { saveOptions: { title: string; properties: string[]; filters: { extensions: string[] }[] } }).saveOptions);
+  expect(options.title).toBe('Guardar PNG como…');
+  expect(options.properties).toContain('showOverwriteConfirmation');
+  expect(options.filters[0].extensions).toEqual(['png']);
+  await copyFile(pngTarget, path.resolve('artifacts/qa/desktop.png'));
+  await page.getByLabel('Copias', { exact: true }).fill('8');
+  await page.getByLabel('Copias', { exact: true }).blur();
+  await expect(page.getByTestId('layout-summary')).toContainText('2 pliegos');
+  const zipTarget = path.join(directory, 'pliegos.zip');
+  await application.evaluate(({ dialog }, filePath) => { dialog.showSaveDialog = async (...args: unknown[]) => { const options = args[1] ?? args[0]; (globalThis as unknown as { saveOptions: unknown }).saveOptions = options; return { canceled: false, filePath }; }; }, zipTarget);
+  await page.getByRole('button', { name: 'Descargar PNG en ZIP', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'ZIP guardado' })).toBeVisible();
+  expect(Object.keys(unzipSync(await readFile(zipTarget)))).toHaveLength(2);
+  await copyFile(zipTarget, path.resolve('artifacts/qa/desktop.zip'));
+  await expect(page.getByRole('button', { name: 'Abrir carpeta' })).toBeVisible();
+  const userData = await application.evaluate(({ app }) => app.getPath('userData'));
+  expect(JSON.parse(await readFile(path.join(userData, 'preferences.json'), 'utf8')).lastExportDirectory).toBe(directory);
 });
 
 test('borrador, deshacer y ayuda funcionan dentro de Electron', async () => {
