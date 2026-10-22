@@ -209,7 +209,7 @@ export default function App() {
       <section className="panel export-panel" aria-labelledby="export-title">
         <h2 id="export-title"><span className="step">3</span>Exportar PDF</h2>
         <ProfileEditor profiles={stored.profiles} profile={profile} disabled={blocked} onOpenChange={setFormatOpen} onSelect={selected => setStored(current => ({ ...current, selected }))} onSave={(updated, asNew) => setStored(current => ({ profiles: asNew ? [...current.profiles, updated] : current.profiles.map(p => p.id === updated.id ? updated : p), selected: updated.id }))}
-          onReset={desktop ? undefined : () => {
+          resetDisabled={pending} onReset={desktop ? undefined : () => {
             if (window.confirm('Se restaurarán los nombres, medidas y márgenes de Film 55 × 100 cm, A3 y A4. Los formatos creados con «Guardar como nuevo» se conservarán. ¿Continuar?')) {
               setStored(current => ({ ...current, profiles: [...initialProfiles, ...current.profiles.filter(p => !initialProfiles.some(base => base.id === p.id))] }));
             }

@@ -14,6 +14,11 @@ test('muestra la preliminar y descarga la nueva publicación sin recompilar ni r
   const section = page.getByRole('region', { name: 'Versión para Windows' });
   await expect(section).toContainText('v1.1.1');
   await expect(section).toContainText('Versión preliminar');
+  const image = new PNG({ width: 20, height: 20 }); image.data.fill(255);
+  await page.getByLabel('Subir diseños PNG').setInputFiles({ name: 'sesión.png', mimeType: 'image/png', buffer: PNG.sync.write(image) });
+  await expect(page.getByTestId('design-card')).toHaveCount(1);
+  const dialogs: string[] = [];
+  page.on('dialog', async dialog => { dialogs.push(dialog.type()); await dialog.dismiss(); });
   for (const [label, kind] of [['Descargar instalador', 'Setup'], ['Descargar portátil', 'Portable']]) {
     const downloadPromise = page.waitForEvent('download');
     await section.getByRole('link', { name: label, exact: true }).click({ button: kind === 'Portable' ? 'middle' : 'left' });
@@ -23,6 +28,8 @@ test('muestra la preliminar y descarga la nueva publicación sin recompilar ni r
   }
   await expect(section).toContainText('v1.2.0');
   await expect(section.getByText('Versión preliminar')).toHaveCount(0);
+  await expect(page.getByTestId('design-card')).toHaveCount(1);
+  expect(dialogs).toEqual([]);
 });
 
 test('un límite de GitHub elimina enlaces desactualizados y ofrece las versiones públicas', async ({ page }) => {

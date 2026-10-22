@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { formatMm, validateProfile, type SheetProfile } from '../core/model';
 
-export function ProfileEditor({ profiles, profile, disabled, onOpenChange, onSelect, onSave, onReset }: { profiles: SheetProfile[]; profile: SheetProfile; disabled: boolean; onOpenChange: (open: boolean) => void; onSelect: (id: string) => void; onSave: (profile: SheetProfile, asNew: boolean) => void; onReset?: () => void }) {
+export function ProfileEditor({ profiles, profile, disabled, onOpenChange, onSelect, onSave, onReset, resetDisabled }: { profiles: SheetProfile[]; profile: SheetProfile; disabled: boolean; onOpenChange: (open: boolean) => void; onSelect: (id: string) => void; onSave: (profile: SheetProfile, asNew: boolean) => void; onReset?: () => void; resetDisabled?: boolean }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [error, setError] = useState('');
@@ -22,7 +22,7 @@ export function ProfileEditor({ profiles, profile, disabled, onOpenChange, onSel
     {onReset && <div className="local-profile-note">
       <p>Los cambios se guardan solo en este navegador y no afectan a otras personas.</p>
       <p>Si borras los datos del sitio o cambias de navegador o dominio, estos formatos pueden dejar de estar disponibles.</p>
-      <button className="text-button" type="button" disabled={disabled || open} onClick={onReset}>Restaurar formatos predeterminados</button>
+      <button className="text-button" type="button" disabled={disabled || open || resetDisabled} onClick={onReset}>Restaurar formatos predeterminados</button>
     </div>}
     {open && <form className="profile-editor" onSubmit={e => { e.preventDefault(); save(false); }}>
       <label>Nombre del formato<input aria-label="Nombre del formato" value={draft.name} maxLength={80} onChange={e => setDraft({ ...draft, name: e.target.value })} /></label>
