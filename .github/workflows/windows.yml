@@ -1,4 +1,4 @@
-name: Windows · pruebas y ejecutables
+name: Pruebas · Windows y web IONOS
 on:
   push:
     branches: [main, feat/electron-desktop]
@@ -38,6 +38,15 @@ jobs:
           npx playwright test -c playwright.desktop.config.ts
       - name: Verificar PDF exportado por el paquete
         run: python scripts/verify-pdf.py
+      - name: Preparar paquete web
+        run: npm run web:package
+      - uses: actions/upload-artifact@v7
+        with:
+          name: web-dist
+          path: artifacts/web-dist/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
       - uses: actions/upload-artifact@v7
         with:
           name: windows-dist
@@ -57,6 +66,74 @@ jobs:
             test-results/
             desktop-test-results/
           retention-days: 14
+
+  deploy-web:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    needs: windows
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: ionos-web-production
+      cancel-in-progress: false
+    environment:
+      name: web-production
+      url: ${{ vars.WEB_URL }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - uses: actions/download-artifact@v8
+        with:
+          name: web-dist
+          path: web-dist
+      - name: Comprobar configuración
+        id: target
+        env:
+          WEB_URL: ${{ vars.WEB_URL }}
+          SFTP_HOST: ${{ secrets.IONOS_SFTP_HOST }}
+          SFTP_USER: ${{ secrets.IONOS_SFTP_USER }}
+          SFTP_PASSWORD: ${{ secrets.IONOS_SFTP_PASSWORD }}
+          SFTP_PORT: ${{ secrets.IONOS_SFTP_PORT }}
+        run: |
+          test -n "$WEB_URL" && test -n "$SFTP_HOST" && test -n "$SFTP_USER" && test -n "$SFTP_PASSWORD" && test -n "$SFTP_PORT" || { echo 'Falta configurar WEB_URL o los secretos SFTP.'; exit 1; }
+          test -f web-dist/.htaccess
+          latest=$(git ls-remote origin refs/heads/main | cut -f1)
+          if [ "$latest" = "$GITHUB_SHA" ]; then
+            echo 'current=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'Se omite este commit porque main ya tiene otro más reciente.'
+            echo 'current=false' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Publicar configuración de caché
+        if: steps.target.outputs.current == 'true'
+        uses: wlixcc/SFTP-Deploy-Action@a5ccb9c6211a94cc59404f0fdb2a9936a6dfee64 # v1.2.6
+        with:
+          server: ${{ secrets.IONOS_SFTP_HOST }}
+          username: ${{ secrets.IONOS_SFTP_USER }}
+          password: ${{ secrets.IONOS_SFTP_PASSWORD }}
+          port: ${{ secrets.IONOS_SFTP_PORT }}
+          local_path: './web-dist/.htaccess'
+          remote_path: '/'
+          sftp_only: true
+          delete_remote_files: false
+      - name: Publicar editor en IONOS
+        if: steps.target.outputs.current == 'true'
+        uses: wlixcc/SFTP-Deploy-Action@a5ccb9c6211a94cc59404f0fdb2a9936a6dfee64 # v1.2.6
+        with:
+          server: ${{ secrets.IONOS_SFTP_HOST }}
+          username: ${{ secrets.IONOS_SFTP_USER }}
+          password: ${{ secrets.IONOS_SFTP_PASSWORD }}
+          port: ${{ secrets.IONOS_SFTP_PORT }}
+          local_path: './web-dist/*'
+          remote_path: '/'
+          sftp_only: true
+          delete_remote_files: false
+      - name: Verificar web publicada y recursos
+        if: steps.target.outputs.current == 'true'
+        env:
+          WEB_URL: ${{ vars.WEB_URL }}
+        run: node scripts/verify-deployment.mjs
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
