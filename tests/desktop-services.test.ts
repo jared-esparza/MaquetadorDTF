@@ -9,6 +9,15 @@ async function temporary() { const dir = await mkdtemp(path.join(os.tmpdir(), 'd
 afterEach(async () => { await Promise.all(dirs.splice(0).map(dir => rm(dir, { recursive: true, force: true }))); });
 
 describe('servicios locales de escritorio', () => {
+  it('inicia avisando antes de descargar y conserva formatos al cambiar el modo', async () => {
+    const dir = await temporary();
+    expect((await readPreferences(dir)).updateMode).toBe('notify');
+    await updatePreferences(dir, { hideWelcome: true, updateMode: 'manual' });
+    await expect(updatePreferences(dir, { updateMode: 'otro' })).rejects.toThrow();
+    expect(await readPreferences(dir)).toMatchObject({ updateMode: 'manual', hideWelcome: true });
+    await updatePreferences(dir, { updateMode: 'auto' });
+    expect((await readPreferences(dir)).updateMode).toBe('auto');
+  });
   it('limita el protocolo a los recursos empaquetados y al origen de la app', () => {
     const root = path.resolve('dist');
     expect(resolveResource('app://maquetador/', root)).toBe(path.join(root, 'index.html'));

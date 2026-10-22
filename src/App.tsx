@@ -10,6 +10,7 @@ import { ProfileEditor } from './components/ProfileEditor';
 import { SheetPreview } from './components/SheetPreview';
 import { Welcome } from './components/Welcome';
 import { WindowsDownloads } from './components/WindowsDownloads';
+import { Updates } from './components/Updates';
 import { desktop } from './platform/desktop';
 
 const STORAGE_KEY = 'pkprint-dtf-profiles-v1';
@@ -44,6 +45,7 @@ export default function App() {
   const [preferencesReady, setPreferencesReady] = useState(!desktop);
   const [showWelcome, setShowWelcome] = useState(false);
   const [desktopVersion, setDesktopVersion] = useState('');
+  const [updateInstalling, setUpdateInstalling] = useState(false);
   const [dirty, setDirty] = useState(false);
   const documentState = useRef({ dirty: false, busy: false });
   const [errors, setErrors] = useState<string[]>([]);
@@ -61,7 +63,7 @@ export default function App() {
   const layoutKey = JSON.stringify({ items, profile: packingProfile, gapMm });
   const pending = layoutState.key !== layoutKey;
   const layout = pending ? null : layoutState.result;
-  const blocked = !!busy || editingId !== null || !preferencesReady || showWelcome;
+  const blocked = !!busy || editingId !== null || !preferencesReady || showWelcome || updateInstalling;
   const lowDpi = designs.some(d => designMetrics(d.raster, d.widthMm).quality === 'low');
   const canExport = !blocked && !formatOpen && !pending && invalidFields.size === 0 && !!layout?.pages.length && layout.unplacedIds.length === 0 && (!lowDpi || acceptedLowDpi);
   let pngSize = '', pngError = '';
@@ -87,9 +89,9 @@ export default function App() {
   }, []);
   useEffect(() => { setDirty(designs.length > 0); }, [designs, profile, gapMm, mirror]);
   useEffect(() => {
-    const state = { dirty: dirty || editingId !== null || formatOpen, busy: !!busy };
+    const state = { dirty: dirty || editingId !== null || formatOpen, busy: !!busy || pending };
     documentState.current = state; desktop?.setDocumentState(state);
-  }, [dirty, editingId, formatOpen, busy]);
+  }, [dirty, editingId, formatOpen, busy, pending]);
   useEffect(() => {
     const controller = new AbortController();
     const snapshot = JSON.parse(layoutKey) as { items: typeof items; profile: SheetProfile; gapMm: number };
@@ -215,7 +217,7 @@ export default function App() {
   };
 
   return <div className="app-shell">
-    <header className="app-header"><div className="brand">PK<span>print</span></div><h1>Maquetador DTF</h1><p>Prepara tu film. Descarga tu PDF a tamaño real.</p><span className="local-badge"><i />Todo en tu equipo</span>{desktop && <button className="text-button" onClick={() => void desktop?.showHelp('guide')}>Ayuda</button>}</header>
+    <header className="app-header"><div className="brand">PK<span>print</span></div><h1>Maquetador DTF</h1><p>Prepara tu film. Descarga tu PDF a tamaño real.</p><span className="local-badge"><i />Todo en tu equipo</span>{desktop && <button className="text-button" onClick={() => void desktop?.showHelp('guide')}>Ayuda</button>}{desktop && <Updates onInstalling={setUpdateInstalling} />}</header>
     <main className="workspace">
       <section className="panel designs-panel" aria-labelledby="designs-title">
         <h2 id="designs-title"><span className="step">1</span>Diseños <span className="panel-count">{designs.length > 0 ? designs.length : ''}</span></h2>

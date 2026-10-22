@@ -93,7 +93,7 @@ La versión web se despliega automáticamente en IONOS con cada push a `main` qu
 4. Al integrar, GitHub reutiliza una sola compilación comprobada para crear la etiqueta y publicar la Release preliminar sin firma con ambos ejecutables, notas y sumas SHA-256. Después despliega la web del mismo commit. Crear la etiqueta no dispara otra compilación.
 5. Los reintentos de la misma ejecución reutilizan los artefactos completos y no sustituyen archivos publicados con hashes diferentes. Las modificaciones solo de documentación o pruebas no crean Release. El agente no realiza comprobaciones manuales de la web tras el despliegue; las verificaciones automáticas permanecen en Actions. Consulta [el proceso de publicación](docs/PUBLICACION.md).
 
-No subas `node_modules`, `dist`, `release`, ZIP, datos de usuario ni informes temporales a Git. Los instaladores se distribuyen como archivos de Release. No hay actualizaciones automáticas: se ejecuta el nuevo instalador o se reemplaza el portátil conservando su carpeta de datos.
+No subas `node_modules`, `dist`, `release`, ZIP, datos de usuario ni informes temporales a Git. Los instaladores se distribuyen como archivos de Release. Desde 1.3.0, la instalada ofrece búsqueda manual, aviso antes de descargar (predeterminado) y descarga automática opcional. La instalación exige una acción explícita y trabajo exportado. Se incluyen versiones preliminares. El portátil ofrece descarga asistida y se reemplaza conservando su carpeta de datos. Las versiones anteriores necesitan instalar 1.3.0 manualmente una vez.
 
 ## Estructura
 

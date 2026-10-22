@@ -3,10 +3,17 @@ import { createHash } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 import { github } from './release-policy.mjs';
+import { load } from 'js-yaml';
+
+export function validateUpdateMetadata(version, installer, bytes) {
+  const metadata = load(bytes.toString('utf8'));
+  const digest = createHash('sha512').update(installer.bytes).digest('base64');
+  if (!metadata || metadata.version !== version || !Array.isArray(metadata.files) || metadata.files.length !== 1 || metadata.files[0].url !== installer.name || metadata.files[0].sha512 !== digest || metadata.files[0].size !== installer.bytes.length || metadata.packages || (metadata.path && metadata.path !== installer.name) || (metadata.sha512 && metadata.sha512 !== digest)) throw new Error('Los metadatos de actualización no corresponden al instalador comprobado.');
+}
 
 export async function publishRelease({ repository, sha, version, directory, notes, api = github }) {
   const root = `/repos/${repository}`, tag = `v${version}`;
-  const names = [`MaquetadorDTF-Setup-${version}-x64.exe`, `MaquetadorDTF-Portable-${version}-x64.exe`, 'SHA256SUMS.txt', 'USO-WINDOWS.md', 'THIRD_PARTY_NOTICES.txt'];
+  const names = [`MaquetadorDTF-Setup-${version}-x64.exe`, `MaquetadorDTF-Portable-${version}-x64.exe`, 'SHA256SUMS.txt', 'USO-WINDOWS.md', 'THIRD_PARTY_NOTICES.txt', 'latest.yml', `MaquetadorDTF-Setup-${version}-x64.exe.blockmap`];
   const paths = [];
   async function walk(folder) {
     for (const entry of await readdir(folder, { withFileTypes: true })) {
@@ -21,7 +28,8 @@ export async function publishRelease({ repository, sha, version, directory, note
     const bytes = await readFile(matches[0]); return { name, bytes, digest: `sha256:${createHash('sha256').update(bytes).digest('hex')}` };
   }));
   const sums = files[2].bytes.toString('utf8');
-  for (const file of files.slice(0, 2)) if (!sums.split(/\r?\n/).includes(`${file.digest.slice(7)}  ${file.name}`)) throw new Error('Las sumas SHA-256 no coinciden con los ejecutables.');
+  for (const file of [files[0], files[1], files[5], files[6]]) if (!sums.split(/\r?\n/).includes(`${file.digest.slice(7)}  ${file.name}`)) throw new Error('Las sumas SHA-256 no coinciden con los archivos de distribución.');
+  validateUpdateMetadata(version, files[0], files[5].bytes);
   const existingTag = await api(`${root}/git/ref/tags/${tag}`);
   if (existingTag) {
     const commit = await api(`${root}/commits/${tag}`);

@@ -1,6 +1,8 @@
 import { test, expect, _electron, type ElectronApplication, type Page } from '@playwright/test';
 import { createRequire } from 'node:module';
-import { copyFile, mkdtemp, readFile, rm } from 'node:fs/promises';
+import { copyFile, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { createServer } from 'node:http';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import os from 'node:os';
 import { PNG } from 'pngjs';
@@ -51,6 +53,64 @@ test('abre bienvenida y workers locales con renderer aislado y sin Node', async 
   await importDesign();
   await expect(page.getByTestId('layout-summary')).toContainText('1 pieza');
   await expect(page.getByLabel('Distancia entre diseños')).toHaveValue('7');
+});
+
+test('actualizaciones avisa por defecto y conserva la configuración manual', async () => {
+  await page.getByLabel('No volver a mostrar').check();
+  await closeWelcome();
+  await page.getByRole('button', { name: 'Actualizaciones', exact: true }).click();
+  const panel = page.getByRole('dialog', { name: 'Actualizaciones', exact: true });
+  await expect(panel.getByLabel('Modo de actualización')).toHaveValue('notify');
+  await expect(panel).toContainText('Se incluyen las versiones preliminares');
+  const portable = !!process.env.DTF_ELECTRON_EXE;
+  await expect(panel.getByLabel('Modo de actualización').locator('option')).toHaveCount(portable ? 2 : 3);
+  if (portable) await expect(panel).toContainText('MaquetadorDTF-datos');
+  await page.screenshot({ path: path.resolve(`artifacts/qa/updates-${portable ? 'portable' : 'installed'}.png`), fullPage: true });
+  await panel.getByLabel('Modo de actualización').selectOption('manual');
+  await expect(panel.getByLabel('Modo de actualización')).toHaveValue('manual');
+  const userData = await application.evaluate(({ app }) => app.getPath('userData'));
+  await expect.poll(async () => JSON.parse(await readFile(path.join(userData, 'preferences.json'), 'utf8')).updateMode).toBe('manual');
+  await panel.getByRole('button', { name: 'Cerrar', exact: true }).click();
+  await page.reload();
+  await page.getByRole('button', { name: 'Actualizaciones', exact: true }).click();
+  await expect(page.getByLabel('Modo de actualización')).toHaveValue('manual');
+});
+
+test('NSIS descarga desde metadatos y rechaza instaladores con checksum incorrecto', async () => {
+  await closeWelcome();
+  const payload = Buffer.from('MZ instalador de prueba que nunca se ejecuta');
+  let corrupt = false;
+  const current = await application.evaluate(({ app }) => app.getVersion());
+  const nextVersion = `${Number(current.split('.')[0]) + 1}.0.0`;
+  const server = createServer((request, response) => {
+    if (request.url?.split('?')[0] === '/latest.yml') {
+      const metadata = JSON.stringify({ version: nextVersion, files: [{ url: 'update.exe', size: payload.length, sha512: corrupt ? Buffer.alloc(64).toString('base64') : createHash('sha512').update(payload).digest('base64') }] });
+      response.writeHead(200, { 'Content-Type': 'text/yaml', 'Content-Length': Buffer.byteLength(metadata) }); response.end(metadata);
+    } else { response.writeHead(200, { 'Content-Type': 'application/octet-stream', 'Content-Length': payload.length }); response.end(payload); }
+  });
+  await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
+  try {
+    const address = server.address() as { port: number };
+    for (const invalid of [false, true]) {
+      corrupt = invalid;
+      const config = path.join(directory, invalid ? 'bad-update.json' : 'good-update.json');
+      await writeFile(config, JSON.stringify({ provider: 'generic', url: `http://127.0.0.1:${address.port}/`, updaterCacheDirName: invalid ? 'cache-bad' : 'cache-good' }));
+      const result = await application.evaluate(async ({ app }, options) => {
+        const require = process.getBuiltinModule('node:module').createRequire(app.getAppPath() + '/package.json');
+        const { NsisUpdater } = require('electron-updater');
+        const updater = new NsisUpdater({ provider: 'generic', url: options.url });
+        updater.forceDevUpdateConfig = true; updater.updateConfigPath = options.config;
+        Object.defineProperty(updater.app, 'baseCachePath', { value: options.directory });
+        updater.autoDownload = false; updater.autoInstallOnAppQuit = false; updater.disableDifferentialDownload = true;
+        updater.logger = null; updater.on('error', () => {});
+        await updater.checkForUpdates();
+        try { const files = await updater.downloadUpdate(); return { downloaded: true, file: files[0] }; }
+        catch { return { downloaded: false, file: '' }; }
+      }, { url: `http://127.0.0.1:${address.port}/`, config, directory });
+      expect(result.downloaded).toBe(!invalid);
+      if (!invalid) expect(await readFile(result.file)).toEqual(payload);
+    }
+  } finally { server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve())); }
 });
 
 test('guarda PDF multipágina con diálogo nativo, alfa y tamaño real', async () => {
