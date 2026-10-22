@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { formatMm, validateProfile, type SheetProfile } from '../core/model';
 
-export function ProfileEditor({ profiles, profile, disabled, onOpenChange, onSelect, onSave }: { profiles: SheetProfile[]; profile: SheetProfile; disabled: boolean; onOpenChange: (open: boolean) => void; onSelect: (id: string) => void; onSave: (profile: SheetProfile, asNew: boolean) => void }) {
+export function ProfileEditor({ profiles, profile, disabled, onOpenChange, onSelect, onSave, onReset, resetDisabled }: { profiles: SheetProfile[]; profile: SheetProfile; disabled: boolean; onOpenChange: (open: boolean) => void; onSelect: (id: string) => void; onSave: (profile: SheetProfile, asNew: boolean) => void; onReset?: () => void; resetDisabled?: boolean }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [error, setError] = useState('');
@@ -19,6 +19,11 @@ export function ProfileEditor({ profiles, profile, disabled, onOpenChange, onSel
   return <div className="profile-block">
     <label className="select-label">Formato del film<select aria-label="Perfil de formato" value={profile.id} disabled={disabled || open} onChange={e => onSelect(e.target.value)}>{profiles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
     <div className="profile-line"><strong data-testid="profile-dimensions">{formatMm(profile.widthMm)} × {formatMm(profile.heightMm)} mm</strong><button className="text-button" disabled={disabled} onClick={() => { if (open) { setOpen(false); onOpenChange(false); } else begin(); }}>{open ? 'Cerrar formato' : 'Configurar formato'}</button></div>
+    {onReset && <div className="local-profile-note">
+      <p>Los cambios se guardan solo en este navegador y no afectan a otras personas.</p>
+      <p>Si borras los datos del sitio o cambias de navegador o dominio, estos formatos pueden dejar de estar disponibles.</p>
+      <button className="text-button" type="button" disabled={disabled || open || resetDisabled} onClick={onReset}>Restaurar formatos predeterminados</button>
+    </div>}
     {open && <form className="profile-editor" onSubmit={e => { e.preventDefault(); save(false); }}>
       <label>Nombre del formato<input aria-label="Nombre del formato" value={draft.name} maxLength={80} onChange={e => setDraft({ ...draft, name: e.target.value })} /></label>
       <div className="form-grid">{[['width', 'Ancho del pliego (mm)'], ['height', 'Largo del pliego (mm)'], ['top', 'Margen superior (mm)'], ['right', 'Margen derecho (mm)'], ['bottom', 'Margen inferior (mm)'], ['left', 'Margen izquierdo (mm)']].map(([key, label]) => <label key={key}>{label}<input aria-label={label} inputMode="decimal" value={draft[key]} onChange={e => setDraft({ ...draft, [key]: e.target.value })} /></label>)}</div>

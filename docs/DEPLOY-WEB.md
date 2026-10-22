@@ -21,7 +21,7 @@ No se borran los archivos remotos anteriores: una sesión abierta puede seguir n
 
 Tras subir se comparan por HTTPS el HTML, ayuda, marcador y todos los recursos con los bytes del artefacto aprobado. Si falla la subida o la verificación, el workflow informa del fallo y permite reintentar.
 
-Para repetir las pruebas completas de navegador contra la web publicada, establece `DTF_WEB_URL=https://dtf.wcard.es` y ejecuta `npm run test:deployed` desde un equipo de desarrollo con Chrome. Usa los mismos cinco flujos del editor, incluida la descarga y lectura del PDF; no inicia un servidor local. Los resultados quedan en `test-results-deployed`.
+Para repetir las pruebas completas de navegador contra la web publicada, establece `DTF_WEB_URL=https://dtf.wcard.es` y ejecuta `npm run test:deployed` desde un equipo de desarrollo con Chrome. Incluye los cinco flujos del editor y tres de descargas y formatos; no inicia un servidor local. Las pruebas de Releases interceptan GitHub para simular publicaciones y errores, por lo que conviene comprobar también los enlaces reales tras desplegar. Los resultados quedan en `test-results-deployed`.
 
 ## Cambios de dominio y versiones Windows
 

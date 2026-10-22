@@ -41,6 +41,9 @@ async function closeWelcome() {
 async function importDesign() { await page.getByLabel('Subir diseños PNG').setInputFiles({ name: 'diseño ñ.png', mimeType: 'image/png', buffer: png() }); await expect(page.getByTestId('design-card')).toHaveCount(1); }
 
 test('abre bienvenida y workers locales con renderer aislado y sin Node', async () => {
+  await expect(page.getByRole('region', { name: 'Versión para Windows' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Restaurar formatos predeterminados' })).toHaveCount(0);
+  await expect(page.getByText('Los cambios se guardan solo en este navegador')).toHaveCount(0);
   await expect(page.getByRole('dialog', { name: 'Bienvenido a Maquetador DTF' })).toBeVisible();
   expect(await page.evaluate(() => ({ protocol: location.protocol, node: typeof (window as unknown as { require?: unknown }).require, process: typeof (window as unknown as { process?: unknown }).process }))).toEqual({ protocol: 'app:', node: 'undefined', process: 'undefined' });
   await closeWelcome();
