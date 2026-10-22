@@ -10,9 +10,11 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -b && vite build",
+    "web:package": "node scripts/prepare-web.mjs",
     "start": "node scripts/serve.mjs",
     "test": "vitest run",
     "test:e2e": "npm run build && playwright test",
+    "test:deployed": "playwright test -c playwright.deployed.config.ts",
     "check": "npm run build && npm test && npm run test:e2e && npm run test:desktop",
     "desktop:dev": "npm run build && electron .",
     "test:desktop": "npm run build && playwright test -c playwright.desktop.config.ts",

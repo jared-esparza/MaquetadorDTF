@@ -80,6 +80,8 @@ Para PDF independiente en otro equipo de desarrollo: `python -m pip install -r r
 
 ## Cómo mantener y publicar versiones
 
+La versión web se despliega automáticamente en IONOS con cada push a `main` que supere los controles. La URL se configura mediante `WEB_URL` en GitHub; los datos SFTP permanecen como secretos. Consulta [la configuración y el procedimiento de despliegue](docs/DEPLOY-WEB.md).
+
 1. Crea una rama para el cambio y modifica el código compartido en `src`; el contenedor vive en `electron`.
 2. Ejecuta `npm run check` y la verificación independiente del PDF.
 3. Actualiza versión, archivo de dependencias y CHANGELOG. Abre una PR hacia `main`; GitHub Actions ejecuta pruebas y genera los binarios.
