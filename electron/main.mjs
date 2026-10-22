@@ -3,7 +3,7 @@ import path from 'node:path';
 import { mkdir, access, readFile } from 'node:fs/promises';
 import { constants } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { dataDirectory, flushPreferences, readPreferences, resolveResource, savePdf, updatePreferences } from './services.mjs';
+import { dataDirectory, flushPreferences, readPreferences, resolveResource, savePdf, saveRaster, updatePreferences } from './services.mjs';
 
 const base = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(base, '..', 'dist');
@@ -79,6 +79,12 @@ async function start() {
   ipcMain.handle('desktop:pdf:save', async (event, request) => {
     trusted(event);
     const saved = await savePdf({ directory, request, choosePath: options => dialog.showSaveDialog(mainWindow, { ...options, title: 'Guardar PDF como…', buttonLabel: 'Guardar PDF', filters: [{ name: 'Documento PDF', extensions: ['pdf'] }], properties: ['showOverwriteConfirmation', 'createDirectory'] }) });
+    if (saved.status === 'saved') { lastSavedFile = saved.filePath; return { status: 'saved', filename: saved.filename, warning: saved.warning }; }
+    return saved;
+  });
+  ipcMain.handle('desktop:raster:save', async (event, request) => {
+    trusted(event);
+    const saved = await saveRaster({ directory, request, choosePath: options => dialog.showSaveDialog(mainWindow, { ...options, title: `Guardar ${request.type.toUpperCase()} como…`, buttonLabel: 'Guardar', filters: [{ name: request.type.toUpperCase(), extensions: [request.type] }], properties: ['showOverwriteConfirmation', 'createDirectory'] }) });
     if (saved.status === 'saved') { lastSavedFile = saved.filePath; return { status: 'saved', filename: saved.filename, warning: saved.warning }; }
     return saved;
   });

@@ -1,55 +1,93 @@
 name: Pruebas · Windows y web IONOS
 on:
   push:
-    branches: [main, feat/electron-desktop]
-    tags: ['v*']
+    branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   windows:
     runs-on: windows-latest
     timeout-minutes: 30
+    outputs:
+      release_required: ${{ steps.policy.outputs.release_required }}
+      version: ${{ steps.policy.outputs.version }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
           node-version: '24'
           cache: npm
+      - name: Validar versión de la entrega
+        id: policy
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/release-policy.mjs
+      - name: Reutilizar artefactos ya comprobados al reintentar
+        id: reuse
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          available=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts" --jq '[.artifacts[] | select(.expired == false) | .name] | (index("web-dist") != null and index("windows-dist") != null)')
+          echo "available=$available" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-python@v7
+        if: steps.reuse.outputs.available != 'true'
         with:
           python-version: '3.13'
       - run: npm ci
+        if: steps.reuse.outputs.available != 'true'
       - run: python -m pip install -r requirements-test.txt
+        if: steps.reuse.outputs.available != 'true'
       - run: npm run build
+        if: steps.reuse.outputs.available != 'true'
       - run: npm test
-      - run: npm run test:e2e
+        if: steps.reuse.outputs.available != 'true'
+      - run: npx playwright test
+        if: steps.reuse.outputs.available != 'true'
+      - run: python scripts/verify-png.py
+        if: steps.reuse.outputs.available != 'true'
       - run: python scripts/verify-pdf.py
-      - run: npm run test:desktop
-      - run: npm run dist:win
+        if: steps.reuse.outputs.available != 'true'
+      - run: npx playwright test -c playwright.desktop.config.ts
+        if: steps.reuse.outputs.available != 'true'
+      - run: npm run dist:win:built
+        if: steps.reuse.outputs.available != 'true'
       - name: Probar ejecutable empaquetado
+        if: steps.reuse.outputs.available != 'true'
         shell: pwsh
         run: |
           $env:DTF_ELECTRON_EXE=(Resolve-Path 'release/win-unpacked/MaquetadorDTF.exe').Path
           npx playwright test -c playwright.desktop.config.ts
-      - name: Verificar PDF exportado por el paquete
-        run: python scripts/verify-pdf.py
+      - name: Verificar PDF y PNG exportados por el paquete
+        if: steps.reuse.outputs.available != 'true'
+        run: |
+          python scripts/verify-pdf.py
+          python scripts/verify-png.py
       - name: Preparar paquete web
+        if: steps.reuse.outputs.available != 'true'
         run: npm run web:package
       - uses: actions/upload-artifact@v7
+        if: steps.reuse.outputs.available != 'true'
         with:
           name: web-dist
+          overwrite: true
           path: artifacts/web-dist/
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 7
       - uses: actions/upload-artifact@v7
+        if: steps.reuse.outputs.available != 'true'
         with:
           name: windows-dist
+          overwrite: true
           path: |
             release/MaquetadorDTF-Setup-*.exe
             release/MaquetadorDTF-Portable-*.exe
@@ -58,9 +96,10 @@ jobs:
             build/THIRD_PARTY_NOTICES.txt
           if-no-files-found: error
       - uses: actions/upload-artifact@v7
-        if: always()
+        if: always() && steps.reuse.outputs.available != 'true'
         with:
           name: windows-test-results
+          overwrite: true
           path: |
             artifacts/qa/
             test-results/
@@ -70,6 +109,9 @@ jobs:
   deploy-web:
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     needs: windows
+    permissions:
+      contents: write
+      actions: read
     runs-on: ubuntu-latest
     timeout-minutes: 15
     concurrency:
@@ -105,6 +147,17 @@ jobs:
             echo 'Se omite este commit porque main ya tiene otro más reciente.'
             echo 'current=false' >> "$GITHUB_OUTPUT"
           fi
+      - uses: actions/download-artifact@v8
+        if: steps.target.outputs.current == 'true' && needs.windows.outputs.release_required == 'true'
+        with:
+          name: windows-dist
+          path: distribution
+      - name: Publicar Release preliminar del mismo commit
+        if: steps.target.outputs.current == 'true' && needs.windows.outputs.release_required == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ needs.windows.outputs.version }}
+        run: node scripts/publish-release.mjs distribution
       - name: Publicar configuración de caché
         if: steps.target.outputs.current == 'true'
         uses: wlixcc/SFTP-Deploy-Action@a5ccb9c6211a94cc59404f0fdb2a9936a6dfee64 # v1.2.6
@@ -134,33 +187,3 @@ jobs:
         env:
           WEB_URL: ${{ vars.WEB_URL }}
         run: node scripts/verify-deployment.mjs
-
-  release:
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: windows
-    runs-on: ubuntu-latest
-    concurrency:
-      group: release-${{ github.ref }}
-      cancel-in-progress: false
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/download-artifact@v8
-        with:
-          name: windows-dist
-          path: distribution
-      - name: Preparar Release en borrador
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
-        shell: bash
-        run: |
-          if gh release view "$TAG" --json isDraft >/dev/null 2>&1; then
-            test "$(gh release view "$TAG" --json isDraft --jq .isDraft)" = true || { echo 'No se sobrescribe una versión publicada.'; exit 1; }
-          else
-            gh release create "$TAG" --draft --title "Maquetador DTF $TAG" --notes-file docs/RELEASE.md
-          fi
-          mapfile -d '' assets < <(find distribution -type f \( -name '*.exe' -o -name 'SHA256SUMS.txt' -o -name 'USO-WINDOWS.md' -o -name 'THIRD_PARTY_NOTICES.txt' \) -print0)
-          test "${#assets[@]}" -eq 5 || { echo 'Faltan archivos de distribución.'; exit 1; }
-          gh release upload "$TAG" "${assets[@]}" --clobber

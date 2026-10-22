@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld('desktop', Object.freeze({
   getPreferences: () => ipcRenderer.invoke('desktop:preferences:get'),
   updatePreferences: patch => ipcRenderer.invoke('desktop:preferences:update', patch),
   savePdf: request => ipcRenderer.invoke('desktop:pdf:save', request),
+  saveRaster: request => ipcRenderer.invoke('desktop:raster:save', request),
   showExportFolder: () => ipcRenderer.invoke('desktop:pdf:folder'),
   setDocumentState: state => ipcRenderer.send('desktop:document:state', state),
   showHelp: topic => ipcRenderer.invoke('desktop:help', topic),

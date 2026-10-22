@@ -3,7 +3,7 @@ import path from 'node:path';
 
 await mkdir('build', { recursive: true });
 await access('artifacts/calibracion-100mm.pdf').catch(() => { throw new Error('Falta el PDF de calibración. Ejecuta npm test antes de empaquetar.'); });
-const names = ['react', 'react-dom', 'scheduler', 'pdf-lib', '@pdf-lib/standard-fonts', '@pdf-lib/upng', 'pako', 'tslib'];
+const names = ['fflate', 'react', 'react-dom', 'scheduler', 'pdf-lib', '@pdf-lib/standard-fonts', '@pdf-lib/upng', 'pako', 'tslib'];
 let notices = 'Maquetador DTF · PKprint\nCódigo propio: licencia de reutilización pendiente.\n\nComponentes de terceros incluidos en la interfaz compilada:\n';
 for (const name of names) {
   const directory = path.join('node_modules', name);

@@ -1,5 +1,11 @@
 # Cambios
 
+## 1.2.0
+- Exportación PNG transparente a 150, 300 o 600 ppp; un archivo por pliego y ZIP para montajes multipágina.
+- Renderizado por franjas en worker, progreso y cancelación, con guardado nativo PNG/ZIP en Windows.
+- Publicación automática coordinada de web y Release preliminar del mismo commit, reutilizando binarios comprobados.
+- Validación de versiones, etiquetas, hashes y reintentos sin sobrescribir archivos publicados.
+
 ## Web · octubre de 2026
 - Descargas de Windows desde la publicación más reciente que incluya instalador y portátil x64, también preliminares, con comprobación al descargar.
 - Avisos sobre almacenamiento privado por navegador y restauración de formatos originales conservando formatos personalizados y selección.

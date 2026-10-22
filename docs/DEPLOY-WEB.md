@@ -21,10 +21,10 @@ No se borran los archivos remotos anteriores: una sesión abierta puede seguir n
 
 Tras subir se comparan por HTTPS el HTML, ayuda, marcador y todos los recursos con los bytes del artefacto aprobado. Si falla la subida o la verificación, el workflow informa del fallo y permite reintentar.
 
-Para repetir las pruebas completas de navegador contra la web publicada, establece `DTF_WEB_URL=https://dtf.wcard.es` y ejecuta `npm run test:deployed` desde un equipo de desarrollo con Chrome. Incluye los cinco flujos del editor y tres de descargas y formatos; no inicia un servidor local. Las pruebas de Releases interceptan GitHub para simular publicaciones y errores, por lo que conviene comprobar también los enlaces reales tras desplegar. Los resultados quedan en `test-results-deployed`.
+Para repetir las pruebas completas de navegador contra la web publicada, establece `DTF_WEB_URL=https://dtf.wcard.es` y ejecuta `npm run test:deployed` desde un equipo de desarrollo con Chrome. Incluye los flujos del editor, PNG/ZIP, descargas y formatos; no inicia un servidor local. Las pruebas de Releases interceptan GitHub para simular publicaciones y errores, y no requieren verificaciones manuales posteriores al despliegue. Los resultados quedan en `test-results-deployed`.
 
 ## Cambios de dominio y versiones Windows
 
 Para cambiar a otro subdominio con la app en su raíz, configura DNS, HTTPS y la carpeta de hosting, y cambia `WEB_URL` en GitHub. Reejecuta el workflow sobre `main`. El dominio no está fijado en el editor. Los formatos guardados por el navegador pertenecen al dominio anterior y no migran automáticamente.
 
-Los instaladores y portátiles siguen publicándose mediante etiquetas `vX.Y.Z` y Releases. Un despliegue web no actualiza ejecutables que los usuarios ya hayan instalado.
+Las entregas funcionales publican automáticamente una Release preliminar y la web del mismo commit. Consulta PUBLICACION.md. Los ejecutables instalados no se actualizan solos.

@@ -1,6 +1,6 @@
 # Maquetador DTF · PKprint
 
-Editor local para cargar PNG, indicar medidas y copias, quitar fondos y repartir automáticamente los diseños sobre film. Descarga un PDF multipágina con transparencia y medidas físicas exactas.
+Editor local para cargar PNG, indicar medidas y copias, quitar fondos y repartir automáticamente los diseños sobre film. Exporta PDF multipágina o PNG transparente a 150, 300 o 600 ppp, con un ZIP cuando hay varios pliegos.
 
 ## Aplicación de escritorio para Windows
 
@@ -26,7 +26,7 @@ Si el puerto está ocupado, comprueba si el maquetador ya está abierto. El puer
 2. Introduce el ancho en **centímetros** y las copias de cada diseño. La medida final corresponde al contenido visible recortado.
 3. Si hay fondo, abre **Borrador · fondo y colores**. La tolerancia controla qué colores se eliminan. El modo conectado conserva zonas interiores del mismo color; el modo global también las elimina. Con la varita puedes quitar otro color. Aplica o cancela los cambios.
 4. Selecciona o configura el formato de film y los márgenes en **milímetros**. Elige una separación de 3, 4, 5, 6 o 7 mm. Por defecto se seleccionan **7 mm**.
-5. Revisa los pliegos y descarga el PDF. Si un diseño tiene menos de 150 ppp, tendrás que aceptar el aviso de calidad o reducir su tamaño.
+5. Revisa los pliegos y descarga PDF o PNG. Un pliego genera un PNG; varios, un ZIP con un PNG por pliego. La resolución PNG inicial es 300 ppp y puede cambiarse a 150 o 600. Si un diseño tiene menos de 150 ppp, tendrás que aceptar el aviso de calidad o reducir su tamaño.
 
 El montaje prueba seis variantes de MaxRects con giros de 90°. Es una optimización heurística: busca reducir los pliegos, sin garantizar el mínimo matemático. No anida formas dentro de otras ni permite colocar piezas manualmente.
 
@@ -68,6 +68,7 @@ La comprobación independiente del PDF usa Python con `pypdf`, `pypdfium2` y `Pi
 
 ```powershell
 python scripts/verify-pdf.py
+python scripts/verify-png.py
 ```
 
 Las muestras se regeneran con `npm test`. Los informes y renders quedan en `artifacts/qa/`; las capturas y descargas del flujo real, en `test-results/`. La prueba de calibración verifica digitalmente la geometría; la impresión física depende del RIP y de la impresora.
@@ -88,9 +89,9 @@ La versión web se despliega automáticamente en IONOS con cada push a `main` qu
 
 1. Crea una rama para el cambio y modifica el código compartido en `src`; el contenedor vive en `electron`.
 2. Ejecuta `npm run check` y la verificación independiente del PDF.
-3. Actualiza versión, archivo de dependencias y CHANGELOG. Abre una PR hacia `main`; GitHub Actions ejecuta pruebas y genera los binarios.
-4. Tras integrar, crea una etiqueta `vX.Y.Z`. El workflow prepara una Release en borrador con instalador, portátil y sumas SHA256.
-5. Verifica los ejecutables concretos de esa Release en Windows limpio y publica únicamente cuando la comprobación sea satisfactoria. Si permanece una limitación, mantén el borrador o identifícala explícitamente como versión preliminar.
+3. Para cada entrega funcional, incrementa la versión X.Y.Z en package.json y package-lock.json, actualiza CHANGELOG y docs/RELEASE.md, y abre una PR hacia `main`. CI rechaza versiones no incrementadas o ya etiquetadas.
+4. Al integrar, GitHub reutiliza una sola compilación comprobada para crear la etiqueta y publicar la Release preliminar sin firma con ambos ejecutables, notas y sumas SHA-256. Después despliega la web del mismo commit. Crear la etiqueta no dispara otra compilación.
+5. Los reintentos de la misma ejecución reutilizan los artefactos completos y no sustituyen archivos publicados con hashes diferentes. Las modificaciones solo de documentación o pruebas no crean Release. El agente no realiza comprobaciones manuales de la web tras el despliegue; las verificaciones automáticas permanecen en Actions. Consulta [el proceso de publicación](docs/PUBLICACION.md).
 
 No subas `node_modules`, `dist`, `release`, ZIP, datos de usuario ni informes temporales a Git. Los instaladores se distribuyen como archivos de Release. No hay actualizaciones automáticas: se ejecuta el nuevo instalador o se reemplaza el portátil conservando su carpeta de datos.
 
