@@ -32,7 +32,11 @@ test.beforeEach(async () => {
   await expect(page.getByRole('heading', { name: 'Maquetador DTF', exact: true })).toBeVisible();
 });
 test.afterEach(async () => {
-  if (application) { await application.evaluate(({ app }) => app.exit(0)).catch(() => {}); await application.close().catch(() => {}); }
+  if (application) {
+    // Let Playwright finish tracing before Electron exits, including the updater's separate net session.
+    await application.evaluate(({ BrowserWindow }) => { for (const window of BrowserWindow.getAllWindows()) window.removeAllListeners('close'); }).catch(() => {});
+    await application.close().catch(() => {});
+  }
   if (directory) await rm(directory, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
 });
 
