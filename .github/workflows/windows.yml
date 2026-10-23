@@ -92,6 +92,8 @@ jobs:
             release/MaquetadorDTF-Setup-*.exe
             release/MaquetadorDTF-Portable-*.exe
             release/SHA256SUMS.txt
+            release/latest.yml
+            release/MaquetadorDTF-Setup-*.exe.blockmap
             docs/USO-WINDOWS.md
             build/THIRD_PARTY_NOTICES.txt
           if-no-files-found: error
@@ -152,6 +154,9 @@ jobs:
         with:
           name: windows-dist
           path: distribution
+      - name: Preparar validación de metadatos de actualización
+        if: steps.target.outputs.current == 'true' && needs.windows.outputs.release_required == 'true'
+        run: npm ci --omit=dev --ignore-scripts
       - name: Publicar Release preliminar del mismo commit
         if: steps.target.outputs.current == 'true' && needs.windows.outputs.release_required == 'true'
         env:

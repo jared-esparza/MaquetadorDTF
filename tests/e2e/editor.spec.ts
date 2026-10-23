@@ -18,6 +18,7 @@ test('carga, recorta transparencia, monta múltiples páginas y descarga PDF fí
   page.on('pageerror', error => errors.push(error.message));
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Maquetador DTF' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Actualizaciones', exact: true })).toHaveCount(0);
   await expect(page.getByLabel('Distancia entre diseños')).toHaveValue('7');
   await page.getByLabel('Distancia entre diseños').selectOption('6');
   await expect(page.getByLabel('Distancia entre diseños')).toHaveValue('6');

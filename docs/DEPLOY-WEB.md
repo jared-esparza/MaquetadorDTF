@@ -27,4 +27,4 @@ Para repetir las pruebas completas de navegador contra la web publicada, estable
 
 Para cambiar a otro subdominio con la app en su raíz, configura DNS, HTTPS y la carpeta de hosting, y cambia `WEB_URL` en GitHub. Reejecuta el workflow sobre `main`. El dominio no está fijado en el editor. Los formatos guardados por el navegador pertenecen al dominio anterior y no migran automáticamente.
 
-Las entregas funcionales publican automáticamente una Release preliminar y la web del mismo commit. Consulta PUBLICACION.md. Los ejecutables instalados no se actualizan solos.
+Las entregas funcionales publican automáticamente una Release preliminar y la web del mismo commit. Consulta PUBLICACION.md. Desde 1.3.0, la instalada permite comprobar y descargar actualizaciones; la instalación requiere reinicio explícito y trabajo exportado. El portátil conserva actualización asistida.

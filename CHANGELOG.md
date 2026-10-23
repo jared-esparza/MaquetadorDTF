@@ -1,5 +1,11 @@
 # Cambios
 
+## 1.3.0
+- Actualizaciones de escritorio configurables: manual, avisar antes de descargar (predeterminado) y descarga automática.
+- Se incluyen preliminares; instalación y reinicio solo mediante acción explícita y sin trabajo pendiente ni operaciones.
+- Portátil con comprobación y descarga asistida, conservando MaquetadorDTF-datos.
+- Metadatos y mapas de actualización publicados y verificados junto con los ejecutables.
+
 ## 1.2.0
 - Exportación PNG transparente a 150, 300 o 600 ppp; un archivo por pliego y ZIP para montajes multipágina.
 - Renderizado por franjas en worker, progreso y cancelación, con guardado nativo PNG/ZIP en Windows.

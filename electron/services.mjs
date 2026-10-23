@@ -3,7 +3,7 @@ import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 
 const queues = new Map();
-const defaults = () => ({ version: 1, hideWelcome: false });
+const defaults = () => ({ version: 1, hideWelcome: false, updateMode: 'notify' });
 
 export function resolveResource(url, root) {
   const parsed = new URL(url);
@@ -40,6 +40,7 @@ export async function readPreferences(directory) {
     const stored = JSON.parse(await readFile(path.join(directory, 'preferences.json'), 'utf8'));
     const result = defaults();
     if (typeof stored.hideWelcome === 'boolean') result.hideWelcome = stored.hideWelcome;
+    if (['manual', 'notify', 'auto'].includes(stored.updateMode)) result.updateMode = stored.updateMode;
     if (stored.profileState) result.profileState = validateProfileState(stored.profileState);
     if (typeof stored.lastExportDirectory === 'string' && path.isAbsolute(stored.lastExportDirectory)) result.lastExportDirectory = stored.lastExportDirectory;
     return result;
@@ -67,10 +68,11 @@ function commitPreferences(directory, patch) {
 }
 
 export async function updatePreferences(directory, patch) {
-  if (!patch || typeof patch !== 'object' || Array.isArray(patch) || Object.keys(patch).some(key => !['hideWelcome', 'profileState'].includes(key))) throw new Error('Preferencia no permitida.');
+  if (!patch || typeof patch !== 'object' || Array.isArray(patch) || Object.keys(patch).some(key => !['hideWelcome', 'profileState', 'updateMode'].includes(key))) throw new Error('Preferencia no permitida.');
   const valid = {};
   if ('hideWelcome' in patch) { if (typeof patch.hideWelcome !== 'boolean') throw new Error('Preferencia no válida.'); valid.hideWelcome = patch.hideWelcome; }
   if ('profileState' in patch) valid.profileState = validateProfileState(patch.profileState);
+  if ('updateMode' in patch) { if (!['manual', 'notify', 'auto'].includes(patch.updateMode)) throw new Error('Modo de actualización no válido.'); valid.updateMode = patch.updateMode; }
   return commitPreferences(directory, valid);
 }
 

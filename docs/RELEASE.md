@@ -1,13 +1,16 @@
-Maquetador DTF 1.2.0 para Windows 10/11 x64: instalador guiado en español y versión portátil.
+Maquetador DTF 1.3.0 para Windows 10/11 x64: instalador guiado en español y versión portátil.
 
-- Exportación PNG RGBA con transparencia y resolución seleccionable de 150, 300 o 600 ppp (300 por defecto).
-- Un pliego genera un PNG; varios generan un ZIP con archivos numerados. Se conservan medidas, márgenes, giros, separación y espejo.
-- Progreso y cancelación sin perder el montaje; renderizado por franjas para el film completo a 600 ppp.
-- Se conserva la exportación PDF y se añade guardado nativo PNG/ZIP, última carpeta y apertura de carpeta.
-- Web y Windows se publican desde el mismo commit con sus pruebas y sumas SHA-256. No hay actualizaciones automáticas de los programas instalados.
+- Actualizaciones configurables desde el botón Actualizaciones. Modo inicial: avisar antes de descargar.
+- Instalada: búsqueda manual, comprobación al iniciar y cada 6 horas, o descarga automática. Las versiones preliminares están incluidas.
+- La instalación exige pulsar Instalar y reiniciar, sin montaje pendiente de exportar ni operaciones activas. Nunca se instala automáticamente al cerrar.
+- Portátil: avisos y descarga asistida del nuevo EXE; reemplazarlo conservando MaquetadorDTF-datos. No se sustituye automáticamente.
+- Las Releases incorporan latest.yml y el mapa de descarga del instalador, con sumas SHA-256 y verificación SHA-512 del actualizador.
+- Se mantienen exportaciones PDF, PNG y ZIP a tamaño real y todas las preferencias.
 
-**Versión preliminar sin firma.** Windows puede mostrar avisos o bloquear los ejecutables según sus políticas. Las pruebas automatizadas del paquete en GitHub no equivalen a una validación en Windows limpio ni a una impresión física con el RIP. La comprobación anterior en Windows Sandbox sin Node y sin red quedó bloqueada por Control de aplicaciones; no se presenta esta entrega como una nueva validación de ese requisito.
+**Instalación inicial del sistema de actualización:** desde 1.2.0 o anteriores, descarga e instala esta versión manualmente una vez. Las siguientes versiones compatibles podrán descargarse desde la aplicación instalada.
 
-Los ejecutables incluyen Electron y los recursos necesarios: el usuario no necesita instalar Node ni conectarse para trabajar. La versión portátil conserva sus preferencias en MaquetadorDTF-datos junto al exe; conserva esa carpeta al actualizar.
+**Versión preliminar sin firma.** Se mantiene la distribución sin Authenticode: Windows puede mostrar avisos o bloquear la ejecución según sus políticas. El actualizador comprueba la integridad del instalador descargado, pero esto no equivale a una firma de editor. Las pruebas automatizadas del paquete no equivalen a una validación en Windows limpio ni a calibración física.
 
-Consulta USO-WINDOWS.md y SHA256SUMS.txt. Imprime la calibración desde el RIP al 100 % antes de producir. La licencia de reutilización del código propio sigue pendiente; se incluyen los avisos de dependencias.
+El instalador y el portátil incluyen todos los recursos necesarios; no requieren Node. El editor sigue funcionando sin conexión. Consultar o descargar actualizaciones requiere Internet y no bloquea el trabajo si la conexión falla.
+
+Consulta USO-WINDOWS.md y SHA256SUMS.txt. Licencia del código propio pendiente; avisos de dependencias incluidos.

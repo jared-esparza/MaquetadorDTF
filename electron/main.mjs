@@ -4,6 +4,8 @@ import { mkdir, access, readFile } from 'node:fs/promises';
 import { constants } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dataDirectory, flushPreferences, readPreferences, resolveResource, savePdf, saveRaster, updatePreferences } from './services.mjs';
+import electronUpdater from 'electron-updater';
+import { createUpdateController, RELEASES_URL } from './updates.mjs';
 
 const base = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(base, '..', 'dist');
@@ -23,6 +25,8 @@ let busy = false;
 let closing = false;
 let closePrompt = false;
 let lastSavedFile;
+let updates;
+let updateClosing = false;
 
 if (!app.requestSingleInstanceLock()) app.quit();
 else {
@@ -30,6 +34,7 @@ else {
   app.whenReady().then(start).catch(error => { dialog.showErrorBox('No se puede abrir Maquetador DTF', error.message); app.quit(); });
 }
 app.on('window-all-closed', () => app.quit());
+app.on('before-quit', () => updates?.stop());
 
 function trusted(event) {
   if (!mainWindow || event.sender !== mainWindow.webContents || event.senderFrame !== mainWindow.webContents.mainFrame || event.senderFrame.url !== 'app://maquetador/index.html') throw new Error('Solicitud no permitida.');
@@ -74,6 +79,25 @@ async function start() {
   session.defaultSession.webRequest.onBeforeRequest((details, callback) => callback({ cancel: !['app:', 'blob:', 'data:', 'devtools:'].includes(new URL(details.url).protocol) }));
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => callback({ responseHeaders: { ...details.responseHeaders, 'Content-Security-Policy': ["default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; worker-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-src 'none'"] } }));
 
+  const preferences = await readPreferences(directory);
+  const portable = !!process.env.PORTABLE_EXECUTABLE_DIR;
+  updates = createUpdateController({
+    updater: app.isPackaged && !portable ? electronUpdater.autoUpdater : null,
+    version: app.getVersion(), portable, mode: preferences.updateMode,
+    saveMode: updateMode => updatePreferences(directory, { updateMode }),
+    getDocumentState: () => ({ dirty, busy }), flush: () => flushPreferences(directory),
+    onState: state => { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('desktop:updates:state', state); },
+    openExternal: url => shell.openExternal(url),
+    prepareInstall: () => { updateClosing = true; closing = true; },
+    restoreClose: () => { if (updateClosing) { closing = false; updateClosing = false; } },
+  });
+  ipcMain.handle('desktop:updates:get', event => { trusted(event); return updates.snapshot(); });
+  ipcMain.handle('desktop:updates:mode', (event, mode) => { trusted(event); return updates.setMode(mode); });
+  ipcMain.handle('desktop:updates:check', event => { trusted(event); return updates.check(); });
+  ipcMain.handle('desktop:updates:download', event => { trusted(event); return updates.download(); });
+  ipcMain.handle('desktop:updates:install', event => { trusted(event); return updates.install(); });
+  ipcMain.handle('desktop:updates:releases', async event => { trusted(event); await shell.openExternal(RELEASES_URL); });
+
   ipcMain.handle('desktop:preferences:get', async event => { trusted(event); const preferences = await readPreferences(directory); return { profileState: preferences.profileState, hideWelcome: preferences.hideWelcome, version: app.getVersion(), portable: !!process.env.PORTABLE_EXECUTABLE_DIR }; });
   ipcMain.handle('desktop:preferences:update', async (event, patch) => { trusted(event); await updatePreferences(directory, patch); });
   ipcMain.handle('desktop:pdf:save', async (event, request) => {
@@ -90,7 +114,7 @@ async function start() {
   });
   ipcMain.handle('desktop:pdf:folder', event => { trusted(event); if (lastSavedFile) shell.showItemInFolder(lastSavedFile); });
   ipcMain.handle('desktop:help', async (event, topic) => { trusted(event); await help(topic); });
-  ipcMain.on('desktop:document:state', (event, state) => { trusted(event); if (state && typeof state.dirty === 'boolean' && typeof state.busy === 'boolean') { dirty = state.dirty; busy = state.busy; } });
+  ipcMain.on('desktop:document:state', (event, state) => { trusted(event); if (state && typeof state.dirty === 'boolean' && typeof state.busy === 'boolean') { dirty = state.dirty; busy = state.busy; updates.documentChanged(); } });
 
   mainWindow = new BrowserWindow({ width: 1440, height: 980, minWidth: 900, minHeight: 650, show: false, title: 'Maquetador DTF · PKprint', backgroundColor: '#ffffff', icon: path.join(base, '..', 'build', 'icon.ico'), webPreferences: { preload: path.join(base, 'preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false } });
   mainWindow.once('ready-to-show', () => mainWindow.show());
@@ -121,4 +145,5 @@ async function start() {
     { label: 'Ayuda', submenu: [{ label: 'Cómo usar el maquetador', click: () => void help('guide') }, { label: 'Mostrar bienvenida', click: () => void help('welcome') }, { label: 'PDF de calibración', click: () => void help('calibration').catch(error => dialog.showErrorBox('Calibración', error.message)) }, { type: 'separator' }, { label: 'Acerca de…', click: () => void help('about') }] },
   ]));
   await mainWindow.loadURL('app://maquetador/index.html');
+  updates.start();
 }
