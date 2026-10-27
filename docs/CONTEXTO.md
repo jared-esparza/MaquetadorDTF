@@ -252,12 +252,22 @@ no autoriza merge, etiquetas, publicación ni despliegue de esta entrega.
 
 PR [#13](https://github.com/jared-esparza/MaquetadorDTF/pull/13) abierta.
 La primera CI [40587258175](https://github.com/jared-esparza/MaquetadorDTF/actions/runs/40587258175)
-pasó compilación y unitarias en `c293ec7`; el resto seguía pendiente al registrar
-este estado. La revisión independiente detectó amplificación del redondeo de los
+pasó completa en `c293ec7`: compilación, unitarias, navegador, verificaciones
+independientes PDF/PNG, Electron y ejecutable empaquetado. La revisión independiente
+detectó amplificación del redondeo de los
 márgenes con más de dos decimales; el reparto usa ahora el mismo origen a centésimas
 que MaxRects, conservando los límites físicos derecho e inferior. Se añadió una
 regresión para ambos ejes y espejo. La revisión de la corrección no detectó otros
-problemas concretos; su validación funcional completa queda pendiente de Actions.
+problemas concretos.
+
+CI [40587722007](https://github.com/jared-esparza/MaquetadorDTF/actions/runs/40587722007)
+en `7b6fc31`: compilación, unitarias (incluida la regresión decimal), navegador y
+verificaciones independientes PDF/PNG correctas. Falló una prueba previa de
+persistencia de presupuesto en Electron: selección 120 MP, aviso de error de
+guardado y archivo aún en 60 MP. Las pruebas nuevas de reparto en Electron pasaron.
+No se atribuye todavía una causa; se añade captura de stderr de Electron en los
+fallos de CI para diagnosticar sin debilitar la comprobación. Quedan pendientes
+una CI completa del código final y el cierre de este fallo intermitente.
 
 Pruebas añadidas de geometría, navegador, Electron y muestras PNG/PDF para
 Pillow/PDFium en Actions. No se ejecutan pruebas locales ni se comprueba

@@ -14,6 +14,7 @@ const require = createRequire(import.meta.url);
 let application: ElectronApplication;
 let page: Page;
 let directory: string;
+let electronStderr: string;
 
 function png() {
   const png = new PNG({ width: 600, height: 300 });
@@ -24,15 +25,21 @@ function png() {
 }
 
 test.beforeEach(async () => {
+  electronStderr = '';
   directory = await mkdtemp(path.join(os.tmpdir(), 'DTF escritorio ñ '));
   const env: Record<string, string> = Object.fromEntries(Object.entries({ ...process.env, DTF_TEST_DATA_DIR: directory }).filter((entry): entry is [string, string] => typeof entry[1] === 'string'));
   delete env.ELECTRON_RUN_AS_NODE;
   if (process.env.DTF_ELECTRON_EXE) env.PORTABLE_EXECUTABLE_DIR = directory;
   application = await _electron.launch({ executablePath: process.env.DTF_ELECTRON_EXE ?? require('electron'), args: process.env.DTF_ELECTRON_EXE ? [] : ['electron/main.mjs'], env });
+  application.process().stderr?.on('data', chunk => { electronStderr += chunk.toString(); });
   page = await application.firstWindow();
   await expect(page.getByRole('heading', { name: 'Maquetador DTF', exact: true })).toBeVisible();
 });
-test.afterEach(async () => {
+test.afterEach(async ({}, info) => {
+  if (info.status !== info.expectedStatus && electronStderr) {
+    console.error(electronStderr);
+    await info.attach('electron-stderr', { body: electronStderr, contentType: 'text/plain' });
+  }
   if (application) {
     // Let Playwright finish tracing before Electron exits, including the updater's separate net session.
     await application.evaluate(({ BrowserWindow }) => { for (const window of BrowserWindow.getAllWindows()) window.removeAllListeners('close'); }).catch(() => {});
