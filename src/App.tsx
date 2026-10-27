@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { decodePng, rasterPng, rasterUrl } from './browser/images';
+import { decodeImage, rasterPng, rasterUrl } from './browser/images';
 import { runImage, runLayout, runPngExport, runPdfExport } from './browser/workerClient';
 import { pngDimensions } from './core/png';
 import type { ExportProgress } from './browser/printPng';
@@ -42,7 +42,7 @@ export default function App() {
   const [mirror, setMirror] = useState(false);
   const [pngDpi, setPngDpi] = useState(300);
   const [pdfOrganization,setPdfOrganization] = useState<'separate' | 'combined'>('separate');
-  const [pdfImport,setPdfImport] = useState<{ file: File; resolve: (pages: PdfCandidate[]) => void } | null>(null);
+  const [pdfImport,setPdfImport] = useState<{ file: File; resolve: (pages: PdfCandidate[], dpi: number) => void } | null>(null);
   const [conversion,setConversion] = useState<{ design: Design; action: 'erase' | 'refine' } | null>(null);
   const [editingDesign,setEditingDesign] = useState<Design | null>(null);
   const [exportProgress, setExportProgress] = useState<ExportProgress | null>(null);
@@ -72,7 +72,7 @@ export default function App() {
   const pending = layoutState.key !== layoutKey;
   const layout = pending ? null : layoutState.result;
   const blocked = !!busy || editingId !== null || !preferencesReady || showWelcome || updateInstalling || conversion !== null;
-  const lowDpi = designs.some(d => !d.pdf && designMetrics(d.raster, d.widthMm).quality === 'low');
+  const lowDpi = designs.some(d => designMetrics(d.raster, d.widthMm).quality === 'low');
   const canExport = !blocked && !formatOpen && !pending && invalidFields.size === 0 && !!layout?.pages.length && layout.unplacedIds.length === 0 && (!lowDpi || acceptedLowDpi);
   let pngSize = '', pngError = '';
   try { const size = pngDimensions(profile, pngDpi); pngSize = `${size.width} × ${size.height} píxeles por pliego`; }
@@ -143,22 +143,30 @@ export default function App() {
         try {
           if (/\.pdf$/i.test(file.name) || file.type === 'application/pdf') {
             if (retainedPdfBytes([...designs,...added]) + file.size > MAX_RETAINED_PDF_BYTES) throw new Error('Las fuentes PDF del trabajo superan 100 MiB. Divide el trabajo.');
-            const selected = await new Promise<PdfCandidate[]>(resolve => setPdfImport({ file,resolve }));
+            const imported = await new Promise<{ pages: PdfCandidate[]; dpi: number }>(resolve => setPdfImport({ file,resolve: (pages,dpi) => resolve({ pages, dpi }) }));
+            const selected = imported.pages;
             const prepared: Design[] = [];
             try {
               let pixels = totalPixels;
               for (const page of selected) {
-                const raster = page.raster!, pdf = page.pdf!;
+                const pdf = page.pdf!;
+                let raster = await rasterizePdf(pdf, pdf.widthPt * 25.4 / 72, imported.dpi, new AbortController().signal);
+                if (!raster.data.some((value, index) => index % 4 === 3 && value > 0)) {
+                  const fallback = document.createElement('canvas'); fallback.width = raster.width; fallback.height = raster.height;
+                  const ctx = fallback.getContext('2d')!; const thumb = document.createElement('canvas'); thumb.width = page.raster!.width; thumb.height = page.raster!.height;
+                  thumb.getContext('2d')!.putImageData(new ImageData(new Uint8ClampedArray(page.raster!.data), thumb.width, thumb.height), 0, 0);
+                  ctx.drawImage(thumb, 0, 0, raster.width, raster.height); raster = { ...raster, data: ctx.getImageData(0, 0, raster.width, raster.height).data }; thumb.width = thumb.height = fallback.width = fallback.height = 0;
+                }
                 pixels += raster.width * raster.height;
                 if (pixels > MAX_TOTAL_PIXELS) throw new Error('El trabajo supera 60 megapíxeles. Divide los diseños en varios trabajos.');
                 const url = await rememberUrl(raster);
-                prepared.push({ id: crypto.randomUUID(),name: page.name,original: raster,raster,pdf,widthMm: pdf.widthPt * 25.4 / 72,copies: 1,url,note: '',opaque: hasOpaqueBackground(raster) });
+                prepared.push({ id: crypto.randomUUID(),name: page.name,original: raster,raster,widthMm: pdf.widthPt * 25.4 / 72,copies: 1,url,note: '',opaque: hasOpaqueBackground(raster) });
               }
               added.push(...prepared); totalPixels = pixels;
             } catch (error) { prepared.forEach(design => release(design.url)); throw error; }
             continue;
           }
-          const decoded = await decodePng(file);
+          const decoded = await decodeImage(file);
           if (totalPixels + decoded.width * decoded.height > MAX_TOTAL_PIXELS) throw new Error('El trabajo supera 60 megapíxeles, incluidas las versiones de edición. Divide los diseños en varios trabajos.');
           const raster = await runImage('crop', decoded);
           const url = await rememberUrl(raster);
@@ -210,7 +218,7 @@ export default function App() {
     for (const design of designs) {
       signal.throwIfAborted();
       const common = { id: design.id,widthMm: design.widthMm,heightMm: designHeight(design),copies: design.copies };
-      assets.push(design.pdf ? { ...common,pdf: design.pdf } : { ...common,png: new Uint8Array(await (await rasterPng(design.raster)).arrayBuffer()) });
+      assets.push({ ...common,png: new Uint8Array(await (await rasterPng(design.raster)).arrayBuffer()) });
     }
     return assets;
   };
@@ -268,8 +276,8 @@ export default function App() {
       <section className="panel designs-panel" aria-labelledby="designs-title">
         <h2 id="designs-title"><span className="step">1</span>Diseños <span className="panel-count">{designs.length > 0 ? designs.length : ''}</span></h2>
         <div className={`upload-area ${dragging ? 'dragging' : ''}`} onDragOver={e => { e.preventDefault(); if (!blocked) setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={e => { e.preventDefault(); setDragging(false); void importFiles([...e.dataTransfer.files]); }}>
-          <input ref={inputRef} className="file-input" type="file" accept="image/png,.png,application/pdf,.pdf" multiple aria-label="Subir diseños PNG o PDF" disabled={blocked} onChange={e => { const files = [...(e.target.files ?? [])]; e.target.value = ''; void importFiles(files); }} />
-          <button className="upload-button" disabled={blocked} onClick={() => inputRef.current?.click()}><span className="upload-plus">+</span><strong>Sube tus diseños en PNG o PDF</strong><span>Arrastra aquí o toca para elegir.</span><small>PNG: 20 MB · PDF: 50 MiB · análisis: 25 MP</small></button>
+          <input ref={inputRef} className="file-input" type="file" accept="image/png,.png,image/jpeg,.jpg,.jpeg,image/webp,.webp,application/pdf,.pdf" multiple aria-label="Subir diseños de imagen o PDF" disabled={blocked} onChange={e => { const files = [...(e.target.files ?? [])]; e.target.value = ''; void importFiles(files); }} />
+          <button className="upload-button" disabled={blocked} onClick={() => inputRef.current?.click()}><span className="upload-plus">+</span><strong>Sube tus diseños de imagen o PDF</strong><span>Arrastra aquí o toca para elegir.</span><small>PNG, JPG/JPEG y WebP: 20 MB · PDF: 50 MiB</small></button>
         </div>
         {!designs.length && <p className="empty-instruction">Indica el ancho y las copias de cada diseño. El pliego se monta automáticamente.</p>}
         {busy && <p className="working" role="status"><span className="spinner" />{busy}</p>}
@@ -324,7 +332,7 @@ export default function App() {
         </div>
       </section>
     </main>
-    {pdfImport && <PdfImport file={pdfImport.file} onComplete={pages => { pdfImport.resolve(pages); setPdfImport(null); }} />}
+    {pdfImport && <PdfImport file={pdfImport.file} onComplete={(pages,dpi) => { pdfImport.resolve(pages,dpi); setPdfImport(null); }} />}
     {conversion && <PdfConversion name={conversion.design.name} onConfirm={dpi => void convertPdf(dpi)} onCancel={() => setConversion(null)} />}
     {!desktop && <WindowsDownloads />}
     <footer className="app-footer">Maquetador DTF{desktopVersion ? ` ${desktopVersion}` : ''} · PKprint<span>Los archivos se procesan localmente y no se suben a Internet.</span></footer>

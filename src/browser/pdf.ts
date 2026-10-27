@@ -89,11 +89,17 @@ export async function rasterizePdf(source: PdfSource, widthMm: number, dpi: numb
   const width = Math.round(widthMm * dpi / 25.4), height = Math.round(width * source.heightPt / source.widthPt);
   checkSize(width,height);
   const loading = loadPdf(source.document.bytes), canvas = document.createElement('canvas');
-  canvas.width = width; canvas.height = height;
   const cancel = () => { void loading.destroy(); }; signal.addEventListener('abort',cancel,{ once: true });
   try {
-    const doc = await loading.promise;
-    await renderPdfRegion(doc,source,canvas,new DOMMatrix().scale(width / source.widthPt,height / source.heightPt),signal);
-    return { width,height,sourceScale: 1,data: canvas.getContext('2d')!.getImageData(0,0,width,height).data };
+    const doc = await loading.promise, page = await doc.getPage(source.pageIndex + 1), viewport = page.getViewport({ scale: dpi / 72 });
+    checkSize(Math.ceil(viewport.width), Math.ceil(viewport.height));
+    canvas.width = Math.ceil(viewport.width); canvas.height = Math.ceil(viewport.height);
+    await render(page, canvas, viewport, signal);
+    const points = [viewport.convertToViewportPoint(source.box.left, source.box.top), viewport.convertToViewportPoint(source.box.right, source.box.bottom)];
+    const left = Math.max(0, Math.floor(Math.min(points[0][0], points[1][0]))), top = Math.max(0, Math.floor(Math.min(points[0][1], points[1][1])));
+    const cropWidth = Math.min(canvas.width - left, Math.ceil(width)), cropHeight = Math.min(canvas.height - top, Math.ceil(height));
+    const output = document.createElement('canvas'); output.width = width; output.height = height;
+    output.getContext('2d')!.drawImage(canvas, left, top, cropWidth, cropHeight, 0, 0, width, height);
+    return { width,height,sourceScale: 1,data: output.getContext('2d')!.getImageData(0,0,width,height).data };
   } finally { canvas.width = canvas.height = 0; signal.removeEventListener('abort',cancel); await loading.destroy(); }
 }

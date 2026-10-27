@@ -7,10 +7,10 @@ function Thumbnail({ raster }: { raster: Raster }) {
   useEffect(() => { canvas.current!.getContext('2d')!.putImageData(new ImageData(new Uint8ClampedArray(raster.data),raster.width,raster.height),0,0); },[raster]);
   return <canvas ref={canvas} width={raster.width} height={raster.height} className="checker" aria-label="Vista previa del recorte" />;
 }
-export function PdfImport({ file, onComplete }: { file: File; onComplete: (pages: PdfCandidate[]) => void }) {
+export function PdfImport({ file, onComplete }: { file: File; onComplete: (pages: PdfCandidate[], dpi: number) => void }) {
   const dialog = useRef<HTMLDialogElement>(null), controller = useRef<AbortController | null>(null);
   const [pages,setPages] = useState<PdfCandidate[]>([]), [selected,setSelected] = useState<Set<number>>(new Set());
-  const [ready,setReady] = useState(false), [total,setTotal] = useState(0), [error,setError] = useState('');
+  const [ready,setReady] = useState(false), [total,setTotal] = useState(0), [error,setError] = useState(''), [dpi,setDpi] = useState(300);
   useEffect(() => {
     const abort = new AbortController(); controller.current = abort; dialog.current?.showModal();
     setPages([]); setSelected(new Set()); setReady(false); setError('');
@@ -21,10 +21,11 @@ export function PdfImport({ file, onComplete }: { file: File; onComplete: (pages
       .finally(() => { if (!abort.signal.aborted) setReady(true); });
     return () => abort.abort();
   },[file]);
-  const cancel = () => { controller.current?.abort(); onComplete([]); };
+  const cancel = () => { controller.current?.abort(); onComplete([], dpi); };
   return <dialog ref={dialog} className="pdf-dialog" aria-labelledby="pdf-import-title" onCancel={event => { event.preventDefault(); cancel(); }}>
     <h2 id="pdf-import-title">Importar páginas PDF</h2><p>{file.name}</p>
-    <p>Se recorta el espacio transparente exterior. El blanco dibujado se conserva. Comprueba las medidas antes de importar.</p>
+    <p>Las páginas se convertirán en imágenes. El blanco dibujado se conserva y los vectores dejarán de ser editables.</p>
+    <label>Resolución de conversión <select value={dpi} onChange={event => setDpi(Number(event.target.value))}><option value={300}>300 ppp (recomendado)</option><option value={600}>600 ppp</option></select></label>
     {!ready && <p role="status">Analizando página {Math.min(pages.length + 1,total || 1)}{total ? ` de ${total}` : ''}…</p>}
     {error && <p className="error-box" role="alert">{error}</p>}
     <button disabled={!ready || !!error} onClick={() => setSelected(new Set(pages.filter(page => page.pdf).map(page => page.pageNumber)))}>Seleccionar todas</button>
@@ -34,7 +35,7 @@ export function PdfImport({ file, onComplete }: { file: File; onComplete: (pages
       {page.pdf && <span>{(page.pdf.widthPt * 25.4 / 72).toFixed(2)} × {(page.pdf.heightPt * 25.4 / 72).toFixed(2)} mm · PDF original</span>}
       {page.error && <span className="error">{page.error}</span>}
     </label>)}</div>
-    <div className="editor-actions"><button className="primary-button" disabled={!ready || !!error || !selected.size} onClick={() => onComplete(pages.filter(page => page.pdf && selected.has(page.pageNumber)))}>Importar seleccionadas ({selected.size})</button><button onClick={cancel}>Cancelar importación</button></div>
+    <div className="editor-actions"><button className="primary-button" disabled={!ready || !!error || !selected.size} onClick={() => onComplete(pages.filter(page => page.pdf && selected.has(page.pageNumber)),dpi)}>Importar seleccionadas ({selected.size})</button><button onClick={cancel}>Cancelar importación</button></div>
   </dialog>;
 }
 
