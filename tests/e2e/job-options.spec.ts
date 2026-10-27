@@ -4,7 +4,7 @@ import { PDFDocument, rgb } from 'pdf-lib';
 import { unzipSync } from 'fflate';
 import { mkdir, readFile } from 'node:fs/promises';
 
-function image(width = 200, height = 100) {
+function image(width = 600, height = 300) {
   const png = new PNG({ width, height });
   png.data.fill(255);
   for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
