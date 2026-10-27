@@ -83,7 +83,8 @@ test('configura y conserva el perfil, muestra espejo y valida cantidades y archi
   await page.reload();
   await expect(page.getByTestId('profile-dimensions')).toContainText('300 × 450 mm');
   await page.getByLabel('Subir diseños PNG').setInputFiles({ name: 'falso.png', mimeType: 'image/png', buffer: Buffer.from('no soy un PNG') });
-  await expect(page.getByRole('alert').filter({ hasText: 'PNG válido' })).toBeVisible();
+  await expect(page.getByRole('alert').filter({ hasText: 'La imagen está dañada o no se puede leer.' })).toBeVisible();
+  await expect(page.getByTestId('design-card')).toHaveCount(0);
   await page.getByLabel('Subir diseños PNG').setInputFiles({ name: 'bueno.png', mimeType: 'image/png', buffer: samplePng() });
   const card = page.getByTestId('design-card');
   await expect(card).toHaveCount(1);
