@@ -2,6 +2,10 @@
 
 [Volver a la presentación](../README.md) · [Uso en Windows](USO-WINDOWS.md)
 
+Para retomar el desarrollo en un hilo nuevo, leer primero [CONTEXTO.md](CONTEXTO.md).
+Esta guía describe el producto y las herramientas; el contexto distingue los
+pendientes reales y el alcance de las verificaciones.
+
 El editor web y la aplicación Electron comparten código. El usuario final puede usar la web o los ejecutables; los comandos siguientes son para desarrollo.
 
 ## Lanzador local alternativo para desarrollo
@@ -14,7 +18,7 @@ Si el puerto está ocupado, comprueba si el maquetador ya está abierto. El puer
 
 ## Preparar un trabajo
 
-1. Sube los diseños PNG. El editor recorta el margen completamente transparente y conserva las proporciones.
+1. Sube PNG, JPG/JPEG, WebP estático o PDF. Para PDF, selecciona páginas y conversión a 300 o 600 ppp. El diseño entra en el flujo de imágenes; no se promete conservación vectorial. El recorte conserva el blanco dibujado.
 2. Introduce el ancho en **centímetros** y las copias de cada diseño. La medida final corresponde al contenido visible recortado.
 3. Si hay fondo, abre **Borrador · fondo y colores**. La tolerancia controla qué colores se eliminan. El modo conectado conserva zonas interiores del mismo color; el modo global también las elimina. Con la varita puedes quitar otro color. Aplica o cancela los cambios.
 4. Selecciona o configura el formato de film y los márgenes en **milímetros**. Elige una separación de 3, 4, 5, 6 o 7 mm. Por defecto se seleccionan **7 mm**.
@@ -26,11 +30,14 @@ El montaje prueba seis variantes de MaxRects con giros de 90°. Es una optimizac
 
 ## Privacidad, sesión y límites
 
-Los PNG se procesan en el navegador; no se suben los diseños ni se requieren cuentas. Las descargas y actualizaciones consultan GitHub. Los perfiles de formato se guardan en ese navegador. Los diseños son de sesión: exporta el trabajo antes de cerrar o recargar. No se guardan proyectos editables.
+Los diseños se procesan en el navegador; no se suben ni se requieren cuentas. Las descargas y actualizaciones consultan GitHub. Los perfiles de formato se guardan en ese navegador. Los diseños son de sesión: exporta el trabajo antes de cerrar o recargar. No se guardan proyectos editables.
 
 Límites: 20 MB y 25 megapíxeles por PNG, 60 megapíxeles retenidos en conjunto (incluye original y versiones de edición únicas), 3000 copias por trabajo, formato entre 10 y 5000 mm por lado. El afinado también comprueba el presupuesto de memoria. La salida PNG admite hasta 32 767 píxeles por lado, 512 megapíxeles por pliego y 256 MiB por archivo PNG o ZIP final. Superar un límite muestra un error sin reducir la calidad automáticamente; Film 55 × 100 cm admite 150, 300 y 600 ppp. Estos límites evitan ampliaciones ilimitadas; el uso real de memoria incluye además copias temporales de cálculo y exportación.
 
 ## Desarrollo y pruebas
+
+Los comandos siguientes son referencia. La preferencia actual del usuario es
+delegar las pruebas en GitHub Actions y no repetirlas localmente por defecto.
 
 ```powershell
 npm ci
@@ -93,11 +100,11 @@ El repositorio mantiene una única base de código para web y escritorio. La eti
 Las preferencias de la instalada se guardan en `%APPDATA%/PKprint/MaquetadorDTF`; la portátil usa `MaquetadorDTF-datos` junto al ejecutable. Los formatos del navegador no se importan automáticamente al escritorio.
 
 La calibración se abre desde Ayuda en la aplicación de escritorio. Las muestras y los informes generados bajo `artifacts/` son resultados locales de pruebas y no se incluyen en Git.
-# Cambios funcionales de 1.4.0
+## Cambios funcionales de 1.4.0
 
-La aplicación acepta PNG y PDF. Cada página PDF seleccionada se trata como un diseño independiente y conserva los bytes originales para la exportación PDF. PDF.js se sirve desde `dist/pdfjs` (sin CDN) para que Electron y la web empaquetada funcionen sin conexión.
+La interfaz acepta PNG, JPG/JPEG, WebP estático y PDF. Las páginas PDF seleccionadas se convierten a imágenes a 300 ppp por defecto o 600 ppp opcional; se exportan por el flujo de imágenes y no conservan vectores. PDF.js se sirve desde `dist/pdfjs` sin CDN. Persisten caminos internos del prototipo vectorial pendientes de retirar, detallados en [CONTEXTO.md](CONTEXTO.md).
 
 La exportación PDF ofrece «Un PDF por pliego» (predeterminada) y «Un único PDF con todos los pliegos». Cuando hay varios pliegos y se elige la primera opción, se genera un ZIP numerado. La exportación PNG mantiene 150/300/600 ppp y también genera ZIP para varios pliegos.
 
-Los límites principales son 50 MiB por PDF de entrada, 100 páginas por documento, 100 MiB de fuentes PDF retenidas por trabajo, 25 MP por página al analizar o convertir, y 256 MiB por archivo PDF/ZIP final. Las operaciones se cancelan sin alterar el montaje existente.
+Los límites de PDF acordados son 50 MiB por archivo, 100 páginas por documento, 25 MP por página convertida y 256 MiB por archivo PDF/ZIP final. Las imágenes convertidas cuentan en los 60 MP retenidos por trabajo. El código aún contiene el límite del prototipo de 100 MiB de fuentes PDF; no equivale a un nuevo presupuesto de imágenes. La cancelación durante la conversión y la fidelidad de la salida tienen pendientes documentados en CONTEXTO.md.
 

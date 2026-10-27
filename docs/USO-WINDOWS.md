@@ -7,7 +7,7 @@ Abre MaquetadorDTF-Setup-1.3.0-x64.exe, sigue el asistente en español y abre el
 Abre MaquetadorDTF-Portable-1.3.0-x64.exe desde una carpeta con permiso de escritura. Se crea MaquetadorDTF-datos junto al ejecutable. Copia también esa carpeta al moverlo a otro PC si quieres conservar los formatos y preferencias. No es necesario ejecutar el instalador.
 
 ## Tres pasos
-1. Sube PNG, indica ancho en centímetros y número de copias. Usa el borrador si necesitas quitar fondos.
+1. Sube PNG, JPG/JPEG, WebP estático o PDF. Para PDF, selecciona páginas y elige 300 ppp (inicial) o 600 ppp: se convierten a imágenes, sin conservar vectores. Indica ancho en centímetros y número de copias. Usa el borrador si necesitas quitar fondos; el blanco no se elimina automáticamente.
 2. Configura el film y los márgenes en milímetros. La separación inicial es 7 mm; puedes elegir entre 3 y 7 mm. Revisa los pliegos.
 3. Descarga el PDF y elige dónde guardarlo. Imprime desde tu RIP al 100 % o Tamaño real, sin ajustar a página. El RIP debe generar el blanco y gestionar el color. Activa espejo aquí solamente si lo desactivas en el RIP.
 

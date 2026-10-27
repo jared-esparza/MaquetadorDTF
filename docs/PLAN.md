@@ -1,5 +1,7 @@
 # Maquetador DTF — plan acordado
 
+> Histórico del editor inicial. No ejecutar como plan actual. Estado y decisiones vigentes: [CONTEXTO.md](CONTEXTO.md).
+
 Aplicación local para Windows, React/TypeScript/Vite. Editor de tres columnas con identidad PKprint y exportación PDF para impresión. No hay servicios externos ni cuentas.
 
 1. Interfaz, lanzamiento local y carga múltiple PNG (20 MB).

@@ -1,5 +1,7 @@
 # Ejecución — docs/DESKTOP-PLAN.md
 
+> Registro histórico de Electron 1.1.0, no un listado de pendientes actuales. Para continuar: [CONTEXTO.md](CONTEXTO.md).
+
 - Baseline: 26 pruebas web y build correctos. Commit d75c4cf, etiqueta v1.0.0-web, rama feat/electron-desktop.
 - GitHub: sesión existente verificada para jared-esparza. Usar correo noreply en los commits públicos.
 - Ruling: usar la carpeta actual con rama dedicada, como pide el plan; no mover el proyecto a otro worktree y romper las rutas del usuario.

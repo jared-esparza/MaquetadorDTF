@@ -67,6 +67,7 @@ En la web, cambiar un formato **solo afecta a tu navegador**, nunca a otras pers
 
 - [Uso en Windows: instalación, portátil, exportación y actualizaciones](docs/USO-WINDOWS.md)
 - [Desarrollo, requisitos, límites y pruebas](docs/DESARROLLO.md)
+- [Estado del proyecto y contexto para continuar el desarrollo](docs/CONTEXTO.md)
 - [Historial de cambios](CHANGELOG.md)
 - [Proceso de publicación de versiones](docs/PUBLICACION.md) · [Despliegue web](docs/DEPLOY-WEB.md)
 - [Comunicar un problema o proponer una mejora](https://github.com/jared-esparza/MaquetadorDTF/issues)
