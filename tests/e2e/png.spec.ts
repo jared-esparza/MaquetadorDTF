@@ -59,6 +59,11 @@ test('exportación grande se puede cancelar y conserva diseños', async ({ page 
   await expect(page.getByRole('status').filter({ hasText: 'Exportación cancelada' })).toBeVisible();
   await expect(page.getByTestId('design-card')).toHaveCount(1);
   await expect(page.getByRole('button', { name: 'Descargar PDF', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: 'Descargar este pliego en PNG', exact: true }).click();
+  await page.getByRole('button', { name: 'Cancelar exportación' }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Exportación cancelada' })).toBeVisible();
+  await expect(page.locator('.sheet-frame')).toHaveAttribute('data-excluded', 'false');
+  await expect(page.getByTestId('remaining-sheets')).toContainText('1 de 1');
 });
 
 test('rotación y espejo conservan márgenes físicos y coinciden con PDF', async ({ page }) => {

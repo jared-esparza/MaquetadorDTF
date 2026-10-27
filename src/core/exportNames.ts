@@ -22,3 +22,8 @@ export function exportFilename(base: string, type: 'png' | 'pdf' | 'zip', page?:
   if (error) throw new Error(error);
   return `${base}${page === undefined ? '' : `-pliego-${String(page).padStart(3, '0')}`}.${type}`;
 }
+
+export function exportSelectionFilename(base: string, type: 'png' | 'pdf' | 'zip', indices: number[], totalPages: number, individual = false): string {
+  const page = type !== 'zip' && indices.length === 1 && (individual || totalPages > 1) ? indices[0] + 1 : undefined;
+  return exportFilename(base, type, page);
+}

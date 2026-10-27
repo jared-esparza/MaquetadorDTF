@@ -3,7 +3,11 @@ import { packDesigns, validateLayout } from '../src/core/layout';
 import { DEFAULT_PROFILE, profileForLayout } from '../src/core/model';
 
 describe('montaje físico', () => {
-  it.each([6, 7])('respeta %i mm de separación en un encaje exacto', gap => {
+  it.each([2, 11, 7.5, NaN])('rechaza separación no admitida %s', gap => {
+    expect(() => packDesigns([{ id: 'a', widthMm: 10, heightMm: 10, copies: 1 }], DEFAULT_PROFILE, gap)).toThrow(/3 y 10/);
+    expect(validateLayout({ pages: [], pieceCount: 0, unplacedIds: [] }, DEFAULT_PROFILE, gap)).toContain('La separación debe ser un número entero entre 3 y 10 mm.');
+  });
+  it.each([3, 6, 7, 8, 9, 10])('respeta %i mm de separación en un encaje exacto', gap => {
     const profile = { ...DEFAULT_PROFILE, widthMm: 200 + gap, heightMm: 200 + gap };
     const result = packDesigns([{ id: 'a', widthMm: 100, heightMm: 100, copies: 4 }], profile, gap);
     expect(result.pages).toHaveLength(1);

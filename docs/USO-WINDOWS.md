@@ -8,7 +8,7 @@ Descarga el archivo Portable de la versión elegida desde Releases y ábrelo des
 
 ## Tres pasos
 1. Sube PNG, JPG/JPEG, WebP estático o PDF. Para PDF, selecciona páginas y elige 300 ppp (inicial) o 600 ppp: se convierten a imágenes, sin conservar vectores. Indica ancho o alto en centímetros, siempre proporcionales, y número de copias. Usa el borrador si necesitas quitar fondos; el blanco no se elimina automáticamente.
-2. Configura el film y los márgenes en milímetros. La separación inicial es 7 mm; puedes elegir entre 3 y 7 mm. Revisa los pliegos.
+2. Configura el film y los márgenes en milímetros. La separación inicial es 7 mm; puedes elegir entre 3 y 10 mm. Revisa los pliegos.
 3. Revisa el nombre del trabajo, descarga el PDF o PNG/ZIP y elige dónde guardarlo. PDF entrega un archivo por pliego por defecto (ZIP si hay varios), o un único PDF multipágina si lo seleccionas. Imprime desde tu RIP al 100 % o Tamaño real, sin ajustar a página. El RIP debe generar el blanco y gestionar el color. Activa espejo aquí solamente si lo desactivas en el RIP.
 
 Los diseños no se guardan como proyecto editable. Exporta antes de cerrar. Ayuda incluye instrucciones y un PDF de calibración con un cuadrado de 100 × 100 mm. Debes comprobarlo en tu impresora antes de producir.
@@ -44,3 +44,15 @@ Junto a la carga, «Presupuesto de imágenes» permite 60, 120 o 240 MP y muestr
 Ancho y Alto (cm) son editables y siempre proporcionales; cambiar uno actualiza el otro. La geometría conserva precisión interna aunque se muestren dos decimales. Una entrada inválida debe corregirse antes de exportar.
 
 «Nombre del trabajo» propone DTF-AAAA-MM-DD-HHmm al cargar el primer diseño, con fecha y hora local. Puedes cambiarlo conservando espacios, tildes y ñ. No escribas rutas ni nombres reservados de Windows; máximo 120 caracteres. La extensión se añade automáticamente y una extensión PNG/PDF/ZIP pegada se retira al terminar de editar. Un archivo usa BASE.png/pdf; varios usan BASE.zip con BASE-pliego-001.png/pdf y numeración consecutiva. El PDF multipágina usa BASE.pdf. El nombre se conserva al descargar ambos formatos y cambia al empezar un trabajo vacío; no se recuerda entre sesiones. En Windows se propone al guardar; renombrar el ZIP en el diálogo no renombra sus archivos interiores.
+
+## Descargar un pliego por separado (1.6.0)
+
+Selecciona el pliego en el visualizador y pulsa «Descargar este pliego en PDF» o «Descargar este pliego en PNG». PNG usa la resolución seleccionada. Se conservan tamaño físico y espejo. Tras la descarga queda atenuado, identificado como «Descargado por separado» y excluido de las descargas generales en ambos formatos. La aplicación registra una descarga, no confirma la impresión. En web registra el envío al navegador; en Windows, el guardado correcto. Cancelar o fallar no aparta el pliego.
+
+Selecciona un pliego atenuado y pulsa «Volver a incluir» para recuperarlo. Puedes descargarlo otra vez individualmente sin reincorporarlo. El contador indica cuántos pliegos siguen incluidos. Si todos están apartados, la descarga general se desactiva hasta reincorporar alguno.
+
+Los ZIP y el PDF multipágina incluyen solo los pendientes, en su orden original. Si apartas el pliego 2, el ZIP conserva BASE-pliego-001 y BASE-pliego-003. Con un único pendiente se descarga directamente su PDF/PNG, conservando su número original. Un trabajo originalmente de un solo pliego conserva BASE.pdf/png en la descarga general; la descarga individual siempre usa BASE-pliego-NNN.pdf/png. Descargar el conjunto no atenúa más pliegos y se puede repetir.
+
+Las marcas duran la sesión y se reinician al añadir, quitar o editar diseños, cambiar medidas/copias, deshacer, cambiar dimensiones/márgenes del formato, separación o espejo. El programa avisa si reinicia marcas existentes. Cambiar nombre, resolución PNG, organización PDF o pliego visible conserva las marcas. Una descarga parcial mantiene el aviso de trabajo pendiente; exportar todos los pendientes o completar todos individualmente permite cerrar sin ese aviso. «Volver a incluir» deja trabajo pendiente de nuevo.
+
+La separación admite 3, 4, 5, 6, 7, 8, 9 y 10 mm; sigue empezando en 7 mm.

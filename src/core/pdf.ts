@@ -1,13 +1,13 @@
 import { PDFDocument, PDFName, PDFRawStream, concatTransformationMatrix, degrees, popGraphicsState, pushGraphicsState } from 'pdf-lib';
 import { Zip, ZipPassThrough } from 'fflate';
-import { validatePrint, type PrintAsset } from './print';
+import { exportPageIndices, validatePrint, type PrintAsset } from './print';
 import { MAX_EXPORT_BYTES } from './png';
 import { exportFilename } from './exportNames';
 export type { PrintAsset } from './print';
 import type { LayoutResult, SheetProfile } from './model';
 
 const pt = (mm: number) => mm * 72 / 25.4;
-type Options = { gapMm: number; mirror: boolean };
+type Options = { gapMm: number; mirror: boolean; pageIndices?: number[] };
 type Progress = (value: { page: number; pages: number; percent: number }) => void;
 
 async function buildPdf(assets: PrintAsset[], sheets: LayoutResult['pages'], profile: SheetProfile, options: Options, progress?: (page: number) => void) {
@@ -56,15 +56,16 @@ async function buildPdf(assets: PrintAsset[], sheets: LayoutResult['pages'], pro
 
 export async function createPrintPdf(assets: PrintAsset[], layout: LayoutResult, profile: SheetProfile, options: Options): Promise<Uint8Array> {
   validatePrint(assets, layout, profile, options);
-  return buildPdf(assets, layout.pages, profile, options);
+  return buildPdf(assets, exportPageIndices(layout, options.pageIndices).map(index => layout.pages[index]), profile, options);
 }
 
 export async function createPrintPdfBundle(assets: PrintAsset[], layout: LayoutResult, profile: SheetProfile, options: Options & { organization: 'separate' | 'combined'; exportBaseName: string }, progress?: Progress): Promise<{ bytes: Uint8Array; type: 'pdf' | 'zip' }> {
   exportFilename(options.exportBaseName, 'pdf');
   validatePrint(assets, layout, profile, options);
-  const pages = layout.pages.length;
+  const pageIndices = exportPageIndices(layout, options.pageIndices);
+  const pages = pageIndices.length;
   const report = (page: number) => progress?.({ page, pages, percent: Math.floor(page / pages * 100) });
-  if (options.organization === 'combined' || pages === 1) return { type: 'pdf', bytes: await buildPdf(assets, layout.pages, profile, options, report) };
+  if (options.organization === 'combined' || pages === 1) return { type: 'pdf', bytes: await buildPdf(assets, pageIndices.map(index => layout.pages[index]), profile, options, report) };
   const chunks: Uint8Array[] = []; let size = 0;
   const zip = new Zip((error, data) => {
     if (error) throw error;
@@ -73,8 +74,9 @@ export async function createPrintPdfBundle(assets: PrintAsset[], layout: LayoutR
     chunks.push(data);
   });
   for (let i = 0; i < pages; i++) {
-    const bytes = await buildPdf(assets, [layout.pages[i]], profile, options);
-    const entry = new ZipPassThrough(exportFilename(options.exportBaseName, 'pdf', i + 1));
+    const index = pageIndices[i];
+    const bytes = await buildPdf(assets, [layout.pages[index]], profile, options);
+    const entry = new ZipPassThrough(exportFilename(options.exportBaseName, 'pdf', index + 1));
     zip.add(entry); entry.push(bytes, true); report(i + 1);
   }
   zip.end();

@@ -8,6 +8,42 @@ import pypdfium2 as pdfium
 root = Path(__file__).resolve().parent.parent / 'artifacts' / 'qa'
 reports = []
 
+# Selected pages use original numbering and full opacity, independently of the UI.
+def check_selected(image):
+    assert image.mode == 'RGBA'
+    assert abs(image.width * 25.4 / 300 - 60) < .15
+    assert abs(image.height * 25.4 / 300 - 40) < .15
+    for x, y, expected in [(50, 8, (255, 0, 0, 255)), (15, 8, (0, 0, 255, 255)),
+                           (35, 14, (0, 0, 0, 0)), (1, 1, (0, 0, 0, 0))]:
+        actual = image.getpixel((round(x * 300 / 25.4), round(y * 300 / 25.4)))
+        if expected[3] == 0:
+            assert actual[3] == 0, (x, y, actual, expected)
+        else:
+            assert actual == expected, (x, y, actual, expected)
+    box = image.getbbox()
+    assert abs((box[2] - box[0]) * 25.4 / 300 - 50) < .2
+    assert abs((box[3] - box[1]) * 25.4 / 300 - 25) < .2
+
+with Image.open(root / 'selected-sheet.png') as image:
+    image.load(); check_selected(image)
+pdf_paths = [root / 'selected-sheet.pdf']
+with zipfile.ZipFile(root / 'selected-sheets.zip') as archive:
+    assert archive.namelist() == ['Pliegos-pliego-001.png', 'Pliegos-pliego-003.png']
+    for name in archive.namelist():
+        with Image.open(BytesIO(archive.read(name))) as image:
+            image.load(); check_selected(image)
+with zipfile.ZipFile(root / 'selected-pdfs.zip') as archive:
+    assert archive.namelist() == ['Pliegos-pliego-001.pdf', 'Pliegos-pliego-003.pdf']
+    for index, name in enumerate(archive.namelist()):
+        path = root / f'selected-check-{index}.pdf'
+        path.write_bytes(archive.read(name)); pdf_paths.append(path)
+for path in pdf_paths:
+    doc = pdfium.PdfDocument(str(path)); assert len(doc) == 1
+    page = doc[0]; bitmap = page.render(scale=300 / 72, fill_color=(0, 0, 0, 0))
+    check_selected(bitmap.to_pil().convert('RGBA'))
+    bitmap.close(); page.close(); doc.close()
+reports.append({'selected_pages_original_numbers': [1, 3], 'individual_page': 2, 'size_alpha_colors_mirror': 'PASS'})
+
 # Height-driven geometry and edited filename, independently decoded with Pillow/PDFium.
 with Image.open(root / 'job-named.png') as image:
     image.load()

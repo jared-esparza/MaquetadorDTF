@@ -1,5 +1,12 @@
 # Cambios
 
+## 1.6.0
+
+- Descarga individual del pliego visible en PDF o PNG, con atenuación y opción de volver a incluirlo.
+- Descargas generales solo de pliegos no apartados; numeración original en ZIP y archivo directo si queda un pendiente. El PDF multipágina también omite los apartados.
+- Estado compartido entre formatos y solo de sesión; reinicio al cambiar contenido o distribución, sin perder el aviso de trabajo pendiente tras descargas parciales.
+- Separaciones de 3 a 10 mm, manteniendo 7 mm por defecto.
+
 ## 1.5.1
 
 - Los diseños se muestran del último cargado al primero, también en cargas múltiples y páginas PDF, para acceder antes a sus medidas y edición. El orden interno del montaje se conserva.

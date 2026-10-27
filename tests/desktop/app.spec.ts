@@ -47,6 +47,73 @@ async function closeWelcome() {
 }
 async function importDesign() { await page.getByLabel('Subir diseños PNG').setInputFiles({ name: 'diseño ñ.png', mimeType: 'image/png', buffer: png() }); await expect(page.getByTestId('design-card')).toHaveCount(1); }
 
+test('descarga individual solo se aparta al guardar y conserva el aviso de trabajo parcial', async () => {
+  await closeWelcome();
+  await application.evaluate(({ ipcMain }) => {
+    ipcMain.on('desktop:document:state', (_event, state) => { (globalThis as unknown as { sheetDocumentState: { dirty: boolean } }).sheetDocumentState = state; });
+  });
+  const dirty = () => application.evaluate(() => (globalThis as unknown as { sheetDocumentState: { dirty: boolean } }).sheetDocumentState?.dirty);
+  await page.getByRole('button', { name: 'Configurar formato' }).click();
+  await page.getByLabel('Ancho del pliego (mm)').fill('60'); await page.getByLabel('Largo del pliego (mm)').fill('40');
+  await page.getByRole('button', { name: 'Guardar formato', exact: true }).click();
+  await importDesign();
+  await page.getByLabel('Ancho (cm)', { exact: true }).fill('5');
+  await page.getByLabel('Copias', { exact: true }).fill('3'); await page.getByLabel('Copias', { exact: true }).blur();
+  await page.getByLabel('Nombre del trabajo').fill('Pedido'); await page.getByLabel('Nombre del trabajo').blur();
+  await expect(page.getByTestId('layout-summary')).toContainText('3 pliegos');
+  await page.getByRole('button', { name: 'Ver pliego 2', exact: true }).click();
+  await application.evaluate(({ dialog }) => { dialog.showSaveDialog = async () => ({ canceled: true, filePath: '' }); });
+  await page.getByRole('button', { name: 'Descargar este pliego en PDF', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Guardado cancelado' })).toBeVisible();
+  await expect(page.getByTestId('remaining-sheets')).toContainText('3 de 3');
+  await expect(page.locator('.sheet-frame')).toHaveAttribute('data-excluded', 'false');
+  await application.evaluate(({ dialog }, filePath) => { dialog.showSaveDialog = async () => ({ canceled: false, filePath }); }, path.join(directory, 'no-existe', 'fallo.pdf'));
+  await page.getByRole('button', { name: 'Descargar este pliego en PDF', exact: true }).click();
+  await expect(page.getByRole('alert')).toBeVisible();
+  await expect(page.getByTestId('remaining-sheets')).toContainText('3 de 3');
+  await application.evaluate(({ dialog }, filePath) => {
+    dialog.showSaveDialog = async (...args: unknown[]) => {
+      (globalThis as unknown as { sheetSaveName: string }).sheetSaveName = ((args[1] ?? args[0]) as { defaultPath: string }).defaultPath;
+      return { canceled: false, filePath };
+    };
+  }, path.join(directory, 'individual.pdf'));
+  await page.getByRole('button', { name: 'Descargar este pliego en PDF', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'PDF guardado' })).toBeVisible();
+  expect(await application.evaluate(() => (globalThis as unknown as { sheetSaveName: string }).sheetSaveName)).toBe('Pedido-pliego-002.pdf');
+  expect((await PDFDocument.load(await readFile(path.join(directory, 'individual.pdf')))).getPageCount()).toBe(1);
+  await expect(page.getByTestId('remaining-sheets')).toContainText('2 de 3');
+  await expect.poll(dirty).toBe(true);
+  await page.getByRole('button', { name: 'Ver pliego 3', exact: true }).click();
+  await application.evaluate(({ dialog }, filePath) => { dialog.showSaveDialog = async () => ({ canceled: false, filePath }); }, path.join(directory, 'no-existe', 'fallo.png'));
+  await page.getByRole('button', { name: 'Descargar este pliego en PNG', exact: true }).click();
+  await expect(page.getByRole('alert')).toBeVisible();
+  await expect(page.getByTestId('remaining-sheets')).toContainText('2 de 3');
+  await expect(page.getByRole('button', { name: 'Ver pliego 2', exact: true })).toHaveAttribute('data-excluded', 'true');
+  await expect(page.locator('.sheet-frame')).toHaveAttribute('data-excluded', 'false');
+  await page.getByRole('button', { name: 'Ver pliego 2', exact: true }).click();
+  await application.evaluate(({ BrowserWindow, dialog }) => {
+    (globalThis as unknown as { sheetCloseAsked: number }).sheetCloseAsked = 0;
+    dialog.showMessageBox = async () => { (globalThis as unknown as { sheetCloseAsked: number }).sheetCloseAsked++; return { response: 0, checkboxChecked: false }; };
+    BrowserWindow.getAllWindows()[0].close();
+  });
+  expect(await application.evaluate(() => (globalThis as unknown as { sheetCloseAsked: number }).sheetCloseAsked)).toBe(1);
+  await application.evaluate(({ dialog }, filePath) => { dialog.showSaveDialog = async () => ({ canceled: false, filePath }); }, path.join(directory, 'restantes.zip'));
+  await page.getByRole('button', { name: 'Descargar PNG en ZIP', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'ZIP guardado' })).toBeVisible();
+  expect(Object.keys(unzipSync(await readFile(path.join(directory, 'restantes.zip'))))).toEqual(['Pedido-pliego-001.png', 'Pedido-pliego-003.png']);
+  await expect.poll(dirty).toBe(false);
+  await page.getByRole('button', { name: 'Volver a incluir', exact: true }).click();
+  await expect.poll(dirty).toBe(true);
+  for (const index of [1, 2, 3]) {
+    await page.getByRole('button', { name: `Ver pliego ${index}`, exact: true }).click();
+    await application.evaluate(({ dialog }, filePath) => { dialog.showSaveDialog = async () => ({ canceled: false, filePath }); }, path.join(directory, `individual-${index}.png`));
+    await page.getByRole('button', { name: 'Descargar este pliego en PNG', exact: true }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'PNG guardado' })).toBeVisible();
+    await expect.poll(dirty).toBe(index !== 3);
+  }
+  await expect(page.getByTestId('remaining-sheets')).toContainText('0 de 3');
+});
+
 test('recuerda presupuesto y sugiere el nombre elegido sin perderlo al cancelar', async () => {
   await page.getByLabel('No volver a mostrar').check();
   await closeWelcome();

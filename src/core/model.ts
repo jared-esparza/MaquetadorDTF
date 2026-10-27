@@ -56,6 +56,7 @@ export interface LayoutResult {
 }
 
 export const MAX_PIECES = 3000;
+export const GAP_OPTIONS: readonly number[] = [3, 4, 5, 6, 7, 8, 9, 10];
 export const MAX_IMAGE_PIXELS = 25_000_000;
 export type ImageBudgetMp = 60 | 120 | 240;
 export const IMAGE_BUDGETS: readonly ImageBudgetMp[] = [60, 120, 240];

@@ -21,7 +21,7 @@ Si el puerto está ocupado, comprueba si el maquetador ya está abierto. El puer
 1. Sube PNG, JPG/JPEG, WebP estático o PDF. Para PDF, selecciona páginas y conversión a 300 o 600 ppp. El diseño entra en el flujo de imágenes; no se promete conservación vectorial. El recorte conserva el blanco dibujado.
 2. Introduce el ancho o el alto en **centímetros**, siempre proporcionales, y las copias de cada diseño. La medida final corresponde al contenido visible recortado.
 3. Si hay fondo, abre **Borrador · fondo y colores**. La tolerancia controla qué colores se eliminan. El modo conectado conserva zonas interiores del mismo color; el modo global también las elimina. Con la varita puedes quitar otro color. Aplica o cancela los cambios.
-4. Selecciona o configura el formato de film y los márgenes en **milímetros**. Elige una separación de 3, 4, 5, 6 o 7 mm. Por defecto se seleccionan **7 mm**.
+4. Selecciona o configura el formato de film y los márgenes en **milímetros**. Elige una separación de 3 a 10 mm. Por defecto se seleccionan **7 mm**.
 5. Revisa los pliegos y descarga PDF o PNG. Un pliego genera un PNG; varios, un ZIP con un PNG por pliego. La resolución PNG inicial es 300 ppp y puede cambiarse a 150 o 600. Si un diseño tiene menos de 150 ppp, tendrás que aceptar el aviso de calidad o reducir su tamaño.
 
 El montaje prueba seis variantes de MaxRects con giros de 90°. Es una optimización heurística: busca reducir los pliegos, sin garantizar el mínimo matemático. No anida formas dentro de otras ni permite colocar piezas manualmente.
@@ -116,3 +116,15 @@ Junto a la carga, «Presupuesto de imágenes» permite 60, 120 o 240 MP y muestr
 Ancho y Alto (cm) son editables y siempre proporcionales; cambiar uno actualiza el otro. La geometría conserva precisión interna aunque se muestren dos decimales. Una entrada inválida debe corregirse antes de exportar.
 
 «Nombre del trabajo» propone DTF-AAAA-MM-DD-HHmm al cargar el primer diseño, con fecha y hora local. Puedes cambiarlo conservando espacios, tildes y ñ. No escribas rutas ni nombres reservados de Windows; máximo 120 caracteres. La extensión se añade automáticamente y una extensión PNG/PDF/ZIP pegada se retira al terminar de editar. Un archivo usa BASE.png/pdf; varios usan BASE.zip con BASE-pliego-001.png/pdf y numeración consecutiva. El PDF multipágina usa BASE.pdf. El nombre se conserva al descargar ambos formatos y cambia al empezar un trabajo vacío; no se recuerda entre sesiones. En Windows se propone al guardar; renombrar el ZIP en el diálogo no renombra sus archivos interiores.
+
+## Descargar un pliego por separado (1.6.0)
+
+Selecciona el pliego en el visualizador y pulsa «Descargar este pliego en PDF» o «Descargar este pliego en PNG». PNG usa la resolución seleccionada. Se conservan tamaño físico y espejo. Tras la descarga queda atenuado, identificado como «Descargado por separado» y excluido de las descargas generales en ambos formatos. La aplicación registra una descarga, no confirma la impresión. En web registra el envío al navegador; en Windows, el guardado correcto. Cancelar o fallar no aparta el pliego.
+
+Selecciona un pliego atenuado y pulsa «Volver a incluir» para recuperarlo. Puedes descargarlo otra vez individualmente sin reincorporarlo. El contador indica cuántos pliegos siguen incluidos. Si todos están apartados, la descarga general se desactiva hasta reincorporar alguno.
+
+Los ZIP y el PDF multipágina incluyen solo los pendientes, en su orden original. Si apartas el pliego 2, el ZIP conserva BASE-pliego-001 y BASE-pliego-003. Con un único pendiente se descarga directamente su PDF/PNG, conservando su número original. Un trabajo originalmente de un solo pliego conserva BASE.pdf/png en la descarga general; la descarga individual siempre usa BASE-pliego-NNN.pdf/png. Descargar el conjunto no atenúa más pliegos y se puede repetir.
+
+Las marcas duran la sesión y se reinician al añadir, quitar o editar diseños, cambiar medidas/copias, deshacer, cambiar dimensiones/márgenes del formato, separación o espejo. El programa avisa si reinicia marcas existentes. Cambiar nombre, resolución PNG, organización PDF o pliego visible conserva las marcas. Una descarga parcial mantiene el aviso de trabajo pendiente; exportar todos los pendientes o completar todos individualmente permite cerrar sin ese aviso. «Volver a incluir» deja trabajo pendiente de nuevo.
+
+La separación admite 3, 4, 5, 6, 7, 8, 9 y 10 mm; sigue empezando en 7 mm.

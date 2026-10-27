@@ -17,10 +17,11 @@ Sin registro · Diseños procesados en tu equipo · Web y Windows
 - **Dar a cada diseño su tamaño y sus copias.** Trabaja con PNG, JPG/JPEG, WebP estático o páginas PDF, también en cargas mixtas. Edita el ancho o el alto en centímetros: la otra medida se ajusta conservando la proporción.
 - **Quitar fondos y colores.** Revisa el antes y el después, ajusta la tolerancia o usa la varita para eliminar otro color.
 - **Distribuir los diseños automáticamente.** El montaje puede girarlos para aprovechar el espacio y crea varios pliegos cuando hace falta.
-- **Adaptar el film a tu trabajo.** Incluye Film 55 × 100 cm, A3 y A4; puedes personalizar formatos y márgenes. La separación se elige entre 3 y 7 mm, con **7 mm por defecto**.
+- **Adaptar el film a tu trabajo.** Incluye Film 55 × 100 cm, A3 y A4; puedes personalizar formatos y márgenes. La separación se elige entre 3 y 10 mm, con **7 mm por defecto**.
 - **Exportar como prefieras.** PDF individual por pliego (la opción habitual) o un único PDF; con varios pliegos puedes descargar un ZIP de PDFs. También PNG transparente a **150, 300 o 600 ppp** —300 por defecto—; varios pliegos se entregan en un ZIP.
 - **Nombrar el trabajo antes de descargar.** El nombre editable empieza con fecha y hora local y se comparte entre PNG, PDF, ZIP y los pliegos numerados que contiene.
 - **Elegir el presupuesto de imágenes.** 60 MP por defecto, ampliables a 120 o 240 MP, con consumo visible y preferencia guardada. Los niveles mayores requieren más memoria; las copias del montaje no multiplican el contador.
+- **Descargar un pliego por separado.** Desde el visualizador puedes guardar el pliego visible en PDF o PNG. Queda atenuado y fuera de las descargas generales hasta pulsar «Volver a incluir».
 - **Aplicar espejo cuando lo necesites.** La opción se aplica tanto al PDF como al PNG.
 
 ![Borrador de fondos con el diseño original sobre blanco y la vista previa transparente, tolerancia y opciones para aplicar o cancelar.](docs/images/borrador-fondos.png)

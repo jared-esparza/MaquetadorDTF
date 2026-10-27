@@ -1,7 +1,10 @@
-# Maquetador DTF 1.5.1 para Windows 10/11 x64
+# Maquetador DTF 1.6.0 para Windows 10/11 x64
 
 Instalador guiado en español y versión portátil. Entrega preliminar sin firma.
 
+- Descarga del pliego visible en PDF o PNG, con atenuación tras guardar y opción de volver a incluirlo. Estado común entre formatos, solo de sesión, y reinicio con aviso cuando cambia el trabajo.
+- ZIP y PDF multipágina de los pliegos no apartados, conservando numeración y orden originales; un único pendiente se descarga directamente. La descarga general se puede repetir sin atenuar más pliegos.
+- Separaciones de 3 a 10 mm, 7 mm por defecto.
 - Los últimos diseños cargados aparecen arriba de la lista, incluidas cargas de varios archivos y páginas PDF. Este orden visual no altera el orden usado para montar los pliegos.
 - Actualizaciones configurables desde el botón Actualizaciones. Modo inicial: avisar antes de descargar.
 - Instalada: búsqueda manual, comprobación al iniciar y cada 6 horas, o descarga automática. Las versiones preliminares están incluidas.
