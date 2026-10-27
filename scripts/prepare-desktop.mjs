@@ -8,7 +8,14 @@ const names = Object.entries(lock.packages).filter(([name, info]) => name.starts
 let notices = 'Maquetador DTF · PKprint\nCódigo propio: licencia de reutilización pendiente.\n\nComponentes de terceros incluidos en la aplicación y la interfaz compilada:\n';
 for (const name of names) {
   const directory = name;
-  const info = JSON.parse(await readFile(path.join(directory, 'package.json'), 'utf8'));
+  let info;
+  try { info = JSON.parse(await readFile(path.join(directory, 'package.json'), 'utf8')); }
+  catch (error) {
+    // npm omits optional binaries for other platforms (for example canvas
+    // Android builds on Windows). They are not part of this package.
+    if (error?.code === 'ENOENT') continue;
+    throw error;
+  }
   let license;
   for (const file of ['LICENSE', 'LICENSE.txt', 'LICENSE.md', 'LICENSE-MIT', 'LICENSE-MIT.txt']) {
     try { license = await readFile(path.join(directory, file), 'utf8'); break; } catch { /* Try package-specific names. */ }
@@ -17,6 +24,9 @@ for (const name of names) {
     // This package declares MIT/author in package.json but ships no LICENSE file, including upstream.
     const mit = await readFile('node_modules/electron-updater/LICENSE', 'utf8');
     license = `Licencia MIT declarada en lazy-val/package.json. Autor: ${info.author}.\nRepositorio: https://github.com/develar/lazy-val\nEl paquete no distribuye un archivo LICENSE; se incluye el texto estándar MIT:\n\n${mit.slice(mit.indexOf('Permission is hereby granted'))}`;
+  }
+  if (!license && info.license === 'MIT') {
+    license = `Licencia MIT declarada en ${info.name}/package.json.\nRepositorio: ${info.repository?.url ?? 'https://github.com/Brooooooklyn/canvas'}\nEl paquete no distribuye un archivo LICENSE; se incluye el texto MIT del paquete principal canvas.\n`;
   }
   if (!license) throw new Error(`No se encontró el aviso de licencia de ${name}.`);
   notices += `\n\n${'='.repeat(60)}\n${info.name} ${info.version} · ${info.license}\n${'='.repeat(60)}\n${license}\n`;

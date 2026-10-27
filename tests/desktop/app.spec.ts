@@ -126,6 +126,7 @@ test('guarda PDF multipágina con diálogo nativo, alfa y tamaño real', async (
   await page.getByLabel('Acepto que los diseños de baja resolución pueden verse pixelados.').check();
   const target = path.join(directory, 'impresión ñ.pdf');
   await application.evaluate(({ dialog }, filePath) => { dialog.showSaveDialog = async () => ({ canceled: false, filePath }); }, target);
+  await page.getByLabel('Organización del PDF').selectOption('combined');
   await page.getByRole('button', { name: 'Descargar PDF', exact: true }).click();
   await expect(page.getByRole('status').filter({ hasText: 'PDF guardado' })).toBeVisible();
   const pdf = await PDFDocument.load(await readFile(target));

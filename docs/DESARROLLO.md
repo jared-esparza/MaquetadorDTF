@@ -93,3 +93,11 @@ El repositorio mantiene una única base de código para web y escritorio. La eti
 Las preferencias de la instalada se guardan en `%APPDATA%/PKprint/MaquetadorDTF`; la portátil usa `MaquetadorDTF-datos` junto al ejecutable. Los formatos del navegador no se importan automáticamente al escritorio.
 
 La calibración se abre desde Ayuda en la aplicación de escritorio. Las muestras y los informes generados bajo `artifacts/` son resultados locales de pruebas y no se incluyen en Git.
+# Cambios funcionales de 1.4.0
+
+La aplicación acepta PNG y PDF. Cada página PDF seleccionada se trata como un diseño independiente y conserva los bytes originales para la exportación PDF. PDF.js se sirve desde `dist/pdfjs` (sin CDN) para que Electron y la web empaquetada funcionen sin conexión.
+
+La exportación PDF ofrece «Un PDF por pliego» (predeterminada) y «Un único PDF con todos los pliegos». Cuando hay varios pliegos y se elige la primera opción, se genera un ZIP numerado. La exportación PNG mantiene 150/300/600 ppp y también genera ZIP para varios pliegos.
+
+Los límites principales son 50 MiB por PDF de entrada, 100 páginas por documento, 100 MiB de fuentes PDF retenidas por trabajo, 25 MP por página al analizar o convertir, y 256 MiB por archivo PDF/ZIP final. Las operaciones se cancelan sin alterar el montaje existente.
+

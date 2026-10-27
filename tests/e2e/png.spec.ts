@@ -95,7 +95,7 @@ test('completa el film de 55 por 100 cm a 600 ppp por franjas', async ({ page })
   const promise = page.waitForEvent('download', { timeout: 100000 });
   await expect(page.getByRole('button', { name: 'Descargar PNG', exact: true })).toBeEnabled();
   await page.getByRole('button', { name: 'Descargar PNG', exact: true }).click();
-  await expect(page.getByRole('progressbar', { name: 'Progreso de exportación PNG' })).toBeVisible();
+  await expect(page.getByRole('progressbar', { name: 'Progreso de exportación' })).toBeVisible();
   const download = await promise;
   await download.saveAs('artifacts/qa/film-600.png');
   const bytes = await readFile('artifacts/qa/film-600.png');

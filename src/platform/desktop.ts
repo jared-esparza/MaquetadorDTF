@@ -11,7 +11,7 @@ export interface DesktopBridge {
   getPreferences(): Promise<DesktopPreferences>;
   updatePreferences(patch: { profileState?: ProfileState; hideWelcome?: boolean }): Promise<void>;
   savePdf(request: { filename: string; bytes: Uint8Array }): Promise<{ status: 'saved'; filename: string; warning?: string } | { status: 'cancelled' }>;
-  saveRaster(request: { filename: string; type: 'png' | 'zip'; bytes: Uint8Array }): ReturnType<DesktopBridge['savePdf']>;
+  saveArchive(request: { filename: string; type: 'png' | 'zip'; bytes: Uint8Array }): ReturnType<DesktopBridge['savePdf']>;
   showExportFolder(): Promise<void>;
   getUpdateState(): Promise<UpdateState>;
   setUpdateMode(mode: UpdateMode): Promise<UpdateState>;

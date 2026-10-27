@@ -1,7 +1,8 @@
 import { validateLayout } from './layout';
 import { profileForLayout, validateProfile, type LayoutResult, type SheetProfile } from './model';
+import type { PdfSource } from './pdfSource';
 
-export interface PrintAsset { id: string; png: Uint8Array; widthMm: number; heightMm: number; copies: number }
+export type PrintAsset = { id: string; widthMm: number; heightMm: number; copies: number } & ({ png: Uint8Array; pdf?: never } | { pdf: PdfSource; png?: never });
 export function validatePrint(assets: PrintAsset[], layout: LayoutResult, profile: SheetProfile, options: { gapMm: number; mirror: boolean }) {
   const profileError = validateProfile(profile);
   if (profileError) throw new Error(profileError);

@@ -34,6 +34,7 @@ test('carga, recorta transparencia, monta múltiples páginas y descarga PDF fí
   await expect(page.getByTestId('layout-summary')).toContainText('3 pliegos');
   const sheetBounds = await page.getByRole('img', { name: 'Vista previa del pliego', exact: true }).boundingBox();
   expect(sheetBounds!.width / sheetBounds!.height).toBeCloseTo(.55, 2);
+  await page.getByLabel('Organización del PDF').selectOption('combined');
   await expect(page.getByRole('button', { name: 'Descargar PDF', exact: true })).toBeDisabled();
   await page.getByLabel('Acepto que los diseños de baja resolución pueden verse pixelados.').check();
   await expect(page.getByRole('button', { name: 'Descargar PDF', exact: true })).toBeEnabled();
