@@ -18,7 +18,7 @@ export async function sourcePdf() {
   return Buffer.from(await pdf.save());
 }
 async function importPdf(page: Page) {
-  await page.getByLabel('Subir diseños de imagen o PDF').setInputFiles({ name: 'Diseños ñ.pdf',mimeType: 'application/pdf',buffer: await sourcePdf() });
+  await page.getByLabel('Subir diseños PNG o PDF').setInputFiles({ name: 'Diseños ñ.pdf',mimeType: 'application/pdf',buffer: await sourcePdf() });
   const dialog = page.getByRole('dialog',{ name: 'Importar páginas PDF' });
   await expect(dialog.getByRole('button',{ name: 'Importar seleccionadas (3)' })).toBeEnabled();
   return dialog;

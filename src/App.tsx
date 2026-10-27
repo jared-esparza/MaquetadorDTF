@@ -276,7 +276,7 @@ export default function App() {
       <section className="panel designs-panel" aria-labelledby="designs-title">
         <h2 id="designs-title"><span className="step">1</span>Diseños <span className="panel-count">{designs.length > 0 ? designs.length : ''}</span></h2>
         <div className={`upload-area ${dragging ? 'dragging' : ''}`} onDragOver={e => { e.preventDefault(); if (!blocked) setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={e => { e.preventDefault(); setDragging(false); void importFiles([...e.dataTransfer.files]); }}>
-          <input ref={inputRef} className="file-input" type="file" accept="image/png,.png,image/jpeg,.jpg,.jpeg,image/webp,.webp,application/pdf,.pdf" multiple aria-label="Subir diseños de imagen o PDF" disabled={blocked} onChange={e => { const files = [...(e.target.files ?? [])]; e.target.value = ''; void importFiles(files); }} />
+          <input ref={inputRef} className="file-input" type="file" accept="image/png,.png,image/jpeg,.jpg,.jpeg,image/webp,.webp,application/pdf,.pdf" multiple aria-label="Subir diseños PNG o PDF" disabled={blocked} onChange={e => { const files = [...(e.target.files ?? [])]; e.target.value = ''; void importFiles(files); }} />
           <button className="upload-button" disabled={blocked} onClick={() => inputRef.current?.click()}><span className="upload-plus">+</span><strong>Sube tus diseños de imagen o PDF</strong><span>Arrastra aquí o toca para elegir.</span><small>PNG, JPG/JPEG y WebP: 20 MB · PDF: 50 MiB</small></button>
         </div>
         {!designs.length && <p className="empty-instruction">Indica el ancho y las copias de cada diseño. El pliego se monta automáticamente.</p>}
