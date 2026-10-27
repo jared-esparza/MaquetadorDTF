@@ -1,5 +1,9 @@
 # Cambios
 
+## 1.5.1
+
+- Los diseños se muestran del último cargado al primero, también en cargas múltiples y páginas PDF, para acceder antes a sus medidas y edición. El orden interno del montaje se conserva.
+
 ## 1.5.0
 
 - Presupuesto de imágenes de 60, 120 o 240 MP, recordado por navegador o instalación, con indicador de consumo y protección al reducirlo.

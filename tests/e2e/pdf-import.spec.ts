@@ -33,12 +33,13 @@ test('selección, recorte transparente, blanco real, rotación, cancelar y desha
   dialog = await importPdf(page);
   await dialog.getByRole('button',{ name: 'Importar seleccionadas (3)' }).click();
   const cards = page.getByTestId('design-card'); await expect(cards).toHaveCount(3);
-  expect(Number(await cards.nth(0).getByLabel('Ancho (cm)').inputValue())).toBeCloseTo(4.27,1);
+  await expect(cards.locator('.design-name')).toHaveText(['Diseños ñ.pdf · página 3', 'Diseños ñ.pdf · página 2', 'Diseños ñ.pdf · página 1']);
+  expect(Number(await cards.nth(0).getByLabel('Ancho (cm)').inputValue())).toBeCloseTo(4.23,1);
   expect(Number(await cards.nth(1).getByLabel('Ancho (cm)').inputValue())).toBeCloseTo(2.15,1);
-  expect(Number(await cards.nth(2).getByLabel('Ancho (cm)').inputValue())).toBeCloseTo(4.23,1);
-  await cards.nth(0).getByRole('button',{ name: 'Borrador · fondo y colores' }).click();
-  await expect(cards.nth(0).getByRole('button',{ name: 'Aplicar', exact: true })).toBeVisible();
-  await cards.nth(0).getByRole('button',{ name: 'Cancelar',exact: true }).click();
+  expect(Number(await cards.nth(2).getByLabel('Ancho (cm)').inputValue())).toBeCloseTo(4.27,1);
+  await cards.nth(2).getByRole('button',{ name: 'Borrador · fondo y colores' }).click();
+  await expect(cards.nth(2).getByRole('button',{ name: 'Aplicar', exact: true })).toBeVisible();
+  await cards.nth(2).getByRole('button',{ name: 'Cancelar',exact: true }).click();
 });
 
 test('PDF por pliego predeterminado, multipágina opcional y PNG desde vectores a 150/300/600 ppp', async ({ page },testInfo) => {

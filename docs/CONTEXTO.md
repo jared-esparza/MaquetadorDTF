@@ -36,6 +36,9 @@ y Electron Windows 10/11 x64. Web estática IONOS: https://dtf.wcard.es.
 - Entrada: PNG, JPG/JPEG, WebP estático y PDF. Las páginas PDF seleccionadas se
   convierten a imagen a 300 ppp por defecto o 600 opcional, sin promesa vectorial.
   Deben conservarse blanco dibujado, transparencia, orientación y tamaño físico.
+- Lista de diseños como una pila: el último añadido aparece arriba, también
+  al cargar varios archivos o páginas PDF. Solo cambia la presentación; el orden
+  interno de los diseños utilizado por el montaje se conserva.
 - Ancho y alto editables en centímetros, siempre proporcionales. Prevalece la
   última medida válida; solo se almacena widthMm, sin redondear la geometría
   interna. Presentación a dos decimales, coma/punto y bloqueo por valor inválido.
@@ -129,3 +132,21 @@ La CI verde no da por resueltos estos pendientes ni equivale a calibración fís
 - .tools, artifacts, dist, release y node_modules están ignorados. No depender de
   scripts bajo .tools para un clon nuevo; no subir temporales, binarios, dependencias
   ni credenciales. Nunca imprimir secretos de Git/SFTP o enlaces firmados de logs.
+
+## Cambio preparado 1.5.1 — diseños recientes arriba
+
+Petición posterior a la integración de #9/#10: mostrar el último diseño cargado
+al principio para acceder a sus medidas y edición sin recorrer toda la lista.
+Rama `codex/disenos-recientes-arriba`, sobre main `8448d1a`; versión candidata
+1.5.1 en manifiesto y lockfile, con notas actualizadas. La versión publicada sigue
+siendo 1.5.0 hasta que esta nueva entrega se integre y publique con autorización.
+
+El cambio invierte una copia del array solo al mostrar las tarjetas; no muta el
+estado ni el orden enviado a MaxRects. Los lotes y páginas PDF se muestran también
+con el último elemento arriba. Las tarjetas conservan su identidad y sus ajustes.
+Se adaptaron comprobaciones existentes de navegador para orden, edición, borrado,
+cargas sucesivas y páginas PDF. Validación local: revisión del cambio y
+`git diff --check`; no se ejecutaron pruebas locales. Las pruebas de esta rama
+se delegan en [GitHub Actions](https://github.com/jared-esparza/MaquetadorDTF/actions?query=branch%3Acodex%2Fdisenos-recientes-arriba);
+consultar allí su resultado antes de integrar. No hay autorización para fusionar
+ni publicar esta nueva entrega. Los pendientes técnicos anteriores siguen abiertos.
