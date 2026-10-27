@@ -9,6 +9,10 @@ it('usa hora local y conserva tildes, espacios y extensiones automáticas', () =
   expect(exportFilename('Impresión ñ', 'png')).toBe('Impresión ñ.png');
   expect(exportFilename('Impresión ñ', 'pdf', 2)).toBe('Impresión ñ-pliego-002.pdf');
   expect(exportFilename('Impresión ñ', 'zip')).toBe('Impresión ñ.zip');
+  expect(normalizeExportBaseName('Pedido.pdf.png')).toBe('Pedido');
+  expect(normalizeExportBaseName(normalizeExportBaseName('Pedido.pdf.png'))).toBe('Pedido');
+  expect(normalizeExportBaseName('Pedido.pdf .png')).toBe('Pedido');
+  expect(exportNameError(normalizeExportBaseName('.pdf.png'))).not.toBe('');
 });
 
 it.each(['', ' ', 'a'.repeat(121), '../fuera', 'a..b', 'a/b', 'a\\b', 'a:b', 'a?', 'a\u0000b', 'final.', 'CON', 'con.txt', 'LPT1', 'COM9', 'NUL', 'AUX', 'PRN'])('rechaza nombre inválido %j', name => {

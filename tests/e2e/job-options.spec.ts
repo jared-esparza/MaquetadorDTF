@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { PNG } from 'pngjs';
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument, rgb } from 'pdf-lib';
 import { unzipSync } from 'fflate';
 import { mkdir, readFile } from 'node:fs/promises';
 
@@ -98,6 +98,15 @@ test('presupuesto persiste, protege ediciones y permite ampliar sin perder dise�
   await page.getByLabel('Subir diseños PNG').setInputFiles(Array.from({ length: 7 }, (_, i) => ({ ...source, name: `diseño-${i}.png` })));
   const cards = page.getByTestId('design-card');
   await expect(cards).toHaveCount(7, { timeout: 60000 });
+  await expect(page.getByTestId('image-budget-usage')).toHaveText('42 / 60 MP');
+  const document = await PDFDocument.create();
+  for (let i = 0; i < 3; i++) document.addPage([720, 720]).drawRectangle({ x: 0, y: 0, width: 720, height: 720, color: rgb(1, 0, 0) });
+  await page.getByLabel('Subir diseños PNG').setInputFiles({ name: 'presupuesto.pdf', mimeType: 'application/pdf', buffer: Buffer.from(await document.save()) });
+  const dialog = page.getByRole('dialog', { name: 'Importar páginas PDF' });
+  await expect(budget).toBeDisabled();
+  await dialog.getByRole('button', { name: 'Importar seleccionadas (3)' }).click();
+  await expect(page.getByRole('alert')).toContainText('60 megapíxeles');
+  await expect(cards).toHaveCount(7);
   await expect(page.getByTestId('image-budget-usage')).toHaveText('42 / 60 MP');
   const first = cards.first();
   await first.getByLabel('Copias', { exact: true }).fill('2');

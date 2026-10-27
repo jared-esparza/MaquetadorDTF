@@ -5,7 +5,7 @@ export function defaultExportBaseName(date = new Date()): string {
 }
 
 export function normalizeExportBaseName(name: string): string {
-  return name.trim().replace(/\.(png|pdf|zip)$/i, '').trim();
+  return name.trim().replace(/(?:\s*\.(?:png|pdf|zip)\s*)+$/i, '').trim();
 }
 
 export function exportNameError(name: string): string {
