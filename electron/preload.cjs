@@ -4,7 +4,7 @@ contextBridge.exposeInMainWorld('desktop', Object.freeze({
   getPreferences: () => ipcRenderer.invoke('desktop:preferences:get'),
   updatePreferences: patch => ipcRenderer.invoke('desktop:preferences:update', patch),
   savePdf: request => ipcRenderer.invoke('desktop:pdf:save', request),
-  saveRaster: request => ipcRenderer.invoke('desktop:raster:save', request),
+  saveArchive: request => ipcRenderer.invoke('desktop:archive:save', request),
   getUpdateState: () => ipcRenderer.invoke('desktop:updates:get'),
   setUpdateMode: mode => ipcRenderer.invoke('desktop:updates:mode', mode),
   checkUpdates: () => ipcRenderer.invoke('desktop:updates:check'),

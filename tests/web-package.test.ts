@@ -11,13 +11,16 @@ it('prepara solo recursos web y registra la versión y el commit desplegados', a
   const root = await mkdtemp(path.join(os.tmpdir(), 'dtf-web-')); directories.push(root);
   const source = path.join(root, 'dist'), output = path.join(root, 'output');
   await mkdir(path.join(source, 'assets'), { recursive: true });
+  await mkdir(path.join(source, 'pdfjs'), { recursive: true });
+  await writeFile(path.join(source, 'pdfjs', 'font.pfb'), 'font-fixture');
   await writeFile(path.join(source, 'index.html'), '<html>Editor</html>');
   await writeFile(path.join(source, 'help.html'), '<html>Ayuda</html>');
   await writeFile(path.join(source, 'assets', 'worker.js'), 'self.onmessage = () => {};');
   await writeFile(path.join(source, 'no-publicar.env'), 'PASSWORD=test');
   const headers = path.join(root, 'headers'); await writeFile(headers, 'DirectoryIndex index.html');
   await prepareWeb({ source, output, headers, version: '1.1.1', commit: 'a'.repeat(40) });
-  expect((await readdir(output)).sort()).toEqual(['.htaccess', 'assets', 'deployment.json', 'help.html', 'index.html']);
+  expect((await readdir(output)).sort()).toEqual(['.htaccess', 'assets', 'deployment.json', 'help.html', 'index.html', 'pdfjs']);
+  expect(await readFile(path.join(output, 'pdfjs', 'font.pfb'), 'utf8')).toBe('font-fixture');
   expect(JSON.parse(await readFile(path.join(output, 'deployment.json'), 'utf8'))).toEqual({ version: '1.1.1', commit: 'a'.repeat(40) });
   expect(await readFile(path.join(output, '.htaccess'), 'utf8')).toContain('DirectoryIndex');
   expect(await readFile(path.join(output, 'assets', 'worker.js'), 'utf8')).toContain('onmessage');

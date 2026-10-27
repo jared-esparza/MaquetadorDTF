@@ -777,3 +777,10 @@ h1 {
 .updates-dialog select { display:block; width:100%; margin-top:8px; }
 .updates-dialog progress { width:100%; accent-color:var(--brand); }
 .updates-actions { display:flex; flex-wrap:wrap; gap:10px; justify-content:space-between; margin-top:18px; }
+.pdf-dialog { width: min(960px, 92vw); max-height: 90vh; border: 1px solid #bcd0e8; border-radius: 14px; padding: 24px; color: #12325a; }
+.pdf-dialog::backdrop { background: #102b5180; }
+.pdf-pages { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 16px; margin: 20px 0; }
+.pdf-page { display: flex; flex-direction: column; gap: 12px; border: 1px solid #cfdfef; border-radius: 10px; padding: 12px; }
+.pdf-page canvas { max-width: 100%; max-height: 200px; object-fit: contain; align-self: center; }
+.conversion-dialog { width: min(560px, 92vw); }
+.pdf-organization { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }

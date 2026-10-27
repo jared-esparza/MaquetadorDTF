@@ -1,6 +1,7 @@
 import type { EraseOptions } from '../core/images';
 import type { LayoutResult, PackItem, Raster, SheetProfile } from '../core/model';
 import type { ExportProgress, PngRequest } from './printPng';
+import type { PrintAsset } from '../core/print';
 
 function request<T>(worker: Worker, payload: unknown, signal?: AbortSignal, onProgress?: (progress: ExportProgress) => void): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -24,5 +25,10 @@ export const runLayout = (items: PackItem[], profile: SheetProfile, gapMm: numbe
 export const runImage = (operation: 'crop' | 'erase' | 'refine', raster: Raster, options?: EraseOptions, signal?: AbortSignal) =>
   request<Raster>(new Worker(new URL('../workers/image.worker.ts', import.meta.url), { type: 'module' }), { operation, raster, options }, signal);
 
-export const runPngExport = (payload: PngRequest, signal: AbortSignal, onProgress: (progress: ExportProgress) => void) =>
-  request<Blob>(new Worker(new URL('../workers/export.worker.ts', import.meta.url), { type: 'module' }), payload, signal, onProgress);
+export const runPngExport = async (payload: PngRequest, signal: AbortSignal, onProgress: (progress: ExportProgress) => void) => {
+  if (payload.assets.some(asset => asset.pdf)) return (await import('./printPdfPng')).renderMixedPng(payload,signal,onProgress);
+  return request<Blob>(new Worker(new URL('../workers/export.worker.ts', import.meta.url), { type: 'module' }), payload, signal, onProgress);
+};
+export interface PdfRequest { assets: PrintAsset[]; layout: LayoutResult; profile: SheetProfile; gapMm: number; mirror: boolean; organization: 'separate' | 'combined' }
+export const runPdfExport = (payload: PdfRequest, signal: AbortSignal, onProgress: (progress: ExportProgress) => void) =>
+  request<{ bytes: Uint8Array; type: 'pdf' | 'zip' }>(new Worker(new URL('../workers/pdfExport.worker.ts',import.meta.url),{ type: 'module' }),payload,signal,onProgress);

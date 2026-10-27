@@ -14,11 +14,11 @@ Sin registro · Diseños procesados en tu equipo · Web y Windows
 
 ## Qué puedes hacer
 
-- **Dar a cada diseño su tamaño y sus copias.** Trabaja con imágenes PNG y medidas en centímetros, conservando sus proporciones.
+- **Dar a cada diseño su tamaño y sus copias.** Trabaja con PNG, JPG/JPEG, WebP estático o páginas PDF, también en cargas mixtas, conservando sus proporciones.
 - **Quitar fondos y colores.** Revisa el antes y el después, ajusta la tolerancia o usa la varita para eliminar otro color.
 - **Distribuir los diseños automáticamente.** El montaje puede girarlos para aprovechar el espacio y crea varios pliegos cuando hace falta.
 - **Adaptar el film a tu trabajo.** Incluye Film 55 × 100 cm, A3 y A4; puedes personalizar formatos y márgenes. La separación se elige entre 3 y 7 mm, con **7 mm por defecto**.
-- **Exportar como prefieras.** PDF con todos los pliegos o PNG transparente a **150, 300 o 600 ppp** —300 por defecto—. Un pliego se descarga como PNG; varios, como un ZIP con un PNG por pliego.
+- **Exportar como prefieras.** PDF individual por pliego (la opción habitual) o un único PDF; con varios pliegos puedes descargar un ZIP de PDFs. También PNG transparente a **150, 300 o 600 ppp** —300 por defecto—; varios pliegos se entregan en un ZIP.
 - **Aplicar espejo cuando lo necesites.** La opción se aplica tanto al PDF como al PNG.
 
 ![Borrador de fondos con el diseño original sobre blanco y la vista previa transparente, tolerancia y opciones para aplicar o cancelar.](docs/images/borrador-fondos.png)
@@ -27,7 +27,7 @@ Sin registro · Diseños procesados en tu equipo · Web y Windows
 
 ## Empieza en tres pasos
 
-1. **Carga tus diseños.** Arrastra los PNG, indica su ancho y el número de copias. Si lo necesitas, elimina el fondo.
+1. **Carga tus diseños.** Arrastra una imagen o PDF, selecciona las páginas que quieras y, para PDF, elige 300 o 600 ppp. Después indica el ancho y las copias. Si lo necesitas, elimina el fondo.
 2. **Prepara el pliego.** Elige el formato, los márgenes y la separación. Revisa la distribución y el número de pliegos.
 3. **Exporta para imprimir.** Descarga el PDF o el PNG/ZIP. Si aparece un aviso de baja resolución, revísalo antes de continuar: aumentar los ppp de salida no recupera detalle del original.
 

@@ -1,3 +1,5 @@
+import type { PdfSource } from './pdfSource';
+
 export interface Raster {
   width: number;
   height: number;
@@ -14,7 +16,7 @@ export interface SheetProfile {
   margins: { top: number; right: number; bottom: number; left: number };
 }
 
-export interface DesignVersion { raster: Raster; note: string; url: string; opaque: boolean }
+export interface DesignVersion { raster: Raster; note: string; url: string; opaque: boolean; pdf?: PdfSource }
 export interface Design {
   id: string;
   name: string;
@@ -26,6 +28,11 @@ export interface Design {
   note: string;
   opaque: boolean;
   undo?: DesignVersion;
+  pdf?: PdfSource;
+}
+
+export function designHeight(design: Pick<Design, 'pdf' | 'raster' | 'widthMm'>) {
+  return design.pdf ? design.widthMm * design.pdf.heightPt / design.pdf.widthPt : designMetrics(design.raster, design.widthMm).heightMm;
 }
 
 export interface PackItem { id: string; widthMm: number; heightMm: number; copies: number }

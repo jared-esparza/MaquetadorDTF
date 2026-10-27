@@ -34,6 +34,7 @@ test('carga, recorta transparencia, monta múltiples páginas y descarga PDF fí
   await expect(page.getByTestId('layout-summary')).toContainText('3 pliegos');
   const sheetBounds = await page.getByRole('img', { name: 'Vista previa del pliego', exact: true }).boundingBox();
   expect(sheetBounds!.width / sheetBounds!.height).toBeCloseTo(.55, 2);
+  await page.getByLabel('Organización del PDF').selectOption('combined');
   await expect(page.getByRole('button', { name: 'Descargar PDF', exact: true })).toBeDisabled();
   await page.getByLabel('Acepto que los diseños de baja resolución pueden verse pixelados.').check();
   await expect(page.getByRole('button', { name: 'Descargar PDF', exact: true })).toBeEnabled();
@@ -82,7 +83,8 @@ test('configura y conserva el perfil, muestra espejo y valida cantidades y archi
   await page.reload();
   await expect(page.getByTestId('profile-dimensions')).toContainText('300 × 450 mm');
   await page.getByLabel('Subir diseños PNG').setInputFiles({ name: 'falso.png', mimeType: 'image/png', buffer: Buffer.from('no soy un PNG') });
-  await expect(page.getByRole('alert').filter({ hasText: 'PNG válido' })).toBeVisible();
+  await expect(page.getByRole('alert').filter({ hasText: 'La imagen está dañada o no se puede leer.' })).toBeVisible();
+  await expect(page.getByTestId('design-card')).toHaveCount(0);
   await page.getByLabel('Subir diseños PNG').setInputFiles({ name: 'bueno.png', mimeType: 'image/png', buffer: samplePng() });
   const card = page.getByTestId('design-card');
   await expect(card).toHaveCount(1);

@@ -1,15 +1,16 @@
 import { MAX_IMAGE_PIXELS, type Raster } from '../core/model';
 
-export async function decodePng(file: File): Promise<Raster> {
+export async function decodeImage(file: File): Promise<Raster> {
   if (file.size > 20 * 1024 * 1024) throw new Error('El archivo supera el máximo de 20 MB.');
-  const header = new Uint8Array(await file.slice(0, 24).arrayBuffer());
-  if ([137, 80, 78, 71, 13, 10, 26, 10].some((n, i) => header[i] !== n) || header.length < 24) throw new Error('Selecciona un archivo PNG válido.');
-  const view = new DataView(header.buffer);
-  const width = view.getUint32(16), height = view.getUint32(20);
-  if (!width || !height || width * height > MAX_IMAGE_PIXELS) throw new Error('El PNG supera el máximo de 25 megapíxeles.');
+  const header = new Uint8Array(await file.slice(0, 64).arrayBuffer());
+  const ascii = new TextDecoder().decode(header);
+  if (file.type === 'image/webp' || /\.webp$/i.test(file.name)) {
+    if (ascii.startsWith('RIFF') && ascii.includes('WEBP') && ascii.includes('ANIM')) throw new Error('Los WebP animados no están soportados; exporta una imagen estática.');
+  }
   let bitmap: ImageBitmap;
-  try { bitmap = await createImageBitmap(file); } catch { throw new Error('El PNG está dañado o no se puede leer.'); }
+  try { bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' }); } catch { throw new Error('La imagen está dañada o no se puede leer. Usa PNG, JPG/JPEG o WebP estático.'); }
   try {
+    if (!bitmap.width || !bitmap.height || bitmap.width * bitmap.height > MAX_IMAGE_PIXELS) throw new Error('La imagen supera el máximo de 25 megapíxeles.');
     const canvas = document.createElement('canvas');
     canvas.width = bitmap.width; canvas.height = bitmap.height;
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -20,6 +21,8 @@ export async function decodePng(file: File): Promise<Raster> {
     return result;
   } finally { bitmap.close(); }
 }
+
+export const decodePng = decodeImage;
 
 export async function rasterPng(raster: Raster): Promise<Blob> {
   const canvas = document.createElement('canvas'); canvas.width = raster.width; canvas.height = raster.height;

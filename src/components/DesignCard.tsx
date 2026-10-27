@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { designMetrics, formatMm, type Design, type Raster } from '../core/model';
+import { designHeight, designMetrics, formatMm, type Design, type Raster } from '../core/model';
 import { NumberField } from './NumberField';
 import { ImageEditor } from './ImageEditor';
 
@@ -9,11 +9,13 @@ interface Props {
   onRemove: () => void; onEdit: () => void; onCancel: () => void;
   onApply: (raster: Raster) => Promise<void>; onUndo: () => void; onRefine: () => void;
   onValidity: (field: string, valid: boolean) => void;
+  editingDesign?: Design;
 }
 
-export function DesignCard({ design, busy, editing, onChange, onRemove, onEdit, onCancel, onApply, onUndo, onRefine, onValidity }: Props) {
+export function DesignCard({ design, busy, editing, onChange, onRemove, onEdit, onCancel, onApply, onUndo, onRefine, onValidity, editingDesign }: Props) {
   const [expanded, setExpanded] = useState(true);
-  const { heightMm, dpi, quality, recommendedWidthMm } = designMetrics(design.raster, design.widthMm);
+  const { dpi, quality, recommendedWidthMm } = designMetrics(design.raster, design.widthMm);
+  const heightMm = designHeight(design);
   const opaque = design.opaque;
   return <article className="design-card" data-testid="design-card">
     <div className="design-card-top">
@@ -34,8 +36,8 @@ export function DesignCard({ design, busy, editing, onChange, onRemove, onEdit, 
     </div>
     {expanded && <div className="design-details">
       <p>Medida final <strong>{formatMm(design.widthMm / 10)} × {formatMm(heightMm / 10)} cm</strong></p>
-      <p className={`quality ${quality}`}>{quality === 'good' ? 'Buena calidad' : quality === 'fair' ? 'Calidad justa' : 'Resolución baja: puede verse pixelado'} · {Math.round(dpi)} ppp</p>
-      {quality !== 'good' && <button className="small-button" disabled={busy || editing} onClick={() => onChange({ widthMm: recommendedWidthMm })}>Ajustar a {formatMm(recommendedWidthMm / 10)} cm</button>}
+      {design.pdf ? <p className="success-note">PDF original · conserva textos y trazados. Puede contener imágenes de resolución limitada.</p> : <p className={`quality ${quality}`}>{quality === 'good' ? 'Buena calidad' : quality === 'fair' ? 'Calidad justa' : 'Resolución baja: puede verse pixelado'} · {Math.round(dpi)} ppp</p>}
+      {!design.pdf && quality !== 'good' && <button className="small-button" disabled={busy || editing} onClick={() => onChange({ widthMm: recommendedWidthMm })}>Ajustar a {formatMm(recommendedWidthMm / 10)} cm</button>}
       {opaque && <p className="opaque-warning">El fondo también se imprime.</p>}
       {design.note && <p className="success-note">{design.note}</p>}
       {design.raster.sourceScale > 1 && <p className="muted">Ampliar no añade detalle. Los ppp se calculan desde los píxeles originales.</p>}
@@ -46,6 +48,6 @@ export function DesignCard({ design, busy, editing, onChange, onRemove, onEdit, 
         {design.undo && !editing && <button className="small-button" disabled={busy} onClick={onUndo}>Deshacer</button>}
       </div>
     </div>}
-    {editing && <ImageEditor design={design} onApply={onApply} onCancel={onCancel} />}
+    {editing && <ImageEditor design={editingDesign ?? design} onApply={onApply} onCancel={onCancel} />}
   </article>;
 }

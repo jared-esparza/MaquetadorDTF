@@ -6,7 +6,7 @@ import type { LayoutResult, SheetProfile } from '../core/model';
 export interface PngRequest { assets: PrintAsset[]; layout: LayoutResult; profile: SheetProfile; gapMm: number; mirror: boolean; dpi: number }
 export interface ExportProgress { page: number; pages: number; percent: number }
 
-export async function renderPrintPng(request: PngRequest, progress: (value: ExportProgress) => void): Promise<Blob> {
+export async function renderPrintPng(request: PngRequest, progress: (value: ExportProgress) => void, pdfRender?: (asset: PrintAsset, placement: LayoutResult['pages'][number]['placements'][number], y: number) => Promise<HTMLCanvasElement>, signal?: AbortSignal): Promise<Blob> {
   const { assets, layout, profile, dpi, mirror } = request;
   validatePrint(assets, layout, profile, request);
   const { width, height } = pngDimensions(profile, dpi), scale = dpi / 25.4;
@@ -23,12 +23,13 @@ export async function renderPrintPng(request: PngRequest, progress: (value: Expo
   const context = canvas.getContext('2d', { willReadFrequently: true });
   if (!context) throw new Error('No se puede generar el PNG en este navegador.');
   try {
-    for (const asset of assets) bitmaps.set(asset.id, await createImageBitmap(new Blob([new Uint8Array(asset.png)]), { colorSpaceConversion: 'default' }));
+    for (const asset of assets) if (asset.png) bitmaps.set(asset.id, await createImageBitmap(new Blob([new Uint8Array(asset.png)]), { colorSpaceConversion: 'default' }));
     for (let index = 0; index < layout.pages.length; index++) {
       const entry = zip ? new ZipPassThrough(`DTF-${profile.widthMm}x${profile.heightMm}mm-${dpi}ppp${mirror ? '-espejo' : ''}-pliego-${String(index + 1).padStart(3, '0')}.png`) : null;
       if (entry) zip!.add(entry);
       const encoder = new PngEncoder(width, height, dpi, bytes => entry ? entry.push(bytes) : collect(bytes));
       for (let y = 0; y < height; y += 128) {
+        signal?.throwIfAborted();
         const rows = Math.min(128, height - y);
         context.resetTransform(); context.clearRect(0, 0, width, canvas.height);
         context.setTransform(scale, 0, 0, scale, 0, -y);
@@ -36,6 +37,13 @@ export async function renderPrintPng(request: PngRequest, progress: (value: Expo
         context.imageSmoothingEnabled = true; context.imageSmoothingQuality = 'high';
         for (const placement of layout.pages[index].placements) {
           if ((placement.yMm + placement.heightMm) * scale < y || placement.yMm * scale > y + rows) continue;
+          const asset = assets.find(asset => asset.id === placement.designId)!;
+          if (asset.pdf) {
+            if (!pdfRender) throw new Error('No se ha preparado el renderizado PDF.');
+            const stripe = await pdfRender(asset,placement,y);
+            context.save(); context.resetTransform(); context.drawImage(stripe,0,0); context.restore();
+            continue;
+          }
           const bitmap = bitmaps.get(placement.designId)!;
           context.save(); context.translate(placement.xMm, placement.yMm);
           if (placement.rotation === 90) { context.translate(placement.widthMm, 0); context.rotate(Math.PI / 2); context.drawImage(bitmap, 0, 0, placement.heightMm, placement.widthMm); }
@@ -44,6 +52,7 @@ export async function renderPrintPng(request: PngRequest, progress: (value: Expo
         }
         encoder.push(context.getImageData(0, 0, width, rows).data);
         progress({ page: index + 1, pages: layout.pages.length, percent: Math.floor((index + (y + rows) / height) / layout.pages.length * 100) });
+        if (pdfRender) await new Promise(resolve => setTimeout(resolve,0));
       }
       encoder.finish(); entry?.push(new Uint8Array(), true);
     }

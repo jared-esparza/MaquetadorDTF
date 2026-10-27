@@ -3,7 +3,7 @@ import path from 'node:path';
 import { mkdir, access, readFile } from 'node:fs/promises';
 import { constants } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { dataDirectory, flushPreferences, readPreferences, resolveResource, savePdf, saveRaster, updatePreferences } from './services.mjs';
+import { dataDirectory, flushPreferences, readPreferences, resolveResource, savePdf, saveArchive, updatePreferences } from './services.mjs';
 import electronUpdater from 'electron-updater';
 import { createUpdateController, RELEASES_URL } from './updates.mjs';
 
@@ -69,7 +69,7 @@ async function start() {
     if (!['GET', 'HEAD'].includes(request.method)) return new Response('Método no permitido', { status: 405 });
     try {
       const filename = resolveResource(request.url, root);
-      const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon' };
+      const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.wasm': 'application/wasm', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon' };
       return new Response(request.method === 'HEAD' ? null : await readFile(filename), { headers: { 'Content-Type': mime[path.extname(filename)] ?? 'application/octet-stream' } });
     }
     catch { return new Response('Recurso no disponible', { status: 404 }); }
@@ -77,7 +77,7 @@ async function start() {
   session.defaultSession.setPermissionRequestHandler((_contents, _permission, callback) => callback(false));
   session.defaultSession.setPermissionCheckHandler(() => false);
   session.defaultSession.webRequest.onBeforeRequest((details, callback) => callback({ cancel: !['app:', 'blob:', 'data:', 'devtools:'].includes(new URL(details.url).protocol) }));
-  session.defaultSession.webRequest.onHeadersReceived((details, callback) => callback({ responseHeaders: { ...details.responseHeaders, 'Content-Security-Policy': ["default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; worker-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-src 'none'"] } }));
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => callback({ responseHeaders: { ...details.responseHeaders, 'Content-Security-Policy': ["default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; font-src 'self' blob: data:; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; worker-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-src 'none'"] } }));
 
   const preferences = await readPreferences(directory);
   const portable = !!process.env.PORTABLE_EXECUTABLE_DIR;
@@ -106,9 +106,9 @@ async function start() {
     if (saved.status === 'saved') { lastSavedFile = saved.filePath; return { status: 'saved', filename: saved.filename, warning: saved.warning }; }
     return saved;
   });
-  ipcMain.handle('desktop:raster:save', async (event, request) => {
+  ipcMain.handle('desktop:archive:save', async (event, request) => {
     trusted(event);
-    const saved = await saveRaster({ directory, request, choosePath: options => dialog.showSaveDialog(mainWindow, { ...options, title: `Guardar ${request.type.toUpperCase()} como…`, buttonLabel: 'Guardar', filters: [{ name: request.type.toUpperCase(), extensions: [request.type] }], properties: ['showOverwriteConfirmation', 'createDirectory'] }) });
+    const saved = await saveArchive({ directory, request, choosePath: options => dialog.showSaveDialog(mainWindow, { ...options, title: `Guardar ${request.type.toUpperCase()} como…`, buttonLabel: 'Guardar', filters: [{ name: request.type.toUpperCase(), extensions: [request.type] }], properties: ['showOverwriteConfirmation', 'createDirectory'] }) });
     if (saved.status === 'saved') { lastSavedFile = saved.filePath; return { status: 'saved', filename: saved.filename, warning: saved.warning }; }
     return saved;
   });
