@@ -54,7 +54,8 @@ test('PDF por pliego predeterminado, multipágina opcional y PNG desde vectores 
   await expect(page.getByTestId('layout-summary')).toContainText('2 pliegos');
   let download = page.waitForEvent('download'); await page.getByRole('button',{ name: 'Descargar PDF en ZIP',exact: true }).click();
   const zipPath = testInfo.outputPath('pdfs.zip'); await (await download).saveAs(zipPath);
-  const files = unzipSync(await readFile(zipPath)); expect(Object.keys(files)).toEqual(['pliego-001.pdf','pliego-002.pdf']);
+  const base = await page.getByLabel('Nombre del trabajo').inputValue();
+  const files = unzipSync(await readFile(zipPath)); expect(Object.keys(files)).toEqual([`${base}-pliego-001.pdf`,`${base}-pliego-002.pdf`]);
   for (const bytes of Object.values(files)) expect((await PDFDocument.load(bytes)).getPageCount()).toBe(1);
   await page.getByLabel('Organización del PDF').selectOption('combined');
   download = page.waitForEvent('download'); await page.getByRole('button',{ name: 'Descargar PDF',exact: true }).click();

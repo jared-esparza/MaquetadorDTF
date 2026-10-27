@@ -3,7 +3,8 @@ import { decodeImage, rasterPng, rasterUrl } from './browser/images';
 import { runImage, runLayout, runPngExport, runPdfExport } from './browser/workerClient';
 import { pngDimensions } from './core/png';
 import type { ExportProgress } from './browser/printPng';
-import { DEFAULT_PROFILE, MAX_TOTAL_PIXELS, designHeight, designMetrics, formatMm, pixelsAfterEdit, profileForLayout, retainedPixelCount, validateProfile, type Design, type LayoutResult, type Raster, type SheetProfile } from './core/model';
+import { DEFAULT_PROFILE, IMAGE_BUDGETS, imageBudget, checkImageBudget, designHeight, designMetrics, formatMm, pixelsAfterEdit, profileForLayout, retainedPixelCount, validateProfile, type Design, type LayoutResult, type Raster, type SheetProfile } from './core/model';
+import { defaultExportBaseName, normalizeExportBaseName, exportNameError, exportFilename } from './core/exportNames';
 import { hasOpaqueBackground } from './core/images';
 import { DesignCard } from './components/DesignCard';
 import { ProfileEditor } from './components/ProfileEditor';
@@ -13,11 +14,16 @@ import { WindowsDownloads } from './components/WindowsDownloads';
 import { Updates } from './components/Updates';
 import { desktop } from './platform/desktop';
 import { PdfImport, PdfConversion } from './components/PdfImport';
-import { rasterizePdf, type PdfCandidate } from './browser/pdf';
+import { pdfRasterSize, rasterizePdf, type PdfCandidate } from './browser/pdf';
 import { MAX_RETAINED_PDF_BYTES, retainedPdfBytes } from './core/pdfSource';
 import type { PrintAsset } from './core/print';
 
 const STORAGE_KEY = 'pkprint-dtf-profiles-v1';
+const BUDGET_STORAGE_KEY = 'pkprint-dtf-image-budget-v1';
+function readImageBudget() {
+  if (!desktop) try { return imageBudget(JSON.parse(localStorage.getItem(BUDGET_STORAGE_KEY) ?? 'null')); } catch { /* Use the default for invalid preferences. */ }
+  return imageBudget(undefined);
+}
 const initialProfiles = [DEFAULT_PROFILE, { ...DEFAULT_PROFILE, id: 'a3', name: 'A3', widthMm: 297, heightMm: 420 }, { ...DEFAULT_PROFILE, id: 'a4', name: 'A4', widthMm: 210, heightMm: 297 }];
 function readProfiles(): { profiles: SheetProfile[]; selected: string } {
   if (desktop) return { profiles: initialProfiles, selected: DEFAULT_PROFILE.id };
@@ -38,6 +44,8 @@ export default function App() {
   const [stored, setStored] = useState(readProfiles);
   const profile = stored.profiles.find(p => p.id === stored.selected)!;
   const [designs, setDesigns] = useState<Design[]>([]);
+  const [imageBudgetMp, setImageBudgetMp] = useState(readImageBudget);
+  const [exportBaseName, setExportBaseName] = useState('');
   const [gapMm, setGapMm] = useState(7);
   const [mirror, setMirror] = useState(false);
   const [pngDpi, setPngDpi] = useState(300);
@@ -73,10 +81,20 @@ export default function App() {
   const layout = pending ? null : layoutState.result;
   const blocked = !!busy || editingId !== null || !preferencesReady || showWelcome || updateInstalling || conversion !== null;
   const lowDpi = designs.some(d => designMetrics(d.raster, d.widthMm).quality === 'low');
-  const canExport = !blocked && !formatOpen && !pending && invalidFields.size === 0 && !!layout?.pages.length && layout.unplacedIds.length === 0 && (!lowDpi || acceptedLowDpi);
+  const normalizedName = normalizeExportBaseName(exportBaseName);
+  const nameError = exportNameError(normalizedName);
+  const totalPixels = retainedPixelCount(designs);
+  const canExport = !blocked && !formatOpen && !pending && !nameError && invalidFields.size === 0 && !!layout?.pages.length && layout.unplacedIds.length === 0 && (!lowDpi || acceptedLowDpi);
   let pngSize = '', pngError = '';
   try { const size = pngDimensions(profile, pngDpi); pngSize = `${size.width} × ${size.height} píxeles por pliego`; }
   catch (error) { pngError = errorText(error); }
+
+  useEffect(() => {
+    if (!preferencesReady) return;
+    const failed = () => setErrors(previous => [...previous.filter(error => !error.startsWith('No se ha podido guardar el presupuesto')), 'No se ha podido guardar el presupuesto de imágenes. Se mantiene durante esta sesión.']);
+    if (desktop) { desktop.updatePreferences({ imageBudgetMp }).catch(failed); return; }
+    try { localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(imageBudgetMp)); } catch { failed(); }
+  }, [imageBudgetMp, preferencesReady]);
 
   useEffect(() => {
     if (!preferencesReady) return;
@@ -90,6 +108,7 @@ export default function App() {
     desktop.getPreferences().then(preferences => {
       if (!active) return;
       if (preferences.profileState) setStored(preferences.profileState);
+      setImageBudgetMp(imageBudget(preferences.imageBudgetMp));
       setShowWelcome(!preferences.hideWelcome); setDesktopVersion(preferences.version); setPreferencesReady(true);
     }).catch(() => { if (active) { setErrors(['No se han podido leer las preferencias. Se usarán los formatos iniciales.']); setShowWelcome(true); setPreferencesReady(true); } });
     const unsubscribe = desktop.onHelp(topic => { if (topic === 'welcome') setShowWelcome(true); });
@@ -150,6 +169,8 @@ export default function App() {
               let pixels = totalPixels;
               for (const page of selected) {
                 const pdf = page.pdf!;
+                const size = pdfRasterSize(pdf, pdf.widthPt * 25.4 / 72, imported.dpi);
+                checkImageBudget(pixels + size.width * size.height, imageBudgetMp);
                 let raster = await rasterizePdf(pdf, pdf.widthPt * 25.4 / 72, imported.dpi, new AbortController().signal);
                 if (!raster.data.some((value, index) => index % 4 === 3 && value > 0)) {
                   const fallback = document.createElement('canvas'); fallback.width = raster.width; fallback.height = raster.height;
@@ -158,7 +179,7 @@ export default function App() {
                   ctx.drawImage(thumb, 0, 0, raster.width, raster.height); raster = { ...raster, data: ctx.getImageData(0, 0, raster.width, raster.height).data }; thumb.width = thumb.height = fallback.width = fallback.height = 0;
                 }
                 pixels += raster.width * raster.height;
-                if (pixels > MAX_TOTAL_PIXELS) throw new Error('El trabajo supera 60 megapíxeles. Divide los diseños en varios trabajos.');
+                checkImageBudget(pixels, imageBudgetMp);
                 const url = await rememberUrl(raster);
                 prepared.push({ id: crypto.randomUUID(),name: page.name,original: raster,raster,widthMm: pdf.widthPt * 25.4 / 72,copies: 1,url,note: '',opaque: hasOpaqueBackground(raster) });
               }
@@ -167,7 +188,7 @@ export default function App() {
             continue;
           }
           const decoded = await decodeImage(file);
-          if (totalPixels + decoded.width * decoded.height > MAX_TOTAL_PIXELS) throw new Error('El trabajo supera 60 megapíxeles, incluidas las versiones de edición. Divide los diseños en varios trabajos.');
+          checkImageBudget(totalPixels + decoded.width * decoded.height, imageBudgetMp);
           const raster = await runImage('crop', decoded);
           const url = await rememberUrl(raster);
           totalPixels += raster.width * raster.height;
@@ -175,12 +196,13 @@ export default function App() {
           added.push({ id: crypto.randomUUID(), name: file.name, original: raster, raster, widthMm, copies: 1, url, note: '', opaque: hasOpaqueBackground(decoded) });
         } catch (e) { problems.push(`${file.name}: ${errorText(e)}`); }
       }
+      if (!designs.length && added.length) setExportBaseName(defaultExportBaseName());
       setDesigns(current => [...current, ...added]); setErrors(problems);
     } finally { setBusy(''); }
   };
   const applyRaster = async (design: Design, raster: Raster, note: string, opaque = hasOpaqueBackground(raster)) => {
     const cropped = await runImage('crop', raster);
-    if (pixelsAfterEdit(designs, design.id, cropped.width, cropped.height) > MAX_TOTAL_PIXELS) throw new Error('La edición supera el máximo de 60 megapíxeles del trabajo. Quita algún diseño o divide el trabajo.');
+    checkImageBudget(pixelsAfterEdit(designs, design.id, cropped.width, cropped.height), imageBudgetMp);
     const url = await rememberUrl(cropped);
     if (design.undo) release(design.undo.url);
     setDesigns(current => current.map(d => d.id === design.id ? { ...d, pdf: undefined, raster: cropped, url, note, opaque, undo: { raster: d.raster, url: d.url, note: d.note, opaque: d.opaque, pdf: d.pdf } } : d));
@@ -189,7 +211,7 @@ export default function App() {
   const refine = async (design: Design) => {
     setBusy('Afinando los bordes…'); setErrors([]);
     try {
-      if (pixelsAfterEdit(designs, design.id, design.raster.width * 2, design.raster.height * 2) > MAX_TOTAL_PIXELS) throw new Error('Afinar supera el máximo de 60 megapíxeles del trabajo, incluidas las versiones de edición. Divide el trabajo antes de ampliar.');
+      checkImageBudget(pixelsAfterEdit(designs, design.id, design.raster.width * 2, design.raster.height * 2), imageBudgetMp);
       const raster = await runImage('refine', design.raster); await applyRaster(design, raster, 'Bordes afinados.', design.opaque);
     }
     catch (e) { setErrors([errorText(e)]); }
@@ -202,12 +224,15 @@ export default function App() {
     setConversion(null); setBusy('Convirtiendo PDF…'); setErrors([]);
     const controller = new AbortController(); exportController.current = controller;
     try {
+      const size = pdfRasterSize(design.pdf!, design.widthMm, dpi);
+      checkImageBudget(pixelsAfterEdit(designs, design.id, size.width, size.height), imageBudgetMp);
+      if (action === 'refine') checkImageBudget(pixelsAfterEdit(designs, design.id, size.width * 2, size.height * 2), imageBudgetMp);
       const raster = await rasterizePdf(design.pdf!,design.widthMm,dpi,controller.signal);
-      if (pixelsAfterEdit(designs,design.id,raster.width,raster.height) > MAX_TOTAL_PIXELS) throw new Error('La conversión supera 60 megapíxeles del trabajo. Divide el trabajo.');
+      checkImageBudget(pixelsAfterEdit(designs,design.id,raster.width,raster.height), imageBudgetMp);
       if (action === 'erase') {
         const url = await rememberUrl(raster); setEditingDesign({ ...design,pdf: undefined,raster,url }); setEditingId(design.id);
       } else {
-        if (pixelsAfterEdit(designs,design.id,raster.width * 2,raster.height * 2) > MAX_TOTAL_PIXELS) throw new Error('Afinar supera 60 megapíxeles del trabajo. Reduce el tamaño o divide el trabajo.');
+        checkImageBudget(pixelsAfterEdit(designs,design.id,raster.width * 2,raster.height * 2), imageBudgetMp);
         await applyRaster(design,await runImage('refine',raster,undefined,controller.signal),'Bordes afinados.');
       }
     } catch (error) { if (!controller.signal.aborted) setErrors([errorText(error)]); }
@@ -229,9 +254,9 @@ export default function App() {
     setExportProgress({ page: 1,pages: layout.pages.length,percent: 0 });
     try {
       const assets = await printAssets(controller.signal);
-      const { bytes,type } = await runPdfExport({ assets,layout,profile,gapMm,mirror,organization: pdfOrganization },controller.signal,setExportProgress);
+      const { bytes,type } = await runPdfExport({ assets,layout,profile,gapMm,mirror,organization: pdfOrganization,exportBaseName: normalizedName },controller.signal,setExportProgress);
       controller.signal.throwIfAborted();
-      const filename = `DTF-${profile.widthMm}x${profile.heightMm}mm-${layout.pages.length}pliegos${mirror ? '-espejo' : ''}.${type}`;
+      const filename = exportFilename(normalizedName, type);
       if (desktop) {
         const result = type === 'pdf' ? await desktop.savePdf({ filename,bytes }) : await desktop.saveArchive({ filename,bytes,type });
         if (result.status === 'cancelled') { setExported('Guardado cancelado. El montaje sigue disponible.'); return; }
@@ -253,10 +278,10 @@ export default function App() {
     setExportProgress({ page: 1, pages: layout.pages.length, percent: 0 });
     try {
       const assets = await printAssets(controller.signal);
-      const blob = await runPngExport({ assets, layout, profile, dpi: pngDpi, gapMm, mirror }, controller.signal, setExportProgress);
+      const blob = await runPngExport({ assets, layout, profile, dpi: pngDpi, gapMm, mirror, exportBaseName: normalizedName }, controller.signal, setExportProgress);
       controller.signal.throwIfAborted();
       const type = layout.pages.length > 1 ? 'zip' : 'png';
-      const filename = `DTF-${profile.widthMm}x${profile.heightMm}mm-${pngDpi}ppp${mirror ? '-espejo' : ''}-${type === 'png' ? 'pliego-001' : `${layout.pages.length}pliegos`}.${type}`;
+      const filename = exportFilename(normalizedName, type);
       if (desktop) {
         const result = await desktop.saveArchive({ filename, type, bytes: new Uint8Array(await blob.arrayBuffer()) });
         if (result.status === 'cancelled') { setExported('Guardado cancelado. El montaje sigue disponible.'); return; }
@@ -279,12 +304,22 @@ export default function App() {
           <input ref={inputRef} className="file-input" type="file" accept="image/png,.png,image/jpeg,.jpg,.jpeg,image/webp,.webp,application/pdf,.pdf" multiple aria-label="Subir diseños PNG o PDF" disabled={blocked} onChange={e => { const files = [...(e.target.files ?? [])]; e.target.value = ''; void importFiles(files); }} />
           <button className="upload-button" disabled={blocked} onClick={() => inputRef.current?.click()}><span className="upload-plus">+</span><strong>Sube tus diseños de imagen o PDF</strong><span>Arrastra aquí o toca para elegir.</span><small>PNG, JPG/JPEG y WebP: 20 MB · PDF: 50 MiB</small></button>
         </div>
-        {!designs.length && <p className="empty-instruction">Indica el ancho y las copias de cada diseño. El pliego se monta automáticamente.</p>}
+        <div className="image-budget">
+          <label>Presupuesto de imágenes<select value={imageBudgetMp} disabled={blocked} onChange={event => {
+            const next = imageBudget(Number(event.target.value));
+            if (totalPixels > next * 1_000_000) { setErrors(['Quita diseños antes de reducir el presupuesto por debajo del consumo actual.']); return; }
+            setImageBudgetMp(next);
+          }}>{IMAGE_BUDGETS.map(budget => <option key={budget} value={budget}>{budget} MP</option>)}</select></label>
+          <p className="muted" data-testid="image-budget-usage">{formatMm(totalPixels / 1_000_000)} / {imageBudgetMp} MP</p>
+          <p className="muted">Incluye originales y versiones de edición. Las copias del montaje no multiplican este consumo.</p>
+          {imageBudgetMp > 60 && <p className="opaque-warning">Este presupuesto permite más imágenes y puede agotar la memoria del equipo. Exporta tu trabajo antes de cerrar.</p>}
+        </div>
+        {!designs.length && <p className="empty-instruction">Indica el ancho o el alto y las copias de cada diseño. El pliego se monta automáticamente.</p>}
         {busy && <p className="working" role="status"><span className="spinner" />{busy}</p>}
         <div className="design-list">{designs.map(design => <DesignCard key={design.id} design={design} busy={blocked && editingId !== design.id} editing={editingId === design.id}
           onChange={patch => changeDesign(design.id, patch)}
           onValidity={(field, valid) => validity(`${design.id}:${field}`, valid)}
-          onRemove={() => { release(design.url); if (design.undo) release(design.undo.url); setDesigns(current => current.filter(d => d.id !== design.id)); clearDesignValidity(design.id); }}
+          onRemove={() => { release(design.url); if (design.undo) release(design.undo.url); if (designs.length === 1) setExportBaseName(''); setDesigns(current => current.filter(d => d.id !== design.id)); clearDesignValidity(design.id); }}
           onEdit={() => design.pdf ? setConversion({ design,action: 'erase' }) : setEditingId(design.id)} onCancel={cancelEdit} editingDesign={editingDesign?.id === design.id ? editingDesign : undefined}
           onApply={async raster => { setBusy('Aplicando fondo…'); try { await applyRaster(design, raster, 'Fondo quitado.'); cancelEdit(); } finally { setBusy(''); } }}
           onRefine={() => design.pdf ? setConversion({ design,action: 'refine' }) : void refine(design)}
@@ -312,6 +347,12 @@ export default function App() {
         <label className="checkbox-label mirror-control"><input type="checkbox" checked={mirror} disabled={blocked} onChange={e => { setMirror(e.target.checked); setExported(''); }} aria-label="Aplicar espejo en el PDF" /><span>Aplicar espejo en el PDF<small>Desactivado si ya lo aplica tu RIP.</small></span></label>
         <div className="print-note"><strong>Preparado para tu RIP</strong><p>PNG en RGB; el PDF conserva el color de sus fuentes. Tu RIP genera la base blanca y gestiona el color.</p><p>Imprime al 100 %, sin ajustar a página.</p></div>
         <div className="export-bottom">
+          <label className="export-name">Nombre del trabajo<input value={exportBaseName} disabled={blocked || !designs.length} aria-invalid={!!designs.length && !!nameError} aria-describedby="export-name-help" onChange={event => { setExportBaseName(event.target.value); setExported(''); }} onBlur={() => setExportBaseName(normalizedName)} /></label>
+          <div id="export-name-help">
+            {!!designs.length && nameError && <p className="error" role="alert">{nameError}</p>}
+            {!nameError && <p className="muted export-name-preview">PDF: {exportFilename(normalizedName, pdfOrganization === 'separate' && (layout?.pages.length ?? 0) > 1 ? 'zip' : 'pdf')}<br />PNG: {exportFilename(normalizedName, (layout?.pages.length ?? 0) > 1 ? 'zip' : 'png')}{(layout?.pages.length ?? 0) > 1 && <><br />Dentro del ZIP: {exportFilename(normalizedName, 'pdf', 1)} / {exportFilename(normalizedName, 'png', 1)}</>}</p>}
+            <p className="muted">Sin extensión. Se añade automáticamente al descargar.</p>
+          </div>
           {lowDpi && <label className="checkbox-label low-dpi"><input type="checkbox" checked={acceptedLowDpi} disabled={blocked || pending} onChange={e => setAcceptedLowDpi(e.target.checked)} /><span>Acepto que los diseños de baja resolución pueden verse pixelados.</span></label>}
           {editingId && <p className="muted">Aplica o cancela el borrador antes de exportar.</p>}
           {formatOpen && <p className="muted">Guarda o cierra el formato antes de exportar.</p>}

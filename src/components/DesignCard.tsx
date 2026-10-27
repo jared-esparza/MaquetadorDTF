@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { designHeight, designMetrics, formatMm, type Design, type Raster } from '../core/model';
+import { designHeight, designMetrics, formatMm, widthFromHeight, type Design, type Raster } from '../core/model';
 import { NumberField } from './NumberField';
 import { ImageEditor } from './ImageEditor';
 
@@ -24,7 +24,8 @@ export function DesignCard({ design, busy, editing, onChange, onRemove, onEdit, 
       <button className="icon-button" aria-label={`Quitar ${design.name}`} title="Quitar diseño" disabled={busy || editing} onClick={onRemove}>×</button>
     </div>
     <div className="design-inputs">
-      <NumberField label="Ancho (cm)" value={design.widthMm / 10} onValue={n => onChange({ widthMm: Math.round(n * 1000) / 100 })} onValidity={valid => onValidity('width', valid)} disabled={busy || editing} />
+      <NumberField label="Ancho (cm)" precision={2} value={design.widthMm / 10} onValue={n => onChange({ widthMm: n * 10 })} onValidity={valid => onValidity('width', valid)} disabled={busy || editing} />
+      <NumberField label="Alto (cm)" precision={2} value={heightMm / 10} onValue={n => onChange({ widthMm: widthFromHeight(design, n * 10) })} onValidity={valid => onValidity('height', valid)} disabled={busy || editing} />
       <div className="copies-field">
         <NumberField label="Copias" value={design.copies} integer max={3000} onValue={copies => onChange({ copies })} onValidity={valid => onValidity('copies', valid)} disabled={busy || editing} />
         <div className="copy-buttons">
@@ -34,6 +35,7 @@ export function DesignCard({ design, busy, editing, onChange, onRemove, onEdit, 
       </div>
       <button className="icon-button disclosure" aria-label="Ver u ocultar los ajustes de este diseño" aria-expanded={expanded} onClick={() => setExpanded(!expanded)} disabled={editing}>{expanded ? '▴' : '▾'}</button>
     </div>
+    <p className="muted proportion-note">Proporción fija · al cambiar una medida se ajusta la otra.</p>
     {expanded && <div className="design-details">
       <p>Medida final <strong>{formatMm(design.widthMm / 10)} × {formatMm(heightMm / 10)} cm</strong></p>
       {design.pdf ? <p className="success-note">PDF original · conserva textos y trazados. Puede contener imágenes de resolución limitada.</p> : <p className={`quality ${quality}`}>{quality === 'good' ? 'Buena calidad' : quality === 'fair' ? 'Calidad justa' : 'Resolución baja: puede verse pixelado'} · {Math.round(dpi)} ppp</p>}

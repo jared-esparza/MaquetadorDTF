@@ -1,7 +1,7 @@
-import type { SheetProfile } from '../core/model';
+import type { ImageBudgetMp, SheetProfile } from '../core/model';
 
 export interface ProfileState { profiles: SheetProfile[]; selected: string }
-export interface DesktopPreferences { profileState?: ProfileState; hideWelcome: boolean; version: string; portable: boolean }
+export interface DesktopPreferences { profileState?: ProfileState; hideWelcome: boolean; version: string; portable: boolean; imageBudgetMp: ImageBudgetMp }
 export type UpdateMode = 'manual' | 'notify' | 'auto';
 export interface UpdateState {
   status: 'idle' | 'checking' | 'current' | 'available' | 'downloading' | 'downloaded' | 'installing' | 'error';
@@ -9,7 +9,7 @@ export interface UpdateState {
 }
 export interface DesktopBridge {
   getPreferences(): Promise<DesktopPreferences>;
-  updatePreferences(patch: { profileState?: ProfileState; hideWelcome?: boolean }): Promise<void>;
+  updatePreferences(patch: { profileState?: ProfileState; hideWelcome?: boolean; imageBudgetMp?: ImageBudgetMp }): Promise<void>;
   savePdf(request: { filename: string; bytes: Uint8Array }): Promise<{ status: 'saved'; filename: string; warning?: string } | { status: 'cancelled' }>;
   saveArchive(request: { filename: string; type: 'png' | 'zip'; bytes: Uint8Array }): ReturnType<DesktopBridge['savePdf']>;
   showExportFolder(): Promise<void>;

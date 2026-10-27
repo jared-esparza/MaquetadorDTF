@@ -2,6 +2,7 @@ import { PDFDocument, PDFName, PDFRawStream, concatTransformationMatrix, degrees
 import { Zip, ZipPassThrough } from 'fflate';
 import { validatePrint, type PrintAsset } from './print';
 import { MAX_EXPORT_BYTES } from './png';
+import { exportFilename } from './exportNames';
 export type { PrintAsset } from './print';
 import type { LayoutResult, SheetProfile } from './model';
 
@@ -58,7 +59,8 @@ export async function createPrintPdf(assets: PrintAsset[], layout: LayoutResult,
   return buildPdf(assets, layout.pages, profile, options);
 }
 
-export async function createPrintPdfBundle(assets: PrintAsset[], layout: LayoutResult, profile: SheetProfile, options: Options & { organization: 'separate' | 'combined' }, progress?: Progress): Promise<{ bytes: Uint8Array; type: 'pdf' | 'zip' }> {
+export async function createPrintPdfBundle(assets: PrintAsset[], layout: LayoutResult, profile: SheetProfile, options: Options & { organization: 'separate' | 'combined'; exportBaseName: string }, progress?: Progress): Promise<{ bytes: Uint8Array; type: 'pdf' | 'zip' }> {
+  exportFilename(options.exportBaseName, 'pdf');
   validatePrint(assets, layout, profile, options);
   const pages = layout.pages.length;
   const report = (page: number) => progress?.({ page, pages, percent: Math.floor(page / pages * 100) });
@@ -72,7 +74,7 @@ export async function createPrintPdfBundle(assets: PrintAsset[], layout: LayoutR
   });
   for (let i = 0; i < pages; i++) {
     const bytes = await buildPdf(assets, [layout.pages[i]], profile, options);
-    const entry = new ZipPassThrough(`pliego-${String(i + 1).padStart(3, '0')}.pdf`);
+    const entry = new ZipPassThrough(exportFilename(options.exportBaseName, 'pdf', i + 1));
     zip.add(entry); entry.push(bytes, true); report(i + 1);
   }
   zip.end();

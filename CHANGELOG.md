@@ -1,5 +1,12 @@
 # Cambios
 
+## 1.5.0
+
+- Presupuesto de imágenes de 60, 120 o 240 MP, recordado por navegador o instalación, con indicador de consumo y protección al reducirlo.
+- Ancho y alto editables en centímetros, siempre proporcionales y sin acumular redondeos.
+- Nombre de trabajo editable y común a PNG, PDF y ZIP, con fecha y hora local inicial y nombres numerados dentro de los ZIP.
+- Se mantienen los límites por imagen, resolución y tamaño final; no se reduce calidad automáticamente.
+
 ## 1.4.0
 
 ### PDF por pliego y formatos de imagen

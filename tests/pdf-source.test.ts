@@ -22,9 +22,9 @@ it('entrega PDF individuales en ZIP, conserva vectores y comparte los bytes orig
   const assets = [{ id: 'pdf', pdf, widthMm: 80, heightMm: 40, copies: 3 }];
   const profile = { ...DEFAULT_PROFILE, widthMm: 90, heightMm: 50 };
   const layout = packDesigns(assets, profile, 7);
-  const result = await createPrintPdfBundle(assets, layout, profile, { gapMm: 7, mirror: false, organization: 'separate' });
+  const result = await createPrintPdfBundle(assets, layout, profile, { gapMm: 7, mirror: false, organization: 'separate', exportBaseName: 'Impresión ñ' });
   expect(result.type).toBe('zip');
-  const files = unzipSync(result.bytes); expect(Object.keys(files)).toEqual(['pliego-001.pdf', 'pliego-002.pdf', 'pliego-003.pdf']);
+  const files = unzipSync(result.bytes); expect(Object.keys(files)).toEqual(['Impresión ñ-pliego-001.pdf', 'Impresión ñ-pliego-002.pdf', 'Impresión ñ-pliego-003.pdf']);
   for (const bytes of Object.values(files)) {
     const doc = await PDFDocument.load(bytes);
     expect(doc.getPageCount()).toBe(1);

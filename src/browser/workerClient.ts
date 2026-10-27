@@ -29,6 +29,6 @@ export const runPngExport = async (payload: PngRequest, signal: AbortSignal, onP
   if (payload.assets.some(asset => asset.pdf)) return (await import('./printPdfPng')).renderMixedPng(payload,signal,onProgress);
   return request<Blob>(new Worker(new URL('../workers/export.worker.ts', import.meta.url), { type: 'module' }), payload, signal, onProgress);
 };
-export interface PdfRequest { assets: PrintAsset[]; layout: LayoutResult; profile: SheetProfile; gapMm: number; mirror: boolean; organization: 'separate' | 'combined' }
+export interface PdfRequest { assets: PrintAsset[]; layout: LayoutResult; profile: SheetProfile; gapMm: number; mirror: boolean; organization: 'separate' | 'combined'; exportBaseName: string }
 export const runPdfExport = (payload: PdfRequest, signal: AbortSignal, onProgress: (progress: ExportProgress) => void) =>
   request<{ bytes: Uint8Array; type: 'pdf' | 'zip' }>(new Worker(new URL('../workers/pdfExport.worker.ts',import.meta.url),{ type: 'module' }),payload,signal,onProgress);
