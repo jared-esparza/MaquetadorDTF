@@ -8,6 +8,19 @@ const dirs: string[] = [];
 async function temporary() { const dir = await mkdtemp(path.join(os.tmpdir(), 'dtf-prueba-')); dirs.push(dir); return dir; }
 afterEach(async () => { await Promise.all(dirs.splice(0).map(dir => rm(dir, { recursive: true, force: true }))); });
 
+it('valida y conserva el presupuesto sin perder las preferencias antiguas', async () => {
+  const dir = await temporary();
+  await writeFile(path.join(dir, 'preferences.json'), JSON.stringify({ hideWelcome: true, updateMode: 'manual' }));
+  expect(await readPreferences(dir)).toMatchObject({ imageBudgetMp: 60, hideWelcome: true });
+  for (const imageBudgetMp of [60, 120, 240]) {
+    await updatePreferences(dir, { imageBudgetMp });
+    expect(await readPreferences(dir)).toMatchObject({ imageBudgetMp, hideWelcome: true, updateMode: 'manual' });
+  }
+  for (const imageBudgetMp of [0, 61, '120', null]) await expect(updatePreferences(dir, { imageBudgetMp })).rejects.toThrow(/Presupuesto/);
+  await writeFile(path.join(dir, 'preferences.json'), JSON.stringify({ hideWelcome: true, imageBudgetMp: '240' }));
+  expect(await readPreferences(dir)).toMatchObject({ imageBudgetMp: 60, hideWelcome: true });
+});
+
 describe('servicios locales de escritorio', () => {
   it('inicia avisando antes de descargar y conserva formatos al cambiar el modo', async () => {
     const dir = await temporary();

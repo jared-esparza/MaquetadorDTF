@@ -98,7 +98,7 @@ async function start() {
   ipcMain.handle('desktop:updates:install', event => { trusted(event); return updates.install(); });
   ipcMain.handle('desktop:updates:releases', async event => { trusted(event); await shell.openExternal(RELEASES_URL); });
 
-  ipcMain.handle('desktop:preferences:get', async event => { trusted(event); const preferences = await readPreferences(directory); return { profileState: preferences.profileState, hideWelcome: preferences.hideWelcome, version: app.getVersion(), portable: !!process.env.PORTABLE_EXECUTABLE_DIR }; });
+  ipcMain.handle('desktop:preferences:get', async event => { trusted(event); const preferences = await readPreferences(directory); return { profileState: preferences.profileState, hideWelcome: preferences.hideWelcome, imageBudgetMp: preferences.imageBudgetMp, version: app.getVersion(), portable: !!process.env.PORTABLE_EXECUTABLE_DIR }; });
   ipcMain.handle('desktop:preferences:update', async (event, patch) => { trusted(event); await updatePreferences(directory, patch); });
   ipcMain.handle('desktop:pdf:save', async (event, request) => {
     trusted(event);

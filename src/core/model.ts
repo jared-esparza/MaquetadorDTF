@@ -32,7 +32,11 @@ export interface Design {
 }
 
 export function designHeight(design: Pick<Design, 'pdf' | 'raster' | 'widthMm'>) {
-  return design.pdf ? design.widthMm * design.pdf.heightPt / design.pdf.widthPt : designMetrics(design.raster, design.widthMm).heightMm;
+  return design.widthMm * (design.pdf ? design.pdf.heightPt / design.pdf.widthPt : design.raster.height / design.raster.width);
+}
+
+export function widthFromHeight(design: Pick<Design, 'pdf' | 'raster'>, heightMm: number) {
+  return heightMm * (design.pdf ? design.pdf.widthPt / design.pdf.heightPt : design.raster.width / design.raster.height);
 }
 
 export interface PackItem { id: string; widthMm: number; heightMm: number; copies: number }
@@ -53,7 +57,14 @@ export interface LayoutResult {
 
 export const MAX_PIECES = 3000;
 export const MAX_IMAGE_PIXELS = 25_000_000;
-export const MAX_TOTAL_PIXELS = 60_000_000;
+export type ImageBudgetMp = 60 | 120 | 240;
+export const IMAGE_BUDGETS: readonly ImageBudgetMp[] = [60, 120, 240];
+export function imageBudget(value: unknown): ImageBudgetMp {
+  return IMAGE_BUDGETS.includes(value as ImageBudgetMp) ? value as ImageBudgetMp : 60;
+}
+export function checkImageBudget(pixels: number, budget: ImageBudgetMp): void {
+  if (pixels > budget * 1_000_000) throw new Error(`El trabajo supera el presupuesto de ${budget} megapíxeles, incluidos originales y versiones de edición. Aumenta el presupuesto o quita diseños antes de continuar.`);
+}
 export const DEFAULT_PROFILE: SheetProfile = {
   id: 'film-55', name: 'Film 55 × 100 cm', widthMm: 550, heightMm: 1000,
   margins: { top: 0, right: 0, bottom: 0, left: 0 },

@@ -1,13 +1,15 @@
 import { Zip, ZipPassThrough } from 'fflate';
 import { MAX_EXPORT_BYTES, PngEncoder, pngDimensions } from '../core/png';
 import { validatePrint, type PrintAsset } from '../core/print';
+import { exportFilename } from '../core/exportNames';
 import type { LayoutResult, SheetProfile } from '../core/model';
 
-export interface PngRequest { assets: PrintAsset[]; layout: LayoutResult; profile: SheetProfile; gapMm: number; mirror: boolean; dpi: number }
+export interface PngRequest { assets: PrintAsset[]; layout: LayoutResult; profile: SheetProfile; gapMm: number; mirror: boolean; dpi: number; exportBaseName: string }
 export interface ExportProgress { page: number; pages: number; percent: number }
 
 export async function renderPrintPng(request: PngRequest, progress: (value: ExportProgress) => void, pdfRender?: (asset: PrintAsset, placement: LayoutResult['pages'][number]['placements'][number], y: number) => Promise<HTMLCanvasElement>, signal?: AbortSignal): Promise<Blob> {
   const { assets, layout, profile, dpi, mirror } = request;
+  exportFilename(request.exportBaseName, 'png');
   validatePrint(assets, layout, profile, request);
   const { width, height } = pngDimensions(profile, dpi), scale = dpi / 25.4;
   const parts: Blob[] = []; let size = 0;
@@ -25,7 +27,7 @@ export async function renderPrintPng(request: PngRequest, progress: (value: Expo
   try {
     for (const asset of assets) if (asset.png) bitmaps.set(asset.id, await createImageBitmap(new Blob([new Uint8Array(asset.png)]), { colorSpaceConversion: 'default' }));
     for (let index = 0; index < layout.pages.length; index++) {
-      const entry = zip ? new ZipPassThrough(`DTF-${profile.widthMm}x${profile.heightMm}mm-${dpi}ppp${mirror ? '-espejo' : ''}-pliego-${String(index + 1).padStart(3, '0')}.png`) : null;
+      const entry = zip ? new ZipPassThrough(exportFilename(request.exportBaseName, 'png', index + 1)) : null;
       if (entry) zip!.add(entry);
       const encoder = new PngEncoder(width, height, dpi, bytes => entry ? entry.push(bytes) : collect(bytes));
       for (let y = 0; y < height; y += 128) {

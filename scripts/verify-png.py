@@ -7,6 +7,29 @@ import pypdfium2 as pdfium
 
 root = Path(__file__).resolve().parent.parent / 'artifacts' / 'qa'
 reports = []
+
+# Height-driven geometry and edited filename, independently decoded with Pillow/PDFium.
+with Image.open(root / 'job-named.png') as image:
+    image.load()
+    assert image.size == (round(60 * 300 / 25.4), round(30 * 300 / 25.4))
+    doc = pdfium.PdfDocument(str(root / 'job-named.pdf'))
+    page = doc[0]
+    bitmap = page.render(scale=300 / 72, fill_color=(0, 0, 0, 0))
+    pdf = bitmap.to_pil().convert('RGBA')
+    for x, y, expected in [(8, 6, (0, 0, 255, 255)), (33, 6, (255, 0, 0, 255)),
+                           (23, 12, (0, 0, 0, 0)), (1, 1, (0, 0, 0, 0))]:
+        position = (round(x * 300 / 25.4), round(y * 300 / 25.4))
+        actual_png, actual_pdf = image.getpixel(position), pdf.getpixel(position)
+        if expected[3] == 0:
+            assert actual_png[3] == actual_pdf[3] == 0, (x, y, actual_png, actual_pdf)
+        else:
+            assert actual_png == actual_pdf == expected, (x, y, actual_png, actual_pdf)
+    bounds = image.getbbox()
+    assert abs((bounds[2] - bounds[0]) * 25.4 / 300 - 40) < .2
+    assert abs((bounds[3] - bounds[1]) * 25.4 / 300 - 20) < .2
+    bitmap.close(); page.close(); doc.close()
+    reports.append({'height_edit_named_export': 'PASS', 'visible_size_mm': [40, 20], 'alpha_colors': 'PASS'})
+
 for dpi in (150, 300, 600):
     with Image.open(root / f'print-{dpi}.png') as image:
         image.load()

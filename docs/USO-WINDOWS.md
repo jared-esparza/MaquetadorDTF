@@ -36,3 +36,11 @@ La comprobación y descarga necesitan conexión; el editor y las exportaciones s
 Los formatos del navegador anterior no se importan automáticamente. Configúralos una vez en la aplicación de escritorio.
 
 Los archivos se procesan localmente. Código propio: licencia de reutilización pendiente. Los avisos de los componentes de terceros se incluyen en THIRD_PARTY_NOTICES.txt y los archivos de licencia de Electron y Chromium.
+
+## Memoria y nombres de trabajo (1.5.0)
+
+Junto a la carga, «Presupuesto de imágenes» permite 60, 120 o 240 MP y muestra consumo / presupuesto. Cuenta originales y versiones únicas para edición y deshacer; las copias no multiplican el consumo. Se recuerda por navegador o instalación. No se permite reducirlo por debajo del consumo actual: quita diseños antes. Los niveles mayores pueden agotar la memoria y no garantizan el procesamiento en cualquier equipo. Los límites por imagen (25 MP) y archivo final siguen vigentes.
+
+Ancho y Alto (cm) son editables y siempre proporcionales; cambiar uno actualiza el otro. La geometría conserva precisión interna aunque se muestren dos decimales. Una entrada inválida debe corregirse antes de exportar.
+
+«Nombre del trabajo» propone DTF-AAAA-MM-DD-HHmm al cargar el primer diseño, con fecha y hora local. Puedes cambiarlo conservando espacios, tildes y ñ. No escribas rutas ni nombres reservados de Windows; máximo 120 caracteres. La extensión se añade automáticamente y una extensión PNG/PDF/ZIP pegada se retira al terminar de editar. Un archivo usa BASE.png/pdf; varios usan BASE.zip con BASE-pliego-001.png/pdf y numeración consecutiva. El PDF multipágina usa BASE.pdf. El nombre se conserva al descargar ambos formatos y cambia al empezar un trabajo vacío; no se recuerda entre sesiones. En Windows se propone al guardar; renombrar el ZIP en el diálogo no renombra sus archivos interiores.

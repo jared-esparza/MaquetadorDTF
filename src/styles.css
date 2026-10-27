@@ -213,7 +213,14 @@ strong {
   display:flex;
   gap:9px;
   align-items:flex-start;
-  margin:6px 0 0 49px}
+  margin:6px 0 0}
+.proportion-note { margin-top:6px; font-size:11px; }
+.image-budget { margin:12px 0; padding:10px; border:1px solid var(--border); border-radius:6px; }
+.image-budget label, .export-name { display:flex; flex-direction:column; gap:5px; font-size:12px; font-weight:700; }
+.image-budget p { margin-top:6px; font-size:12px; }
+.export-name input { width:100%; min-width:0; }
+.export-name input[aria-invalid=true] { border-color:#b02e25; }
+.export-name-preview { overflow-wrap:anywhere; }
 .number-field {
   display:flex;
   flex-direction:column;

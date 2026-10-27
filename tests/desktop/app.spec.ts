@@ -47,6 +47,36 @@ async function closeWelcome() {
 }
 async function importDesign() { await page.getByLabel('Subir diseños PNG').setInputFiles({ name: 'diseño ñ.png', mimeType: 'image/png', buffer: png() }); await expect(page.getByTestId('design-card')).toHaveCount(1); }
 
+test('recuerda presupuesto y sugiere el nombre elegido sin perderlo al cancelar', async () => {
+  await page.getByLabel('No volver a mostrar').check();
+  await closeWelcome();
+  await page.getByLabel('Presupuesto de imágenes').selectOption('120');
+  const userData = await application.evaluate(({ app }) => app.getPath('userData'));
+  await expect.poll(async () => JSON.parse(await readFile(path.join(userData, 'preferences.json'), 'utf8')).imageBudgetMp).toBe(120);
+  await page.reload();
+  await expect(page.getByLabel('Presupuesto de imágenes')).toHaveValue('120');
+  await importDesign();
+  await page.getByLabel('Alto (cm)', { exact: true }).fill('2');
+  await page.getByLabel('Alto (cm)', { exact: true }).blur();
+  await expect(page.getByLabel('Ancho (cm)', { exact: true })).toHaveValue('4.17');
+  await page.getByLabel('Nombre del trabajo').fill('Pedido ñ.pdf');
+  await page.getByLabel('Nombre del trabajo').blur();
+  await application.evaluate(({ dialog }) => {
+    dialog.showSaveDialog = async (...args: unknown[]) => {
+      const options = (args[1] ?? args[0]) as { defaultPath: string };
+      (globalThis as unknown as { suggestedName: string }).suggestedName = options.defaultPath;
+      return { canceled: true, filePath: '' };
+    };
+  });
+  for (const type of ['PDF', 'PNG']) {
+    await page.getByRole('button', { name: `Descargar ${type}`, exact: true }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'Guardado cancelado' })).toBeVisible();
+    expect(await application.evaluate(() => (globalThis as unknown as { suggestedName: string }).suggestedName)).toBe(`Pedido ñ.${type.toLowerCase()}`);
+    await expect(page.getByLabel('Nombre del trabajo')).toHaveValue('Pedido ñ');
+    await expect(page.getByTestId('design-card')).toHaveCount(1);
+  }
+});
+
 test('abre bienvenida y workers locales con renderer aislado y sin Node', async () => {
   await expect(page.getByRole('region', { name: 'Versión para Windows' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Restaurar formatos predeterminados' })).toHaveCount(0);

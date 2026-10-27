@@ -85,9 +85,14 @@ export async function renderPdfRegion(doc: PDFDocumentProxy, source: PdfSource, 
   finally { ctx.restore(); }
 }
 
-export async function rasterizePdf(source: PdfSource, widthMm: number, dpi: number, signal: AbortSignal): Promise<Raster> {
+export function pdfRasterSize(source: PdfSource, widthMm: number, dpi: number) {
   const width = Math.round(widthMm * dpi / 25.4), height = Math.round(width * source.heightPt / source.widthPt);
   checkSize(width,height);
+  return { width, height };
+}
+
+export async function rasterizePdf(source: PdfSource, widthMm: number, dpi: number, signal: AbortSignal): Promise<Raster> {
+  const { width, height } = pdfRasterSize(source, widthMm, dpi);
   const loading = loadPdf(source.document.bytes), canvas = document.createElement('canvas');
   const cancel = () => { void loading.destroy(); }; signal.addEventListener('abort',cancel,{ once: true });
   try {
