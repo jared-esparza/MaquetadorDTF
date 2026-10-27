@@ -266,8 +266,16 @@ verificaciones independientes PDF/PNG correctas. Falló una prueba previa de
 persistencia de presupuesto en Electron: selección 120 MP, aviso de error de
 guardado y archivo aún en 60 MP. Las pruebas nuevas de reparto en Electron pasaron.
 No se atribuye todavía una causa; se añade captura de stderr de Electron en los
-fallos de CI para diagnosticar sin debilitar la comprobación. Quedan pendientes
-una CI completa del código final y el cierre de este fallo intermitente.
+fallos de CI para diagnosticar sin debilitar la comprobación.
+
+Validación funcional final: CI [40588630904](https://github.com/jared-esparza/MaquetadorDTF/actions/runs/40588630904)
+correcta en `e5485b2`. Pasaron compilación, unitarias, navegador, verificaciones
+Pillow/PDFium, Electron de desarrollo, empaquetado, ejecutable y verificación de
+sus exportaciones. El fallo de presupuesto no se reprodujo; no se ha identificado
+su causa y no se da por corregido. Se conserva el diagnóstico en futuras CI.
+El despliegue quedó omitido por ser PR. Este cierre posterior solo documenta los
+resultados; su propia CI se consulta en el historial de la rama. La PR sigue abierta,
+sin merge, etiqueta, publicación ni despliegue autorizado para 1.7.0.
 
 Pruebas añadidas de geometría, navegador, Electron y muestras PNG/PDF para
 Pillow/PDFium en Actions. No se ejecutan pruebas locales ni se comprueba
