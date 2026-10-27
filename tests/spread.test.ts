@@ -77,6 +77,21 @@ describe('repartir espacios sin volver a montar', () => {
     expect(validateLayout(layoutOf(spread), adjusted, 7)).toEqual([]);
   });
 
+  it.each([false, true])('no amplifica la cuantización de márgenes de más de dos decimales; espejo=%s', mirror => {
+    const physical = { ...profile, margins: { left: 3.004, right: 5.006, top: 2.004, bottom: 4.006 } };
+    const adjusted = profileForLayout(physical, mirror);
+    const left = Math.round(adjusted.margins.left * 100) / 100;
+    const top = Math.round(adjusted.margins.top * 100) / 100;
+    const compact = pageOf([piece(0, left, top, 20, 20), piece(1, left + 27, top, 20, 20),
+      piece(2, left, top + 27, 20, 20), piece(3, left + 27, top + 27, 20, 20)]);
+    expect(validateLayout(layoutOf(compact), adjusted, 7)).toEqual([]);
+    const result = spreadPage(compact, adjusted);
+    expect(validateLayout(layoutOf(result), adjusted, 7)).toEqual([]);
+    expect(result.placements[0]).toEqual(compact.placements[0]);
+    expect(result.placements[3].xMm + 20).toBeCloseTo(adjusted.widthMm - adjusted.margins.right);
+    expect(result.placements[3].yMm + 20).toBeCloseTo(adjusted.heightMm - adjusted.margins.bottom);
+  });
+
   it('conserva hasta 3000 copias y el resultado sigue siendo válido', () => {
     const compact = packDesigns([{ id: 'a', widthMm: 5, heightMm: 5, copies: 3000 }], DEFAULT_PROFILE, 3);
     const result = { ...compact, pages: compact.pages.map(page => spreadPage(page, DEFAULT_PROFILE)) };

@@ -95,7 +95,8 @@ export function spreadPage(page: LayoutResult['pages'][number], profile: SheetPr
     }
     return Number.isFinite(scale) ? Math.max(1, scale) : 1;
   };
-  const left = profile.margins.left, top = profile.margins.top;
+  // MaxRects cuantiza estos orígenes a centésimas: no amplificar su error de redondeo.
+  const left = mm(q(profile.margins.left)), top = mm(q(profile.margins.top));
   const xScale = factor('xMm', 'widthMm', left, profile.widthMm - profile.margins.right);
   const yScale = factor('yMm', 'heightMm', top, profile.heightMm - profile.margins.bottom);
   return { ...page, placements: page.placements.map(p => ({ ...p,

@@ -250,8 +250,17 @@ no autoriza merge, etiquetas, publicación ni despliegue de esta entrega.
   PDF/PNG individuales o generales y miniaturas usan el mismo montaje efectivo.
 - Manifiesto y lockfile actualizados a 1.7.0; notas y ayuda actualizadas.
 
-Validación en preparación: pruebas de geometría, navegador, Electron y muestras
-PNG/PDF para Pillow/PDFium en Actions. No se ejecutan pruebas locales ni se comprueba
+PR [#13](https://github.com/jared-esparza/MaquetadorDTF/pull/13) abierta.
+La primera CI [40587258175](https://github.com/jared-esparza/MaquetadorDTF/actions/runs/40587258175)
+pasó compilación y unitarias en `c293ec7`; el resto seguía pendiente al registrar
+este estado. La revisión independiente detectó amplificación del redondeo de los
+márgenes con más de dos decimales; el reparto usa ahora el mismo origen a centésimas
+que MaxRects, conservando los límites físicos derecho e inferior. Se añadió una
+regresión para ambos ejes y espejo. La revisión de la corrección no detectó otros
+problemas concretos; su validación funcional completa queda pendiente de Actions.
+
+Pruebas añadidas de geometría, navegador, Electron y muestras PNG/PDF para
+Pillow/PDFium en Actions. No se ejecutan pruebas locales ni se comprueba
 manualmente la web desplegada. Los pendientes anteriores (fidelidad de PDF importado,
 memoria transitoria, formatos de entrada y avisos de terceros) siguen abiertos.
 Las nuevas muestras parten de PNG y no validan la fidelidad de importación PDF.
