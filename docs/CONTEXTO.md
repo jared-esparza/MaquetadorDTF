@@ -7,7 +7,14 @@ para implementar cambios sin acordar la siguiente tarea.
 ## Estado confirmado
 
 - Repositorio: https://github.com/jared-esparza/MaquetadorDTF.
-- Versión en main: **1.5.1**, coincidente en package.json y package-lock.json.
+- Versión en main: **1.6.0**, coincidente en package.json y package-lock.json.
+- [PR #12](https://github.com/jared-esparza/MaquetadorDTF/pull/12): integrada por
+  autorización explícita del usuario; merge `c419629b5f95d18d8412e38aeef2573e7117d11e`.
+  La API confirmó cero PR abiertas después de integrarla.
+- [Release v1.6.0](https://github.com/jared-esparza/MaquetadorDTF/releases/tag/v1.6.0):
+  publicada como preliminar sin firma sobre `c419629`, con Setup, Portable,
+  blockmap, latest.yml, SHA256SUMS, avisos y guía Windows. Ver el cierre de 1.6.0
+  al final del documento para los resultados de publicación y despliegue.
 - [PR #11](https://github.com/jared-esparza/MaquetadorDTF/pull/11): integrada con
   autorización del usuario; merge `738a17878a3d7ec40173e854bd1a17a03ee01932`.
 - [Release v1.5.1](https://github.com/jared-esparza/MaquetadorDTF/releases/tag/v1.5.1):
@@ -48,7 +55,7 @@ y Electron Windows 10/11 x64. Web estática IONOS: https://dtf.wcard.es.
 - Ancho y alto editables en centímetros, siempre proporcionales. Prevalece la
   última medida válida; solo se almacena widthMm, sin redondear la geometría
   interna. Presentación a dos decimales, coma/punto y bloqueo por valor inválido.
-- Separación 3–10 mm desde 1.6.0 (3–7 en la publicada 1.5.1), 7 inicial; MaxRects con giros, geometría en milímetros.
+- Separación 3–10 mm, 7 inicial; MaxRects con giros, geometría en milímetros.
   Formatos entre 10 y 5000 mm por lado y máximo 3000 piezas por trabajo.
 - Imagen: 20 MiB/25 MP. PDF: 50 MiB/100 páginas, conversión 25 MP/página.
   Presupuesto de imágenes retenidas: **60/120/240 MP**, 60 inicial, persistido por
@@ -166,11 +173,12 @@ Los pendientes técnicos anteriores siguen abiertos. Esta autorización no se
 extiende a futuras entregas; no se realizaron pruebas locales ni comprobaciones
 manuales de la web desplegada.
 
-## Implementación candidata 1.6.0 — descarga individual de pliegos
+## Entrega 1.6.0 — descarga individual de pliegos
 
-Plan aprobado para implementar en `codex/pliegos-individuales`, desde main
-`78037d6`. Versiones de manifiesto/lockfile y notas preparadas para 1.6.0.
-No hay autorización para integrar, etiquetar, publicar ni desplegar esta entrega.
+Implementada en `codex/pliegos-individuales`, desde main `78037d6`. El usuario
+solicitó «merge a main» después de probarla en local; se integró la PR #12 en
+`c419629`. Manifiesto, lockfile y notas coinciden en 1.6.0. Esta autorización
+se limita a la entrega actual y no permite integrar ni publicar cambios futuros.
 
 - Pliego visible descargable PDF/PNG; PNG usa los ppp elegidos. Tras éxito se
   atenúa y aparta de descargas generales PDF/PNG/ZIP, con «Volver a incluir».
@@ -204,5 +212,18 @@ commit `a06e583`, correcta. Pasaron compilación, unitarias, navegador, verifica
 Pillow/PDFium, Electron de desarrollo, empaquetado, ejecutable y verificación de sus
 exportaciones. La revisión independiente de código no encontró errores concretos.
 El despliegue quedó omitido por ser PR. Este cierre posterior solo documenta esos
-resultados; su propia ejecución puede consultarse en la PR. No se integró ni publicó
-1.6.0 y no se ejecutaron pruebas locales.
+resultados; su CI final [40561492211](https://github.com/jared-esparza/MaquetadorDTF/actions/runs/40561492211)
+también pasó en `c030c79`. Antes del merge, el usuario pidió abrir la aplicación
+en local: se ejecutó `npm run build` para generar 1.6.0 y se inició el servidor
+local en 127.0.0.1:47831. Fue compilación/previsualización para el usuario, no una
+suite de pruebas local. No se ejecutaron pruebas locales.
+
+Cierre del merge 1.6.0: [CI de main 40562877442](https://github.com/jared-esparza/MaquetadorDTF/actions/runs/40562877442)
+correcta sobre `c419629`: todas las pruebas, ejecutable empaquetado, verificación
+de exportaciones, publicación de [v1.6.0](https://github.com/jared-esparza/MaquetadorDTF/releases/tag/v1.6.0),
+despliegue en IONOS y comprobación automática de web y recursos. El estado y los
+siete archivos de distribución se comprobaron mediante la API de GitHub.
+Este registro se actualiza después de comprobar la entrega; cualquier CI posterior
+de este cierre documental se consulta en el historial de Actions de main. No se
+hizo una comprobación manual de la web desplegada ni se cambiaron los pendientes
+técnicos anteriores de fidelidad PDF, importación o avisos de terceros.
