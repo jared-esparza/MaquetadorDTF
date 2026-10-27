@@ -1,5 +1,7 @@
 # Electron y distribución — plan aprobado
 
+> Histórico de Electron 1.1.0. Las actualizaciones y la publicación cambiaron después. Para el estado vigente: [CONTEXTO.md](CONTEXTO.md).
+
 ## Objetivo
 Instalador NSIS guiado en español y portátil Windows10/11 x64, Electron incluido, sin Node externo ni red. Un repositorio público MaquetadorDTF, fuente compartida web/escritorio. Sin firma inicial ni licencia de reutilización elegida todavía.
 

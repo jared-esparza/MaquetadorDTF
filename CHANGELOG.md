@@ -1,5 +1,15 @@
 # Cambios
 
+## 1.4.0
+
+### PDF por pliego y formatos de imagen
+
+- Importación de PNG, JPG/JPEG, WebP estático y páginas PDF con miniaturas y selección.
+- Conversión de páginas PDF a imagen a 300 ppp por defecto o 600 ppp opcional.
+- Exportación de un PDF por pliego (por defecto), PDF único opcional y ZIP de PDFs para varios pliegos.
+- PNG desde diseños PDF a 150, 300 o 600 ppp, manteniendo la exportación existente.
+- Límites y validaciones para documentos PDF, transparencia, orientación EXIF y cancelación segura.
+
 ## 1.3.0
 - Actualizaciones de escritorio configurables: manual, avisar antes de descargar (predeterminado) y descarga automática.
 - Se incluyen preliminares; instalación y reinicio solo mediante acción explícita y sin trabajo pendiente ni operaciones.
@@ -32,13 +42,4 @@
 - Editor web local con carga PNG, medidas, copias, borrador por color, varita, afinado y deshacer.
 - Montaje MaxRects con rotaciones, perfiles y PDF multipágina a tamaño real con transparencia.
 - Separaciones de 3, 4, 5, 6 y 7 mm; 7 mm por defecto.
-## 1.4.0
-
-### PDF por pliego y formatos de imagen
-
-- Importación de PNG, JPG/JPEG, WebP estático y páginas PDF con miniaturas y selección.
-- Conversión de páginas PDF a imagen a 300 ppp por defecto o 600 ppp opcional.
-- Exportación de un PDF por pliego (por defecto), PDF único opcional y ZIP de PDFs para varios pliegos.
-- PNG desde diseños PDF a 150, 300 o 600 ppp, manteniendo la exportación existente.
-- Límites y validaciones para documentos PDF, transparencia, orientación EXIF y cancelación segura.
 

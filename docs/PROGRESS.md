@@ -1,5 +1,7 @@
 # Ejecución — docs/PLAN.md
 
+> Registro histórico de la entrega inicial; sus cifras y pendientes son de aquella fecha. Para continuar: [CONTEXTO.md](CONTEXTO.md).
+
 Plan y especificación: plan aprobado en conversación, transcrito en docs/PLAN.md.
 
 - Pre-flight: imagen procesada → dimensiones y ppp → PackItem → LayoutResult → vista previa y PDF. Todos comparten geometría en milímetros.
