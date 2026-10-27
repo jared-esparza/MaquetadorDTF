@@ -791,3 +791,7 @@ h1 {
 .pdf-page canvas { max-width: 100%; max-height: 200px; object-fit: contain; align-self: center; }
 .conversion-dialog { width: min(560px, 92vw); }
 .pdf-organization { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+.sheet-excluded .sheet-svg { opacity:.4; }
+.sheet-download-actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:12px 0; }
+.sheet-download-actions button { font-size:12px; }
+.sheet-download-status { color:#405b70; font-size:12px; font-weight:700; }

@@ -2,6 +2,14 @@ import { validateLayout } from './layout';
 import { profileForLayout, validateProfile, type LayoutResult, type SheetProfile } from './model';
 import type { PdfSource } from './pdfSource';
 
+export function exportPageIndices(layout: LayoutResult, requested?: number[]): number[] {
+  const indices = requested === undefined ? layout.pages.map((_, index) => index) : requested;
+  if (!Array.isArray(indices) || !indices.length || new Set(indices).size !== indices.length || indices.some(index => !Number.isInteger(index) || index < 0 || index >= layout.pages.length)) {
+    throw new Error('La selección de pliegos no es válida.');
+  }
+  return [...indices].sort((a, b) => a - b);
+}
+
 export type PrintAsset = { id: string; widthMm: number; heightMm: number; copies: number } & ({ png: Uint8Array; pdf?: never } | { pdf: PdfSource; png?: never });
 export function validatePrint(assets: PrintAsset[], layout: LayoutResult, profile: SheetProfile, options: { gapMm: number; mirror: boolean }) {
   const profileError = validateProfile(profile);

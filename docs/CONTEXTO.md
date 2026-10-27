@@ -48,7 +48,7 @@ y Electron Windows 10/11 x64. Web estática IONOS: https://dtf.wcard.es.
 - Ancho y alto editables en centímetros, siempre proporcionales. Prevalece la
   última medida válida; solo se almacena widthMm, sin redondear la geometría
   interna. Presentación a dos decimales, coma/punto y bloqueo por valor inválido.
-- Separación 3–7 mm, 7 inicial; MaxRects con giros, geometría en milímetros.
+- Separación 3–10 mm desde 1.6.0 (3–7 en la publicada 1.5.1), 7 inicial; MaxRects con giros, geometría en milímetros.
   Formatos entre 10 y 5000 mm por lado y máximo 3000 piezas por trabajo.
 - Imagen: 20 MiB/25 MP. PDF: 50 MiB/100 páginas, conversión 25 MP/página.
   Presupuesto de imágenes retenidas: **60/120/240 MP**, 60 inicial, persistido por
@@ -165,3 +165,44 @@ se consulta en el historial de Actions de main.
 Los pendientes técnicos anteriores siguen abiertos. Esta autorización no se
 extiende a futuras entregas; no se realizaron pruebas locales ni comprobaciones
 manuales de la web desplegada.
+
+## Implementación candidata 1.6.0 — descarga individual de pliegos
+
+Plan aprobado para implementar en `codex/pliegos-individuales`, desde main
+`78037d6`. Versiones de manifiesto/lockfile y notas preparadas para 1.6.0.
+No hay autorización para integrar, etiquetar, publicar ni desplegar esta entrega.
+
+- Pliego visible descargable PDF/PNG; PNG usa los ppp elegidos. Tras éxito se
+  atenúa y aparta de descargas generales PDF/PNG/ZIP, con «Volver a incluir».
+  La web registra entrega al navegador; Electron solo marca tras guardar.
+  No se afirma impresión ni confirmación del guardado posterior en web.
+- ZIP conserva números originales con huecos, el PDF único conserva orden y omite
+  apartados. Un pendiente se entrega directo, numerado si el trabajo tenía varios;
+  individual siempre BASE-pliego-NNN.ext. La descarga general no añade marcas.
+- Marcas en memoria de sesión. Cambios de diseños/raster, medidas/copias, deshacer,
+  dimensiones/márgenes, separación o espejo reinician con aviso. Nombre, ppp,
+  organización y navegación las conservan. Una descarga parcial no limpia dirty;
+  completar todos individualmente o exportar pendientes en conjunto sí. Reincluir
+  deja dirty otra vez. Cancelación/errores conservan estado y diseños.
+- Selección pageIndices opcional compartida PDF/PNG, validada después del montaje
+  completo: no se eluden recuentos de copias ni validación geométrica. Se rechazan
+  vacíos, duplicados o fuera de rango; se exporta en orden original.
+- GAP_OPTIONS compartido: enteros 3–10 mm, 7 inicial, en UI/cálculo/validación.
+
+Se añadieron pruebas de selección/numeración y validación completa, navegador,
+Electron, guardado/cancelación/error, trabajo pendiente y muestras independientes
+Pillow/PDFium con contenido, transparencia, espejo y tamaño físico. No se ejecutaron
+pruebas locales ni comprobaciones manuales de la web desplegada. Validación local:
+revisión del código y `git diff --check`. Consultar el resultado de esta rama en
+[GitHub Actions](https://github.com/jared-esparza/MaquetadorDTF/actions?query=branch%3Acodex%2Fpliegos-individuales).
+Los pendientes anteriores de fidelidad PDF y otros límites siguen abiertos; las
+muestras nuevas parten de PNG y no prueban resolución real de PDF importado.
+
+Validación funcional 1.6.0 completada: [PR #12](https://github.com/jared-esparza/MaquetadorDTF/pull/12),
+[CI 40560456043](https://github.com/jared-esparza/MaquetadorDTF/actions/runs/40560456043),
+commit `a06e583`, correcta. Pasaron compilación, unitarias, navegador, verificaciones
+Pillow/PDFium, Electron de desarrollo, empaquetado, ejecutable y verificación de sus
+exportaciones. La revisión independiente de código no encontró errores concretos.
+El despliegue quedó omitido por ser PR. Este cierre posterior solo documenta esos
+resultados; su propia ejecución puede consultarse en la PR. No se integró ni publicó
+1.6.0 y no se ejecutaron pruebas locales.

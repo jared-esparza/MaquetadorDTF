@@ -1,16 +1,17 @@
 import { Zip, ZipPassThrough } from 'fflate';
 import { MAX_EXPORT_BYTES, PngEncoder, pngDimensions } from '../core/png';
-import { validatePrint, type PrintAsset } from '../core/print';
+import { exportPageIndices, validatePrint, type PrintAsset } from '../core/print';
 import { exportFilename } from '../core/exportNames';
 import type { LayoutResult, SheetProfile } from '../core/model';
 
-export interface PngRequest { assets: PrintAsset[]; layout: LayoutResult; profile: SheetProfile; gapMm: number; mirror: boolean; dpi: number; exportBaseName: string }
+export interface PngRequest { assets: PrintAsset[]; layout: LayoutResult; profile: SheetProfile; gapMm: number; mirror: boolean; dpi: number; exportBaseName: string; pageIndices?: number[] }
 export interface ExportProgress { page: number; pages: number; percent: number }
 
 export async function renderPrintPng(request: PngRequest, progress: (value: ExportProgress) => void, pdfRender?: (asset: PrintAsset, placement: LayoutResult['pages'][number]['placements'][number], y: number) => Promise<HTMLCanvasElement>, signal?: AbortSignal): Promise<Blob> {
   const { assets, layout, profile, dpi, mirror } = request;
   exportFilename(request.exportBaseName, 'png');
   validatePrint(assets, layout, profile, request);
+  const pageIndices = exportPageIndices(layout, request.pageIndices);
   const { width, height } = pngDimensions(profile, dpi), scale = dpi / 25.4;
   const parts: Blob[] = []; let size = 0;
   const collect = (bytes: Uint8Array) => {
@@ -18,15 +19,17 @@ export async function renderPrintPng(request: PngRequest, progress: (value: Expo
     if (size > MAX_EXPORT_BYTES) throw new Error('El archivo supera 256 MiB. Reduce la resolución o divide el trabajo.');
     parts.push(new Blob([new Uint8Array(bytes)]));
   };
-  const multiple = layout.pages.length > 1;
+  const multiple = pageIndices.length > 1;
   const zip = multiple ? new Zip((error, bytes) => { if (error) throw error; collect(bytes); }) : null;
   const bitmaps = new Map<string, ImageBitmap>();
   const canvas = new OffscreenCanvas(width, Math.min(128, height));
   const context = canvas.getContext('2d', { willReadFrequently: true });
   if (!context) throw new Error('No se puede generar el PNG en este navegador.');
   try {
-    for (const asset of assets) if (asset.png) bitmaps.set(asset.id, await createImageBitmap(new Blob([new Uint8Array(asset.png)]), { colorSpaceConversion: 'default' }));
-    for (let index = 0; index < layout.pages.length; index++) {
+    const needed = new Set(pageIndices.flatMap(index => layout.pages[index].placements.map(p => p.designId)));
+    for (const asset of assets) if (asset.png && needed.has(asset.id)) bitmaps.set(asset.id, await createImageBitmap(new Blob([new Uint8Array(asset.png)]), { colorSpaceConversion: 'default' }));
+    for (let ordinal = 0; ordinal < pageIndices.length; ordinal++) {
+      const index = pageIndices[ordinal];
       const entry = zip ? new ZipPassThrough(exportFilename(request.exportBaseName, 'png', index + 1)) : null;
       if (entry) zip!.add(entry);
       const encoder = new PngEncoder(width, height, dpi, bytes => entry ? entry.push(bytes) : collect(bytes));
@@ -53,7 +56,7 @@ export async function renderPrintPng(request: PngRequest, progress: (value: Expo
           context.restore();
         }
         encoder.push(context.getImageData(0, 0, width, rows).data);
-        progress({ page: index + 1, pages: layout.pages.length, percent: Math.floor((index + (y + rows) / height) / layout.pages.length * 100) });
+        progress({ page: ordinal + 1, pages: pageIndices.length, percent: Math.floor((ordinal + (y + rows) / height) / pageIndices.length * 100) });
         if (pdfRender) await new Promise(resolve => setTimeout(resolve,0));
       }
       encoder.finish(); entry?.push(new Uint8Array(), true);

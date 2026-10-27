@@ -1,4 +1,6 @@
-import { MAX_PIECES, validateProfile, type LayoutResult, type PackItem, type Placement, type SheetProfile } from './model';
+import { GAP_OPTIONS, MAX_PIECES, validateProfile, type LayoutResult, type PackItem, type Placement, type SheetProfile } from './model';
+
+const gapError = 'La separación debe ser un número entero entre 3 y 10 mm.';
 
 interface Rect { x: number; y: number; w: number; h: number }
 interface Piece { id: string; copyIndex: number; w: number; h: number }
@@ -37,7 +39,7 @@ function bestFit(free: Rect[], piece: Piece, gap: number, strategy: 'short' | 'a
 export function packDesigns(items: PackItem[], profile: SheetProfile, gapMm: number): LayoutResult {
   const error = validateProfile(profile);
   if (error) throw new Error(error);
-  if (![3, 4, 5, 6, 7].includes(gapMm)) throw new Error('La separación debe ser 3, 4, 5, 6 o 7 mm.');
+  if (!GAP_OPTIONS.includes(gapMm)) throw new Error(gapError);
   if (items.some(i => !Number.isFinite(i.widthMm) || !Number.isFinite(i.heightMm) || q(i.widthMm) <= 0 || q(i.heightMm) <= 0 || !Number.isInteger(i.copies) || i.copies < 1)) throw new Error('Revisa las medidas y las copias de los diseños.');
   if (new Set(items.map(i => i.id)).size !== items.length) throw new Error('Los diseños deben tener identificadores únicos.');
   const pieceCount = items.reduce((n, i) => n + i.copies, 0);
@@ -83,6 +85,7 @@ export function packDesigns(items: PackItem[], profile: SheetProfile, gapMm: num
 
 /** Independent export guard as well as a test oracle for geometry. */
 export function validateLayout(layout: LayoutResult, profile: SheetProfile, gapMm: number): string[] {
+  if (!GAP_OPTIONS.includes(gapMm)) return [gapError];
   const errors: string[] = [], seen = new Set<string>(), eps = 0.011;
   for (const page of layout.pages) for (let i = 0; i < page.placements.length; i++) {
     const p = page.placements[i], key = `${p.designId}:${p.copyIndex}`;
