@@ -6,6 +6,7 @@ import type { ExportProgress } from './browser/printPng';
 import { DEFAULT_PROFILE, GAP_OPTIONS, IMAGE_BUDGETS, imageBudget, checkImageBudget, designHeight, designMetrics, formatMm, pixelsAfterEdit, profileForLayout, retainedPixelCount, validateProfile, type Design, type LayoutResult, type Raster, type SheetProfile } from './core/model';
 import { defaultExportBaseName, normalizeExportBaseName, exportNameError, exportFilename, exportSelectionFilename } from './core/exportNames';
 import { hasOpaqueBackground } from './core/images';
+import { spreadPage, validateLayout } from './core/layout';
 import { DesignCard } from './components/DesignCard';
 import { ProfileEditor } from './components/ProfileEditor';
 import { SheetPreview } from './components/SheetPreview';
@@ -70,6 +71,8 @@ export default function App() {
   const [pageIndex, setPageIndex] = useState(0);
   const [sheetDownloads, setSheetDownloads] = useState<{ key: string; excluded: number[] }>({ key: '', excluded: [] });
   const [sheetNotice, setSheetNotice] = useState('');
+  const [spreadState, setSpreadState] = useState<{ key: string; pages: number[] }>({ key: '', pages: [] });
+  const [spacingNotice, setSpacingNotice] = useState('');
   const [exported, setExported] = useState('');
   const [dragging, setDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -77,12 +80,22 @@ export default function App() {
   const mounted = useRef(true);
   const [layoutState, setLayoutState] = useState<{ key: string; result: LayoutResult | null; error: string }>({ key: '', result: null, error: '' });
   const items = useMemo(() => designs.map(d => ({ id: d.id, widthMm: d.widthMm, heightMm: designHeight(d), copies: d.copies })), [designs]);
-  const packingProfile = profileForLayout(profile, mirror);
+  const packingProfile = useMemo(() => profileForLayout(profile, mirror), [profile, mirror]);
   const layoutKey = JSON.stringify({ items, profile: packingProfile, gapMm });
   // Include image content, even when an edit keeps its physical dimensions.
   const exportKey = JSON.stringify({ items, rasters: designs.map(design => design.url), widthMm: profile.widthMm, heightMm: profile.heightMm, margins: profile.margins, gapMm, mirror });
   const pending = layoutState.key !== layoutKey;
-  const layout = pending ? null : layoutState.result;
+  const compactLayout = pending ? null : layoutState.result;
+  const spreadPages = spreadState.key === exportKey ? spreadState.pages : [];
+  const layout = useMemo(() => compactLayout && ({ ...compactLayout,
+    pages: compactLayout.pages.map((page, index) => spreadState.key === exportKey && spreadState.pages.includes(index) ? spreadPage(page, packingProfile) : page),
+  }), [compactLayout, spreadState, exportKey, packingProfile]);
+  const visibleIndex = Math.min(pageIndex, Math.max(0, (layout?.pages.length ?? 0) - 1));
+  const spreadCandidate = useMemo(() => compactLayout?.pages[visibleIndex] ? spreadPage(compactLayout.pages[visibleIndex], packingProfile) : null, [compactLayout, visibleIndex, packingProfile]);
+  const canSpread = !!spreadCandidate && spreadCandidate.placements.some((p, index) => {
+    const original = compactLayout!.pages[visibleIndex].placements[index];
+    return Math.abs(p.xMm - original.xMm) > 1e-7 || Math.abs(p.yMm - original.yMm) > 1e-7;
+  });
   const excludedPages = sheetDownloads.key === exportKey ? sheetDownloads.excluded : [];
   const remainingPages = layout?.pages.map((_, index) => index).filter(index => !excludedPages.includes(index)) ?? [];
   const blocked = !!busy || editingId !== null || !preferencesReady || showWelcome || updateInstalling || conversion !== null;
@@ -127,6 +140,8 @@ export default function App() {
     setDirty(designs.length > 0);
     setSheetNotice(sheetDownloads.excluded.length ? 'El montaje ha cambiado; todos los pliegos vuelven a incluirse.' : '');
     setSheetDownloads({ key: exportKey, excluded: [] });
+    setSpreadState({ key: exportKey, pages: [] });
+    setSpacingNotice('');
   }, [exportKey]);
   useEffect(() => {
     const state = { dirty: dirty || editingId !== null || formatOpen, busy: !!busy || pending || conversion !== null };
@@ -306,6 +321,20 @@ export default function App() {
     setSheetDownloads({ key: exportKey, excluded: excludedPages.filter(page => page !== index) });
     setDirty(true); setExported('');
   };
+  const toggleSpacing = () => {
+    if (blocked || formatOpen || pending || invalidFields.size || !layout || !spreadCandidate) return;
+    const restoring = spreadPages.includes(visibleIndex);
+    if (!restoring && !canSpread) return;
+    const page = restoring ? compactLayout!.pages[visibleIndex] : spreadCandidate;
+    const candidate = { ...layout, pages: layout.pages.map((current, index) => index === visibleIndex ? page : current) };
+    const errors = validateLayout(candidate, packingProfile, gapMm);
+    if (errors.length) { setErrors([`No se ha podido cambiar el reparto. ${errors[0]}`]); return; }
+    setSpreadState({ key: exportKey, pages: restoring ? spreadPages.filter(index => index !== visibleIndex) : [...spreadPages, visibleIndex] });
+    setSheetDownloads({ key: exportKey, excluded: excludedPages.filter(index => index !== visibleIndex) });
+    setSheetNotice(excludedPages.includes(visibleIndex) ? `El pliego ${visibleIndex + 1} ha cambiado y vuelve a incluirse en la descarga general.` : '');
+    setSpacingNotice(`Pliego ${visibleIndex + 1}: ${restoring ? 'montaje compacto restaurado' : 'espacios repartidos'}.`);
+    setDirty(true); setExported('');
+  };
 
   return <div className="app-shell">
     <header className="app-header"><div className="brand">PK<span>print</span></div><h1>Maquetador DTF</h1><p>Prepara tu film. Descarga tu PDF a tamaño real.</p><span className="local-badge"><i />Todo en tu equipo</span>{desktop && <button className="text-button" onClick={() => void desktop?.showHelp('guide')}>Ayuda</button>}{desktop && <Updates onInstalling={setUpdateInstalling} />}</header>
@@ -344,7 +373,8 @@ export default function App() {
         {pending && designs.length > 0 && <p className="working" role="status"><span className="spinner" />Buscando el montaje que menos film gasta…</p>}
         {!pending && layoutState.error && <p className="error-box" role="alert">{layoutState.error}</p>}
         {layout?.unplacedIds.map(id => <p key={id} className="error-box" role="alert"><strong>{designs.find(d => d.id === id)?.name}</strong> no cabe en el área imprimible, ni girado. Reduce su ancho o cambia el formato.</p>)}
-        {layout && layout.pages.length > 0 ? <SheetPreview layout={layout} profile={packingProfile} designs={designs} mirror={mirror} pageIndex={pageIndex} onPage={setPageIndex} excludedPages={excludedPages} canDownloadPdf={canExport} canDownloadPng={canExport && !pngError} busy={blocked || formatOpen} onDownload={(format, index) => void exportSheets(format, index)} onInclude={includePage} /> : !pending && !layoutState.error && !layout?.unplacedIds.length && <div className="empty-preview"><div className="empty-sheet"><span>+</span></div><p>Tu pliego se monta solo<br />en cuanto subas diseños.</p></div>}
+        {layout && layout.pages.length > 0 ? <SheetPreview layout={layout} profile={packingProfile} designs={designs} mirror={mirror} pageIndex={pageIndex} onPage={setPageIndex} excludedPages={excludedPages} canDownloadPdf={canExport} canDownloadPng={canExport && !pngError} busy={blocked || formatOpen} onDownload={(format, index) => void exportSheets(format, index)} onInclude={includePage}
+          spread={spreadPages.includes(visibleIndex)} canSpread={canSpread} spacingDisabled={blocked || formatOpen || pending || invalidFields.size > 0} spacingNotice={spacingNotice} onToggleSpacing={toggleSpacing} /> : !pending && !layoutState.error && !layout?.unplacedIds.length && <div className="empty-preview"><div className="empty-sheet"><span>+</span></div><p>Tu pliego se monta solo<br />en cuanto subas diseños.</p></div>}
       </section>
 
       <section className="panel export-panel" aria-labelledby="export-title">

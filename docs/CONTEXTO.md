@@ -227,3 +227,58 @@ Este registro se actualiza después de comprobar la entrega; cualquier CI poster
 de este cierre documental se consulta en el historial de Actions de main. No se
 hizo una comprobación manual de la web desplegada ni se cambiaron los pendientes
 técnicos anteriores de fidelidad PDF, importación o avisos de terceros.
+
+
+## Implementación 1.7.0 — reparto de espacios por pliego
+
+Trabajo autorizado sobre la rama `codex/repartir-espacios`, desde main `89e608d`.
+La autorización cubre implementación, commit/push, PR y comprobación de su CI;
+no autoriza merge, etiquetas, publicación ni despliegue de esta entrega.
+
+- Reparto opcional del pliego visible y restauración exacta del montaje compacto.
+  La transformación expande posiciones en cada eje sin alterar el motor MaxRects,
+  tamaños, giros, alineaciones, identidad/copias, páginas ni aprovechamiento.
+  Se respetan márgenes físicos y espejo; la separación elegida sigue siendo mínima
+  y el reparto puede superar 10 mm. Con tamaños mixtos los huecos pueden variar.
+- Una pieza sola queda igual; una fila/columna solo se expande en el eje disponible.
+  Sin movimiento posible se desactiva. Se valida el montaje antes de aceptarlo.
+- Estado por pliego, solo de sesión. Cambios de contenido, medidas/copias,
+  geometría del formato, márgenes, separación o espejo vuelven a compacto.
+  Nombre, resolución PNG, organización PDF y navegación lo conservan.
+- Repartir/restaurar reincluye solo el pliego modificado, conserva las otras marcas,
+  avisa y deja trabajo pendiente de exportar. Restaurar no recupera marcas antiguas.
+  PDF/PNG individuales o generales y miniaturas usan el mismo montaje efectivo.
+- Manifiesto y lockfile actualizados a 1.7.0; notas y ayuda actualizadas.
+
+PR [#13](https://github.com/jared-esparza/MaquetadorDTF/pull/13) abierta.
+La primera CI [40587258175](https://github.com/jared-esparza/MaquetadorDTF/actions/runs/40587258175)
+pasó completa en `c293ec7`: compilación, unitarias, navegador, verificaciones
+independientes PDF/PNG, Electron y ejecutable empaquetado. La revisión independiente
+detectó amplificación del redondeo de los
+márgenes con más de dos decimales; el reparto usa ahora el mismo origen a centésimas
+que MaxRects, conservando los límites físicos derecho e inferior. Se añadió una
+regresión para ambos ejes y espejo. La revisión de la corrección no detectó otros
+problemas concretos.
+
+CI [40587722007](https://github.com/jared-esparza/MaquetadorDTF/actions/runs/40587722007)
+en `7b6fc31`: compilación, unitarias (incluida la regresión decimal), navegador y
+verificaciones independientes PDF/PNG correctas. Falló una prueba previa de
+persistencia de presupuesto en Electron: selección 120 MP, aviso de error de
+guardado y archivo aún en 60 MP. Las pruebas nuevas de reparto en Electron pasaron.
+No se atribuye todavía una causa; se añade captura de stderr de Electron en los
+fallos de CI para diagnosticar sin debilitar la comprobación.
+
+Validación funcional final: CI [40588630904](https://github.com/jared-esparza/MaquetadorDTF/actions/runs/40588630904)
+correcta en `e5485b2`. Pasaron compilación, unitarias, navegador, verificaciones
+Pillow/PDFium, Electron de desarrollo, empaquetado, ejecutable y verificación de
+sus exportaciones. El fallo de presupuesto no se reprodujo; no se ha identificado
+su causa y no se da por corregido. Se conserva el diagnóstico en futuras CI.
+El despliegue quedó omitido por ser PR. Este cierre posterior solo documenta los
+resultados; su propia CI se consulta en el historial de la rama. La PR sigue abierta,
+sin merge, etiqueta, publicación ni despliegue autorizado para 1.7.0.
+
+Pruebas añadidas de geometría, navegador, Electron y muestras PNG/PDF para
+Pillow/PDFium en Actions. No se ejecutan pruebas locales ni se comprueba
+manualmente la web desplegada. Los pendientes anteriores (fidelidad de PDF importado,
+memoria transitoria, formatos de entrada y avisos de terceros) siguen abiertos.
+Las nuevas muestras parten de PNG y no validan la fidelidad de importación PDF.

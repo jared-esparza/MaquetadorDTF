@@ -20,14 +20,21 @@ interface Props {
   pageIndex: number; onPage: (index: number) => void;
   excludedPages: number[]; canDownloadPdf: boolean; canDownloadPng: boolean; busy: boolean;
   onDownload: (format: 'pdf' | 'png', index: number) => void; onInclude: (index: number) => void;
+  spread: boolean; canSpread: boolean; spacingDisabled: boolean; spacingNotice: string; onToggleSpacing: () => void;
 }
 
-export function SheetPreview({ layout, profile, designs, mirror, pageIndex, onPage, excludedPages, canDownloadPdf, canDownloadPng, busy, onDownload, onInclude }: Props) {
+export function SheetPreview({ layout, profile, designs, mirror, pageIndex, onPage, excludedPages, canDownloadPdf, canDownloadPng, busy, onDownload, onInclude, spread, canSpread, spacingDisabled, spacingNotice, onToggleSpacing }: Props) {
   const index = Math.min(pageIndex, layout.pages.length - 1);
   const excluded = excludedPages.includes(index);
   return <>
     <div className={`sheet-frame ${excluded ? 'sheet-excluded' : ''}`} data-excluded={excluded} style={{ '--sheet-ratio': profile.widthMm / profile.heightMm } as CSSProperties}><Sheet page={layout.pages[index]} profile={profile} designs={designs} mirror={mirror} /></div>
     <p className="page-label">Pliego {index + 1} de {layout.pages.length} <span>{Math.round(layout.pages[index].utilization * 100)} % de aprovechamiento</span></p>
+    <div className="sheet-spacing-actions">
+      <button disabled={spacingDisabled || (!spread && !canSpread)} aria-describedby="spacing-help" onClick={onToggleSpacing}>{spread ? 'Restaurar compacto' : 'Repartir espacios'}</button>
+      <span className="muted">{spread ? 'Espacios repartidos' : !canSpread ? 'No hay espacio que repartir' : 'Montaje compacto'}</span>
+    </div>
+    <p id="spacing-help" className="muted">Reparte el espacio libre entre diseños sin cambiar tamaños ni añadir pliegos. La distancia seleccionada se mantiene como mínimo.</p>
+    {spacingNotice && <p className="muted" role="status">{spacingNotice}</p>}
     <div className="sheet-download-actions">
       <button disabled={!canDownloadPdf} onClick={() => onDownload('pdf', index)}>Descargar este pliego en PDF</button>
       <button disabled={!canDownloadPng} onClick={() => onDownload('png', index)}>Descargar este pliego en PNG</button>

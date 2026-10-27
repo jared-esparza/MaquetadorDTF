@@ -1,7 +1,9 @@
-# Maquetador DTF 1.6.0 para Windows 10/11 x64
+# Maquetador DTF 1.7.0 para Windows 10/11 x64
 
 Instalador guiado en español y versión portátil. Entrega preliminar sin firma.
 
+- «Repartir espacios» separa las piezas del pliego visible usando el sobrante horizontal y vertical dentro de los márgenes. Mantiene tamaños, giros, alineaciones, copias, número de pliegos y aprovechamiento. La separación seleccionada es el mínimo, no un límite al reparto.
+- «Restaurar compacto» recupera las posiciones originales. Repartir o restaurar reincluye únicamente ese pliego en las descargas generales, sin quitar las marcas de los demás. Los cambios de contenido o geometría reinician el reparto; nombre, resolución, organización PDF y navegación lo conservan durante la sesión.
 - Descarga del pliego visible en PDF o PNG, con atenuación tras guardar y opción de volver a incluirlo. Estado común entre formatos, solo de sesión, y reinicio con aviso cuando cambia el trabajo.
 - ZIP y PDF multipágina de los pliegos no apartados, conservando numeración y orden originales; un único pendiente se descarga directamente. La descarga general se puede repetir sin atenuar más pliegos.
 - Separaciones de 3 a 10 mm, 7 mm por defecto.
