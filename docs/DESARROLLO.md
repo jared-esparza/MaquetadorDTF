@@ -32,7 +32,7 @@ El montaje prueba seis variantes de MaxRects con giros de 90°. Es una optimizac
 
 Los diseños se procesan en el navegador; no se suben ni se requieren cuentas. Las descargas y actualizaciones consultan GitHub. Los perfiles de formato se guardan en ese navegador. Los diseños son de sesión: exporta el trabajo antes de cerrar o recargar. No se guardan proyectos editables.
 
-Límites: 20 MB y 25 megapíxeles por PNG, 60 megapíxeles retenidos en conjunto por defecto, ampliables a 120 o 240 MP (incluye original y versiones de edición únicas), 3000 copias por trabajo, formato entre 10 y 5000 mm por lado. El afinado también comprueba el presupuesto de memoria. La salida PNG admite hasta 32 767 píxeles por lado, 512 megapíxeles por pliego y 256 MiB por archivo PNG o ZIP final. Superar un límite muestra un error sin reducir la calidad automáticamente; Film 55 × 100 cm admite 150, 300 y 600 ppp. Estos límites evitan ampliaciones ilimitadas; el uso real de memoria incluye además copias temporales de cálculo y exportación.
+Límites: 20 MiB y 25 megapíxeles por imagen, 60 megapíxeles retenidos en conjunto por defecto, ampliables a 120 o 240 MP (incluye original y versiones de edición únicas), 3000 copias por trabajo, formato entre 10 y 5000 mm por lado. El afinado también comprueba el presupuesto de memoria. La salida PNG admite hasta 32 767 píxeles por lado, 512 megapíxeles por pliego y 256 MiB por archivo PNG o ZIP final. Superar un límite muestra un error sin reducir la calidad automáticamente; Film 55 × 100 cm admite 150, 300 y 600 ppp. Estos límites evitan ampliaciones ilimitadas; el uso real de memoria incluye además copias temporales de cálculo y exportación.
 
 ## Desarrollo y pruebas
 
@@ -78,7 +78,7 @@ El bloque «Versión para Windows» consulta la API pública de GitHub, sin cred
 La versión web se despliega automáticamente en IONOS con cada push a `main` que supere los controles. La URL se configura mediante `WEB_URL` en GitHub; los datos SFTP permanecen como secretos. Consulta [la configuración y el procedimiento de despliegue](DEPLOY-WEB.md).
 
 1. Crea una rama para el cambio y modifica el código compartido en `src`; el contenedor vive en `electron`.
-2. Ejecuta `npm run check` y la verificación independiente del PDF.
+2. Delega las pruebas y las verificaciones independientes de PNG/PDF en GitHub Actions. Los comandos locales son referencia; no los ejecutes sin una petición que cambie la preferencia vigente.
 3. Para cada entrega funcional, incrementa la versión X.Y.Z en package.json y package-lock.json, actualiza CHANGELOG y docs/RELEASE.md, y abre una PR hacia `main`. CI rechaza versiones no incrementadas o ya etiquetadas.
 4. Al integrar, GitHub reutiliza una sola compilación comprobada para crear la etiqueta y publicar la Release preliminar sin firma con ambos ejecutables, notas y sumas SHA-256. Después despliega la web del mismo commit. Crear la etiqueta no dispara otra compilación.
 5. Los reintentos de la misma ejecución reutilizan los artefactos completos y no sustituyen archivos publicados con hashes diferentes. Las modificaciones solo de documentación o pruebas no crean Release. El agente no realiza comprobaciones manuales de la web tras el despliegue; las verificaciones automáticas permanecen en Actions. Consulta [el proceso de publicación](PUBLICACION.md).

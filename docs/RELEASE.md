@@ -16,9 +16,9 @@ Instalador guiado en español y versión portátil. Publicada como preliminar si
 El instalador y el portátil incluyen todos los recursos necesarios; no requieren Node. El editor sigue funcionando sin conexión. Consultar o descargar actualizaciones requiere Internet y no bloquea el trabajo si la conexión falla.
 
 Consulta USO-WINDOWS.md y SHA256SUMS.txt. Licencia del código propio pendiente; avisos de dependencias incluidos.
-## PDF por pliego y formatos de imagen
+## Compatibilidad de formatos desde 1.4.0
 
-Esta entrega añade la importación de PNG, JPG/JPEG, WebP estático y PDF, permite elegir entre un PDF por pliego o un único PDF multipágina y conserva la exportación PNG/ZIP. La opción «Un PDF por pliego» queda seleccionada por defecto porque es la más compatible con los proveedores de impresión.
+Desde 1.4.0 se admite la importación de PNG, JPG/JPEG, WebP estático y PDF, se permite elegir entre un PDF por pliego o un único PDF multipágina y se conserva la exportación PNG/ZIP. La opción «Un PDF por pliego» queda seleccionada por defecto porque es la más compatible con los proveedores de impresión.
 
 Las páginas PDF se convierten al importarlas a una imagen de 300 ppp por defecto o 600 ppp opcional. El diseño resultante sigue el mismo flujo que PNG, JPG y WebP; la conversión rasterizada no conserva vectores.
 

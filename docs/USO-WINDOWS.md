@@ -1,27 +1,27 @@
 # Maquetador DTF · PKprint
 
 ## Instalación
-Abre MaquetadorDTF-Setup-1.3.0-x64.exe, sigue el asistente en español y abre el acceso directo Maquetador DTF. No necesitas Node ni Internet. Destinado a Windows 10/11 de 64 bits. Esta versión no está firmada; Windows puede mostrar avisos de editor desconocido o bloquear la ejecución según sus políticas. Se publica como versión preliminar: las pruebas automatizadas de esta entrega se realizan en desarrollo y CI, y no equivalen a una validación en Windows limpio. La comprobación de una entrega anterior en Windows Sandbox quedó bloqueada por Control de aplicaciones. Consulta las pruebas enlazadas en la Release.
+Descarga el archivo Setup de la versión elegida desde [Releases](https://github.com/jared-esparza/MaquetadorDTF/releases), ábrelo, sigue el asistente en español y abre el acceso directo Maquetador DTF. Una vez descargado, puedes instalarlo y usar el editor sin Node ni conexión a Internet. Destinado a Windows 10/11 de 64 bits. Esta versión no está firmada; Windows puede mostrar avisos de editor desconocido o bloquear la ejecución según sus políticas. Se publica como versión preliminar: las pruebas automatizadas de esta entrega se realizan en desarrollo y CI, y no equivalen a una validación en Windows limpio. La comprobación de una entrega anterior en Windows Sandbox quedó bloqueada por Control de aplicaciones. Consulta las pruebas enlazadas en la Release.
 
 ## Portátil
-Abre MaquetadorDTF-Portable-1.3.0-x64.exe desde una carpeta con permiso de escritura. Se crea MaquetadorDTF-datos junto al ejecutable. Copia también esa carpeta al moverlo a otro PC si quieres conservar los formatos y preferencias. No es necesario ejecutar el instalador.
+Descarga el archivo Portable de la versión elegida desde Releases y ábrelo desde una carpeta con permiso de escritura. Se crea MaquetadorDTF-datos junto al ejecutable. Copia también esa carpeta al moverlo a otro PC si quieres conservar los formatos y preferencias. No es necesario ejecutar el instalador.
 
 ## Tres pasos
-1. Sube PNG, JPG/JPEG, WebP estático o PDF. Para PDF, selecciona páginas y elige 300 ppp (inicial) o 600 ppp: se convierten a imágenes, sin conservar vectores. Indica ancho en centímetros y número de copias. Usa el borrador si necesitas quitar fondos; el blanco no se elimina automáticamente.
+1. Sube PNG, JPG/JPEG, WebP estático o PDF. Para PDF, selecciona páginas y elige 300 ppp (inicial) o 600 ppp: se convierten a imágenes, sin conservar vectores. Indica ancho o alto en centímetros, siempre proporcionales, y número de copias. Usa el borrador si necesitas quitar fondos; el blanco no se elimina automáticamente.
 2. Configura el film y los márgenes en milímetros. La separación inicial es 7 mm; puedes elegir entre 3 y 7 mm. Revisa los pliegos.
-3. Descarga el PDF y elige dónde guardarlo. Imprime desde tu RIP al 100 % o Tamaño real, sin ajustar a página. El RIP debe generar el blanco y gestionar el color. Activa espejo aquí solamente si lo desactivas en el RIP.
+3. Revisa el nombre del trabajo, descarga el PDF o PNG/ZIP y elige dónde guardarlo. PDF entrega un archivo por pliego por defecto (ZIP si hay varios), o un único PDF multipágina si lo seleccionas. Imprime desde tu RIP al 100 % o Tamaño real, sin ajustar a página. El RIP debe generar el blanco y gestionar el color. Activa espejo aquí solamente si lo desactivas en el RIP.
 
 Los diseños no se guardan como proyecto editable. Exporta antes de cerrar. Ayuda incluye instrucciones y un PDF de calibración con un cuadrado de 100 × 100 mm. Debes comprobarlo en tu impresora antes de producir.
 
 ## Exportar PNG o ZIP
-Se conserva Descargar PDF. Para PNG, elige 150, 300 o 600 ppp en Resolución PNG; 300 es el valor inicial. Más ppp no recuperan detalle ausente en el original. Un solo pliego genera un PNG; varios generan un ZIP con un PNG numerado por pliego. Extrae el ZIP antes de importar los PNG en el RIP y respeta su tamaño físico y resolución.
+Además del PDF, puedes descargar PNG. Para PNG, elige 150, 300 o 600 ppp en Resolución PNG; 300 es el valor inicial. Más ppp no recuperan detalle ausente en el original. Un solo pliego genera un PNG; varios generan un ZIP con un PNG numerado por pliego. Extrae el ZIP antes de importar los PNG en el RIP y respeta su tamaño físico y resolución.
 
 El PNG conserva transparencia, espejo, giros, márgenes y separación. La opción de espejo se aplica tanto a PDF como a PNG. No se incluye el damero ni las guías. La generación muestra progreso y puede cancelarse sin perder el montaje. El diálogo Guardar permite elegir carpeta y confirmar sobrescrituras.
 
 Límites de salida PNG: 32 767 píxeles por lado, 512 megapíxeles por pliego y 256 MiB para el archivo PNG o ZIP final. Si se supera un límite, reduce la resolución o divide el trabajo; no se reduce calidad automáticamente. El film de 55 × 100 cm admite las tres resoluciones.
 
 ## Actualizar
-Desde 1.2.0 o anterior, instala 1.3.0 manualmente una vez para incorporar este sistema. Abre Actualizaciones en la cabecera de la aplicación.
+Desde 1.2.0 o anterior, instala 1.3.0 o posterior manualmente una vez para incorporar este sistema. Abre Actualizaciones en la cabecera de la aplicación.
 
 - Manual: busca versiones solo al pulsar Buscar actualizaciones.
 - Avisarme antes de descargar (predeterminado): comprueba aproximadamente 30 segundos después de iniciar y cada 6 horas mientras está abierta. Avisa en la cabecera y espera a que pulses Descargar actualización.

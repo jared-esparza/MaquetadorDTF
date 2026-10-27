@@ -10,15 +10,17 @@ Sin registro · Diseños procesados en tu equipo · Web y Windows
 
 ![Editor de Maquetador DTF con diseños de demostración, medidas, copias y distribución automática en el pliego.](docs/images/montaje-dtf.png)
 
-*Un mismo espacio para preparar los diseños, revisar el montaje y exportar.*
+*Un mismo espacio para preparar los diseños, revisar el montaje y exportar. Captura de una versión anterior; los controles actuales se describen debajo.*
 
 ## Qué puedes hacer
 
-- **Dar a cada diseño su tamaño y sus copias.** Trabaja con PNG, JPG/JPEG, WebP estático o páginas PDF, también en cargas mixtas, conservando sus proporciones.
+- **Dar a cada diseño su tamaño y sus copias.** Trabaja con PNG, JPG/JPEG, WebP estático o páginas PDF, también en cargas mixtas. Edita el ancho o el alto en centímetros: la otra medida se ajusta conservando la proporción.
 - **Quitar fondos y colores.** Revisa el antes y el después, ajusta la tolerancia o usa la varita para eliminar otro color.
 - **Distribuir los diseños automáticamente.** El montaje puede girarlos para aprovechar el espacio y crea varios pliegos cuando hace falta.
 - **Adaptar el film a tu trabajo.** Incluye Film 55 × 100 cm, A3 y A4; puedes personalizar formatos y márgenes. La separación se elige entre 3 y 7 mm, con **7 mm por defecto**.
 - **Exportar como prefieras.** PDF individual por pliego (la opción habitual) o un único PDF; con varios pliegos puedes descargar un ZIP de PDFs. También PNG transparente a **150, 300 o 600 ppp** —300 por defecto—; varios pliegos se entregan en un ZIP.
+- **Nombrar el trabajo antes de descargar.** El nombre editable empieza con fecha y hora local y se comparte entre PNG, PDF, ZIP y los pliegos numerados que contiene.
+- **Elegir el presupuesto de imágenes.** 60 MP por defecto, ampliables a 120 o 240 MP, con consumo visible y preferencia guardada. Los niveles mayores requieren más memoria; las copias del montaje no multiplican el contador.
 - **Aplicar espejo cuando lo necesites.** La opción se aplica tanto al PDF como al PNG.
 
 ![Borrador de fondos con el diseño original sobre blanco y la vista previa transparente, tolerancia y opciones para aplicar o cancelar.](docs/images/borrador-fondos.png)
@@ -27,9 +29,9 @@ Sin registro · Diseños procesados en tu equipo · Web y Windows
 
 ## Empieza en tres pasos
 
-1. **Carga tus diseños.** Arrastra una imagen o PDF, selecciona las páginas que quieras y, para PDF, elige 300 o 600 ppp. Después indica el ancho y las copias. Si lo necesitas, elimina el fondo.
+1. **Carga tus diseños.** Arrastra una imagen o PDF, selecciona las páginas que quieras y, para PDF, elige 300 o 600 ppp. Después indica el ancho o el alto y las copias. Si lo necesitas, elimina el fondo.
 2. **Prepara el pliego.** Elige el formato, los márgenes y la separación. Revisa la distribución y el número de pliegos.
-3. **Exporta para imprimir.** Descarga el PDF o el PNG/ZIP. Si aparece un aviso de baja resolución, revísalo antes de continuar: aumentar los ppp de salida no recupera detalle del original.
+3. **Exporta para imprimir.** Revisa el nombre del trabajo y descarga el PDF o el PNG/ZIP. Si aparece un aviso de baja resolución, revísalo antes de continuar: aumentar los ppp de salida no recupera detalle del original.
 
 ## Elige web o Windows
 

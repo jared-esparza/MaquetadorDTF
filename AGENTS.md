@@ -8,8 +8,8 @@ las decisiones actuales y los pendientes. Después consulta solo la guía releva
 - El usuario prefiere que GitHub Actions ejecute las pruebas. No lanzar pruebas
   locales sin una petición posterior que cambie esta preferencia.
 - No hacer comprobaciones manuales de la web desplegada.
-- No fusionar, etiquetar, publicar ni desplegar por iniciativa propia. La PR #8
-  ya fue integrada externamente; eso no autoriza futuros merges.
+- No fusionar, etiquetar, publicar ni desplegar sin autorización explícita para
+  esa entrega. La aprobación de una entrega no autoriza las siguientes.
 - Conservar diseños, preferencias y archivos ajenos al cambio. No subir binarios,
   dependencias, credenciales ni resultados temporales.
 - Los planes y registros originales bajo docs son históricos; no reejecutarlos.
