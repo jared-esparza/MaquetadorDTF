@@ -7,7 +7,13 @@ para implementar cambios sin acordar la siguiente tarea.
 ## Estado confirmado
 
 - Repositorio: https://github.com/jared-esparza/MaquetadorDTF.
-- Versión en main: **1.5.0**, coincidente en package.json y package-lock.json.
+- Versión en main: **1.5.1**, coincidente en package.json y package-lock.json.
+- [PR #11](https://github.com/jared-esparza/MaquetadorDTF/pull/11): integrada con
+  autorización del usuario; merge `738a17878a3d7ec40173e854bd1a17a03ee01932`.
+- [Release v1.5.1](https://github.com/jared-esparza/MaquetadorDTF/releases/tag/v1.5.1):
+  publicada como preliminar sin firma sobre `738a178`, con Setup, Portable,
+  blockmap, latest.yml, SHA256SUMS, avisos y guía Windows. Ver el cierre de 1.5.1
+  al final de este documento para los resultados de publicación y despliegue.
 - [PR #9](https://github.com/jared-esparza/MaquetadorDTF/pull/9): integrada;
   relevo documental de 1.4.0, merge `06d5d4fdfe99559de9ee142194b33011edc2c56b`.
 - [PR #10](https://github.com/jared-esparza/MaquetadorDTF/pull/10): integrada;
@@ -22,7 +28,7 @@ para implementar cambios sin acordar la siguiente tarea.
   correctamente en la misma ejecución que publicó la Release.
 - Las PR #7 (README visual) y #8 (1.4.0) ya estaban integradas; conservar sus
   cambios y capturas. El merge de #8 fue externo a la sesión que lo documentó.
-- Este cierre documental se realiza sobre main después de #9/#10. Comprobar
+- El contexto incorpora los cierres documentales de #9/#10 y #11. Comprobar
   siempre `git status` y referencias remotas: el estado de este archivo es fechado.
 
 ## Producto y decisiones vigentes
@@ -133,13 +139,14 @@ La CI verde no da por resueltos estos pendientes ni equivale a calibración fís
   scripts bajo .tools para un clon nuevo; no subir temporales, binarios, dependencias
   ni credenciales. Nunca imprimir secretos de Git/SFTP o enlaces firmados de logs.
 
-## Cambio preparado 1.5.1 — diseños recientes arriba
+## Entrega 1.5.1 — diseños recientes arriba
 
 Petición posterior a la integración de #9/#10: mostrar el último diseño cargado
 al principio para acceder a sus medidas y edición sin recorrer toda la lista.
-Rama `codex/disenos-recientes-arriba`, sobre main `8448d1a`; versión candidata
-1.5.1 en manifiesto y lockfile, con notas actualizadas. La versión publicada sigue
-siendo 1.5.0 hasta que esta nueva entrega se integre y publique con autorización.
+El usuario autorizó pasar el cambio a main. La [PR #11](https://github.com/jared-esparza/MaquetadorDTF/pull/11)
+se integró con merge `738a17878a3d7ec40173e854bd1a17a03ee01932`.
+La API confirmó cero PR abiertas tras integrarla. Main local quedó sincronizado.
+La versión 1.5.1 coincide en manifiesto y lockfile, con notas actualizadas.
 
 El cambio invierte una copia del array solo al mostrar las tarjetas; no muta el
 estado ni el orden enviado a MaxRects. Los lotes y páginas PDF se muestran también
@@ -147,6 +154,14 @@ con el último elemento arriba. Las tarjetas conservan su identidad y sus ajuste
 Se adaptaron comprobaciones existentes de navegador para orden, edición, borrado,
 cargas sucesivas y páginas PDF. Validación local: revisión del cambio y
 `git diff --check`; no se ejecutaron pruebas locales. Las pruebas de esta rama
-se delegan en [GitHub Actions](https://github.com/jared-esparza/MaquetadorDTF/actions?query=branch%3Acodex%2Fdisenos-recientes-arriba);
-consultar allí su resultado antes de integrar. No hay autorización para fusionar
-ni publicar esta nueva entrega. Los pendientes técnicos anteriores siguen abiertos.
+pasaron en la [CI de la PR #11](https://github.com/jared-esparza/MaquetadorDTF/actions/runs/40554070579),
+commit `3a25994`: compilación, unitarias, navegador, Electron, ejecutable empaquetado
+y verificaciones independientes de exportación. La [CI de main](https://github.com/jared-esparza/MaquetadorDTF/actions/runs/40555193435)
+finalizó correctamente en `738a178`: pruebas completas, publicación preliminar
+[v1.5.1](https://github.com/jared-esparza/MaquetadorDTF/releases/tag/v1.5.1),
+despliegue en IONOS y verificación automática de web y recursos. Estado consultado
+por API. Este cierre posterior solo documenta esos resultados; su propia ejecución
+se consulta en el historial de Actions de main.
+Los pendientes técnicos anteriores siguen abiertos. Esta autorización no se
+extiende a futuras entregas; no se realizaron pruebas locales ni comprobaciones
+manuales de la web desplegada.
