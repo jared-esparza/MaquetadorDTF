@@ -1,7 +1,8 @@
-# Maquetador DTF 1.5.0 para Windows 10/11 x64
+# Maquetador DTF 1.5.1 para Windows 10/11 x64
 
-Instalador guiado en español y versión portátil. Publicada como preliminar sin firma.
+Instalador guiado en español y versión portátil. Entrega preliminar sin firma.
 
+- Los últimos diseños cargados aparecen arriba de la lista, incluidas cargas de varios archivos y páginas PDF. Este orden visual no altera el orden usado para montar los pliegos.
 - Actualizaciones configurables desde el botón Actualizaciones. Modo inicial: avisar antes de descargar.
 - Instalada: búsqueda manual, comprobación al iniciar y cada 6 horas, o descarga automática. Las versiones preliminares están incluidas.
 - La instalación exige pulsar Instalar y reiniciar, sin montaje pendiente de exportar ni operaciones activas. Nunca se instala automáticamente al cerrar.

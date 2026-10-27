@@ -101,6 +101,21 @@ test('configura y conserva el perfil, muestra espejo y valida cantidades y archi
   await page.getByLabel('Aplicar espejo en el PDF').check();
   await expect(page.getByText('Vista previa en espejo')).toBeVisible();
   await expect(page.getByTestId('layout-summary')).toContainText('2 piezas');
+  await page.getByLabel('Subir diseños PNG').setInputFiles([
+    { name: 'segundo.png', mimeType: 'image/png', buffer: samplePng() },
+    { name: 'tercero.png', mimeType: 'image/png', buffer: samplePng() },
+  ]);
+  const cards = page.getByTestId('design-card');
+  await expect(cards.locator('.design-name')).toHaveText(['tercero.png', 'segundo.png', 'bueno.png']);
+  await expect(cards.last().getByLabel('Copias', { exact: true })).toHaveValue('2');
+  await cards.first().getByLabel('Ancho (cm)').fill('3');
+  await cards.first().getByLabel('Ancho (cm)').blur();
+  await expect(cards.first().getByText('Medida final')).toContainText('3 × 1,44 cm');
+  await expect(page.getByTestId('layout-summary')).toContainText('4 piezas');
+  await cards.first().getByRole('button', { name: 'Quitar tercero.png', exact: true }).click();
+  await expect(cards.locator('.design-name')).toHaveText(['segundo.png', 'bueno.png']);
+  await page.getByLabel('Subir diseños PNG').setInputFiles({ name: 'ultimo.png', mimeType: 'image/png', buffer: samplePng() });
+  await expect(cards.locator('.design-name')).toHaveText(['ultimo.png', 'segundo.png', 'bueno.png']);
 });
 
 test('en pantalla estrecha conserva los controles accesibles y no desborda horizontalmente', async ({ page }, testInfo) => {
