@@ -14,7 +14,7 @@ Maquetador DTF 1.3.0 para Windows 10/11 x64: instalador guiado en español y ver
 El instalador y el portátil incluyen todos los recursos necesarios; no requieren Node. El editor sigue funcionando sin conexión. Consultar o descargar actualizaciones requiere Internet y no bloquea el trabajo si la conexión falla.
 
 Consulta USO-WINDOWS.md y SHA256SUMS.txt. Licencia del código propio pendiente; avisos de dependencias incluidos.
-# 1.4.0 — PDF por pliego y formatos de imagen
+# Maquetador DTF 1.4.0 — PDF por pliego y formatos de imagen
 
 Esta entrega añade la importación de PNG, JPG/JPEG, WebP estático y PDF, permite elegir entre un PDF por pliego o un único PDF multipágina y conserva la exportación PNG/ZIP. La opción «Un PDF por pliego» queda seleccionada por defecto porque es la más compatible con los proveedores de impresión.
 

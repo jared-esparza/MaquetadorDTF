@@ -32,7 +32,9 @@
 - Editor web local con carga PNG, medidas, copias, borrador por color, varita, afinado y deshacer.
 - Montaje MaxRects con rotaciones, perfiles y PDF multipágina a tamaño real con transparencia.
 - Separaciones de 3, 4, 5, 6 y 7 mm; 7 mm por defecto.
-## 1.4.0 — PDF por pliego y formatos de imagen
+## 1.4.0
+
+### PDF por pliego y formatos de imagen
 
 - Importación de PNG, JPG/JPEG, WebP estático y páginas PDF con miniaturas y selección.
 - Conversión de páginas PDF a imagen a 300 ppp por defecto o 600 ppp opcional.
