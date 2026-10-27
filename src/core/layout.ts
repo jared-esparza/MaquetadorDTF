@@ -83,6 +83,27 @@ export function packDesigns(items: PackItem[], profile: SheetProfile, gapMm: num
   return best!;
 }
 
+/** Expande posiciones, nunca tamaños; conserva el montaje compacto de origen. */
+export function spreadPage(page: LayoutResult['pages'][number], profile: SheetProfile): LayoutResult['pages'][number] {
+  const factor = (position: 'xMm' | 'yMm', size: 'widthMm' | 'heightMm', start: number, end: number) => {
+    const positions = page.placements.map(p => p[position]);
+    if (positions.every(value => value === positions[0])) return 1;
+    let scale = Infinity;
+    for (const p of page.placements) {
+      const offset = p[position] - start;
+      if (offset > 0) scale = Math.min(scale, (end - start - p[size]) / offset);
+    }
+    return Number.isFinite(scale) ? Math.max(1, scale) : 1;
+  };
+  const left = profile.margins.left, top = profile.margins.top;
+  const xScale = factor('xMm', 'widthMm', left, profile.widthMm - profile.margins.right);
+  const yScale = factor('yMm', 'heightMm', top, profile.heightMm - profile.margins.bottom);
+  return { ...page, placements: page.placements.map(p => ({ ...p,
+    xMm: xScale === 1 ? p.xMm : left + (p.xMm - left) * xScale,
+    yMm: yScale === 1 ? p.yMm : top + (p.yMm - top) * yScale,
+  })) };
+}
+
 /** Independent export guard as well as a test oracle for geometry. */
 export function validateLayout(layout: LayoutResult, profile: SheetProfile, gapMm: number): string[] {
   if (!GAP_OPTIONS.includes(gapMm)) return [gapError];
