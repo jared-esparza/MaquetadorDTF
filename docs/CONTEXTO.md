@@ -296,3 +296,16 @@ con siete archivos y el despliegue en IONOS con su verificación automática.
 No se ejecutaron pruebas locales ni se comprobó manualmente la web desplegada.
 El fallo intermitente de preferencias descrito arriba queda como limitación
 conocida. La autorización no se extiende a entregas posteriores.
+
+## Entrega propuesta 1.8.0
+
+Borrador y afinado de bordes comparten un diálogo amplio con comparación y
+encuadre sincronizado. El afinado se revisa antes de aplicar. El fondo de
+contraste se guarda como preferencia visual para todos los pliegos, se puede
+usar temporalmente en el editor y queda fuera del montaje y de la exportación.
+
+Se añadieron comprobaciones de navegador y Electron. Las muestras de reparto
+se exportan con fondo visual activo para que Pillow y PDFium comprueben la salida.
+Validación local limitada a revisión del cambio y `git diff --check`. Las
+pruebas y el empaquetado quedan pendientes de GitHub Actions. Los pendientes
+previos de fidelidad de importación PDF siguen abiertos.

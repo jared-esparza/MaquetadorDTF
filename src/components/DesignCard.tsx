@@ -1,23 +1,21 @@
 import { useState } from 'react';
-import { designHeight, designMetrics, formatMm, widthFromHeight, type Design, type Raster } from '../core/model';
+import { designHeight, designMetrics, formatMm, widthFromHeight, type Design } from '../core/model';
 import { NumberField } from './NumberField';
-import { ImageEditor } from './ImageEditor';
+import type { EditTool } from './ImageEditor';
 
 interface Props {
   design: Design; busy: boolean; editing: boolean;
   onChange: (patch: Partial<Pick<Design, 'widthMm' | 'copies'>>) => void;
-  onRemove: () => void; onEdit: () => void; onCancel: () => void;
-  onApply: (raster: Raster) => Promise<void>; onUndo: () => void; onRefine: () => void;
+  onRemove: () => void; onEdit: (tool: EditTool, trigger: HTMLElement) => void; onUndo: () => void;
   onValidity: (field: string, valid: boolean) => void;
-  editingDesign?: Design;
 }
 
-export function DesignCard({ design, busy, editing, onChange, onRemove, onEdit, onCancel, onApply, onUndo, onRefine, onValidity, editingDesign }: Props) {
+export function DesignCard({ design, busy, editing, onChange, onRemove, onEdit, onUndo, onValidity }: Props) {
   const [expanded, setExpanded] = useState(true);
   const { dpi, quality, recommendedWidthMm } = designMetrics(design.raster, design.widthMm);
   const heightMm = designHeight(design);
   const opaque = design.opaque;
-  return <article className="design-card" data-testid="design-card">
+  return <article tabIndex={-1} className="design-card" data-testid="design-card">
     <div className="design-card-top">
       <img className="design-thumb checker" src={design.url} alt="" />
       <span className="design-name" title={design.name}>{design.name}</span>
@@ -43,13 +41,11 @@ export function DesignCard({ design, busy, editing, onChange, onRemove, onEdit, 
       {opaque && <p className="opaque-warning">El fondo también se imprime.</p>}
       {design.note && <p className="success-note">{design.note}</p>}
       {design.raster.sourceScale > 1 && <p className="muted">Ampliar no añade detalle. Los ppp se calculan desde los píxeles originales.</p>}
-      {design.undo && design.note.includes('Bordes') && <div className="comparison"><figure><figcaption>Antes</figcaption><img className="checker" src={design.undo.url} alt="Diseño antes de afinar" /></figure><figure><figcaption>Ahora</figcaption><img className="checker" src={design.url} alt="Diseño con bordes afinados" /></figure></div>}
       <div className="design-actions">
-        {!editing && <button className="small-button" disabled={busy} onClick={onEdit}>Borrador · fondo y colores</button>}
-        {!editing && design.raster.sourceScale === 1 && <button className="small-button" disabled={busy} onClick={onRefine}>Afinar los bordes</button>}
+        <button className="small-button" disabled={busy} onClick={event => onEdit('erase', event.currentTarget)}>Borrador · fondo y colores</button>
+        {design.raster.sourceScale === 1 && <button className="small-button" disabled={busy} onClick={event => onEdit('refine', event.currentTarget)}>Afinar los bordes</button>}
         {design.undo && !editing && <button className="small-button" disabled={busy} onClick={onUndo}>Deshacer</button>}
       </div>
     </div>}
-    {editing && <ImageEditor design={editingDesign ?? design} onApply={onApply} onCancel={onCancel} />}
   </article>;
 }

@@ -406,3 +406,22 @@ test('recuerda bienvenida y formatos en el almacén de la aplicación', async ()
   await expect(page.getByRole('dialog', { name: 'Bienvenido a Maquetador DTF' })).toHaveCount(0);
   await expect(page.getByTestId('profile-dimensions')).toContainText('600 × 1000 mm');
 });
+
+test('recuerda el fondo visual de los pliegos en Electron', async () => {
+  await closeWelcome();
+  const hex = page.getByLabel('Color hexadecimal del pliego');
+  await hex.fill('#147ea1');
+  await hex.press('Enter');
+  const userData = await application.evaluate(({ app }) => app.getPath('userData'));
+  const readColor = async () => JSON.parse(await readFile(path.join(userData, 'preferences.json'), 'utf8')).sheetPreviewColor;
+  await expect.poll(readColor).toBe('#147EA1');
+  await page.reload();
+  const welcome = page.getByRole('button', { name: 'Empezar a maquetar', exact: true });
+  await expect(welcome).toBeVisible();
+  await closeWelcome();
+  await expect(hex).toHaveValue('#147EA1');
+  await importDesign();
+  await expect(page.getByRole('img', { name: 'Vista previa del pliego' })).toHaveCSS('background-color', 'rgb(20, 126, 161)');
+  await page.getByRole('button', { name: 'Restaurar damero' }).click();
+  await expect.poll(readColor).toBeNull();
+});

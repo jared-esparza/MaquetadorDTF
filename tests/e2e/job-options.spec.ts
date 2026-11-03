@@ -115,9 +115,13 @@ test('presupuesto persiste, protege ediciones y permite ampliar sin perder dise√
   await expect(page.getByRole('alert')).toContainText('60 megap√≠xeles');
   await expect(cards).toHaveCount(7);
   await expect(first.getByRole('button', { name: 'Deshacer', exact: true })).toHaveCount(0);
+  await page.getByRole('dialog').getByRole('button', { name: 'Cancelar' }).click();
   await budget.selectOption('120');
   await first.getByRole('button', { name: 'Afinar los bordes' }).click();
-  await expect(first.getByRole('button', { name: 'Deshacer', exact: true })).toBeVisible({ timeout: 60000 });
+  const apply = page.getByRole('dialog').getByRole('button', { name: 'Aplicar', exact: true });
+  await expect(apply).toBeEnabled({ timeout: 60000 });
+  await apply.click();
+  await expect(first.getByRole('button', { name: 'Deshacer', exact: true })).toBeVisible();
   await expect(page.getByTestId('image-budget-usage')).toHaveText('66 / 120 MP');
   await budget.selectOption('60');
   await expect(budget).toHaveValue('120');
