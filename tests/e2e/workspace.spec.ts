@@ -58,6 +58,9 @@ for (const [width, height] of [[1366, 768], [1280, 720], [390, 844]]) {
       await page.getByLabel('Resolución PNG').selectOption('150');
     } else {
       const navigation = page.getByRole('navigation', { name: 'Espacio de trabajo' });
+      await navigation.getByRole('link', { name: 'Configuración' }).click();
+      await expect(page.getByLabel('Perfil de formato')).toBeInViewport({ ratio: 1 });
+      await expect(page.getByLabel('Distancia entre diseños')).toBeInViewport({ ratio: 1 });
       await navigation.getByRole('link', { name: 'Exportación' }).click();
       await expect(pdf).toBeInViewport();
       await page.screenshot({ path: info.outputPath('exportacion.png') });

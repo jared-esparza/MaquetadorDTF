@@ -386,7 +386,7 @@ export default function App() {
 </div></details>
     </div>{desktop && <button className="text-button" onClick={() => void desktop?.showHelp('guide')}>Ayuda</button>}{desktop && <Updates onInstalling={setUpdateInstalling} />}</header>
     <nav className="workspace-nav" aria-label="Espacio de trabajo">
-      <a href="#designs-title">Diseños</a><a href="#preview-title">Pliego</a><a href="#export-title">Exportación</a>
+      <a href="#designs-title">Diseños</a><a href="#preview-title">Pliego</a><a href="#settings-title">Configuración</a><a href="#export-title">Exportación</a>
     </nav>
     <main className="workspace">
       <section className="panel designs-panel" aria-labelledby="designs-title">

@@ -856,7 +856,7 @@ summary:focus-visible, .workspace-nav a:focus-visible { outline:2px solid var(--
 .options-fields select { max-width:100%; }
 .options-fields .mirror-control { margin:0; }
 @media(max-width:1099px) {
-  .workspace-nav { display:flex; gap:16px; padding:8px 12px; font-size:13px; }
+  .workspace-nav { display:flex; flex-wrap:wrap; gap:8px 16px; padding:8px 12px; font-size:13px; }
   .workspace { grid-template-columns:minmax(0,1fr); padding:8px; }
   .designs-panel, .settings-panel { position:static; max-height:none; overflow:visible; }
   .design-list { overflow:visible; }
