@@ -115,6 +115,7 @@ test('configura y conserva el perfil, muestra espejo y valida cantidades y archi
   await expect(cards.last().getByLabel('Copias', { exact: true })).toHaveValue('2');
   await cards.first().getByLabel('Ancho (cm)').fill('3');
   await cards.first().getByLabel('Ancho (cm)').blur();
+  await openDesignTools(cards.first());
   await expect(cards.first().getByText('Medida final')).toContainText('3 × 1,44 cm');
   await expect(page.getByTestId('layout-summary')).toContainText('4 piezas');
   await cards.first().getByRole('button', { name: 'Quitar tercero.png', exact: true }).click();

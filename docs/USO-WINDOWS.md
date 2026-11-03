@@ -7,14 +7,14 @@ Descarga el archivo Setup de la versión elegida desde [Releases](https://github
 Descarga el archivo Portable de la versión elegida desde Releases y ábrelo desde una carpeta con permiso de escritura. Se crea MaquetadorDTF-datos junto al ejecutable. Copia también esa carpeta al moverlo a otro PC si quieres conservar los formatos y preferencias. No es necesario ejecutar el instalador.
 
 ## Tres pasos
-1. Sube PNG, JPG/JPEG, WebP estático o PDF. Para PDF, selecciona páginas y elige 300 ppp (inicial) o 600 ppp: se convierten a imágenes, sin conservar vectores. Indica ancho o alto en centímetros, siempre proporcionales, y número de copias. Usa el borrador si necesitas quitar fondos; el blanco no se elimina automáticamente.
-2. Configura el film y los márgenes en milímetros. La separación inicial es 7 mm; puedes elegir entre 3 y 10 mm. Revisa los pliegos.
+1. Pulsa «Añadir diseños» para subir PNG, JPG/JPEG, WebP estático o PDF. Para PDF, selecciona páginas y elige 300 ppp (inicial) o 600 ppp: se convierten a imágenes, sin conservar vectores. Indica ancho o alto en centímetros, siempre proporcionales, y número de copias. Abre «Editar diseño» y usa el borrador si necesitas quitar fondos; el blanco no se elimina automáticamente.
+2. Junto a la vista del pliego, configura el film y los márgenes en milímetros. La separación inicial es 7 mm; puedes elegir entre 3 y 10 mm. Revisa los pliegos.
 3. Revisa el nombre del trabajo, descarga el PDF o PNG/ZIP y elige dónde guardarlo. PDF entrega un archivo por pliego por defecto (ZIP si hay varios), o un único PDF multipágina si lo seleccionas. Imprime desde tu RIP al 100 % o Tamaño real, sin ajustar a página. El RIP debe generar el blanco y gestionar el color. Activa espejo aquí solamente si lo desactivas en el RIP.
 
 Los diseños no se guardan como proyecto editable. Exporta antes de cerrar. Ayuda incluye instrucciones y un PDF de calibración con un cuadrado de 100 × 100 mm. Debes comprobarlo en tu impresora antes de producir.
 
 ## Exportar PNG o ZIP
-Además del PDF, puedes descargar PNG. Para PNG, elige 150, 300 o 600 ppp en Resolución PNG; 300 es el valor inicial. Más ppp no recuperan detalle ausente en el original. Un solo pliego genera un PNG; varios generan un ZIP con un PNG numerado por pliego. Extrae el ZIP antes de importar los PNG en el RIP y respeta su tamaño físico y resolución.
+Además del PDF, puedes descargar PNG. Para PNG, elige 150, 300 o 600 ppp en «Opciones de exportación» → «Resolución PNG»; 300 es el valor inicial. Más ppp no recuperan detalle ausente en el original. Un solo pliego genera un PNG; varios generan un ZIP con un PNG numerado por pliego. Extrae el ZIP antes de importar los PNG en el RIP y respeta su tamaño físico y resolución.
 
 El PNG conserva transparencia, espejo, giros, márgenes y separación. La opción de espejo se aplica tanto a PDF como a PNG. No se incluye el damero ni las guías. La generación muestra progreso y puede cancelarse sin perder el montaje. El diálogo Guardar permite elegir carpeta y confirmar sobrescrituras.
 
@@ -39,7 +39,7 @@ Los archivos se procesan localmente. Código propio: licencia de reutilización 
 
 ## Memoria y nombres de trabajo (1.5.0)
 
-Junto a la carga, «Presupuesto de imágenes» permite 60, 120 o 240 MP y muestra consumo / presupuesto. Cuenta originales y versiones únicas para edición y deshacer; las copias no multiplican el consumo. Se recuerda por navegador o instalación. No se permite reducirlo por debajo del consumo actual: quita diseños antes. Los niveles mayores pueden agotar la memoria y no garantizan el procesamiento en cualquier equipo. Los límites por imagen (25 MP) y archivo final siguen vigentes.
+En Ajustes, «Presupuesto de imágenes» permite 60, 120 o 240 MP y muestra consumo / presupuesto. Cuenta originales y versiones únicas para edición y deshacer; las copias no multiplican el consumo. Se recuerda por navegador o instalación. No se permite reducirlo por debajo del consumo actual: quita diseños antes. Los niveles mayores pueden agotar la memoria y no garantizan el procesamiento en cualquier equipo. Los límites por imagen (25 MP) y archivo final siguen vigentes.
 
 Ancho y Alto (cm) son editables y siempre proporcionales; cambiar uno actualiza el otro. La geometría conserva precisión interna aunque se muestren dos decimales. Una entrada inválida debe corregirse antes de exportar.
 

@@ -318,7 +318,7 @@ strong {
   background:#e9edf0;
   border-radius:10px;
   border:1px solid #d3d8dd;
-  width:min(100%,calc(clamp(140px, 100dvh - 420px, 720px) * var(--sheet-ratio) + 18px));
+  width:min(100%,calc(clamp(140px, 100dvh - 445px, 720px) * var(--sheet-ratio) + 18px));
   margin:0 auto}
 .sheet-svg {
   display:block;
@@ -804,7 +804,9 @@ strong {
 }
 .header-popover .image-budget, .header-popover .print-note { margin:0; }
 .workspace-nav { display:none; }
-.designs-panel { position:sticky; top:12px; max-height:calc(100dvh - 76px); overflow:auto; }
+.designs-panel { position:sticky; top:12px; max-height:calc(100dvh - 76px); display:flex; flex-direction:column; }
+.designs-panel > :not(.design-list) { flex-shrink:0; }
+.design-list { min-height:0; overflow:auto; }
 .designs-panel h2 { margin-bottom:8px; }
 .compact-upload { margin-bottom:8px; }
 .compact-upload .upload-button { min-height:0; flex-direction:row; justify-content:center; gap:8px; padding:6px; }
@@ -831,11 +833,11 @@ strong {
 }
 .page-label { margin:4px 0; }
 .page-label span { display:inline; margin-left:6px; }
-.page-navigation { margin-top:4px; }
+.sheet-toolbar { display:flex; align-items:center; flex-wrap:wrap; gap:4px 12px; }
+.sheet-toolbar .page-navigation { margin-top:0; min-width:0; flex:1 1 180px; }
 .page-thumbnail svg { height:30px; }
 .sheet-download-actions { margin:4px 0; }
 .sheet-download-actions button { padding:4px 8px; }
-.preview-caption { margin-top:4px; }
 .view-options { margin:4px 0; }
 summary { cursor:pointer; font-size:13px; font-weight:600; }
 summary:focus-visible, .workspace-nav a:focus-visible { outline:2px solid var(--brand); outline-offset:3px; }
@@ -854,7 +856,8 @@ summary:focus-visible, .workspace-nav a:focus-visible { outline:2px solid var(--
 @media(max-width:760px) {
   .workspace-nav { display:flex; gap:16px; padding:8px 12px; font-size:13px; }
   .workspace { grid-template-columns:minmax(0,1fr); padding:8px; }
-  .designs-panel { position:static; max-height:none; overflow:visible; }
+  .designs-panel { position:static; max-height:none; }
+  .design-list { overflow:visible; }
   .header-tools { position:relative; margin-left:0; }
   .header-tools details { position:static; }
   .header-popover { right:auto; left:0; }
@@ -862,5 +865,6 @@ summary:focus-visible, .workspace-nav a:focus-visible { outline:2px solid var(--
   .preview-panel .panel-heading h2 { width:100%; }
   .export-main { grid-template-columns:minmax(0,1fr); }
   .download-actions { flex-wrap:wrap; }
+  .sheet-toolbar .page-navigation { flex-basis:100%; }
   .app-footer { flex-wrap:wrap; }
 }

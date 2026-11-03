@@ -37,10 +37,12 @@ for (const [width, height] of [[1366, 768], [1280, 720], [390, 844]]) {
       await page.getByTestId('design-card').last().scrollIntoViewIfNeeded();
       await expect(preview).toBeInViewport({ ratio: 1 });
       await expect(pdf).toBeInViewport({ ratio: 1 });
+      await expect(add).toBeInViewport({ ratio: 1 });
     } else {
       const navigation = page.getByRole('navigation', { name: 'Espacio de trabajo' });
       await navigation.getByRole('link', { name: 'Exportación' }).click();
       await expect(pdf).toBeInViewport();
+      await page.screenshot({ path: info.outputPath('exportacion.png') });
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
     }
   });

@@ -429,6 +429,7 @@ export default function App() {
         <details className="view-options">
           <summary>Opciones de vista y montaje</summary>
           <SheetBackground color={sheetPreviewColor} onChange={changeSheetColor} disabled={blocked} />
+          <p className="muted">El fondo de vista previa y las guías quedan fuera del archivo exportado.</p>
           {!!layout?.pages.length && <>
             <div className="sheet-spacing-actions">
               <button disabled={blocked || formatOpen || pending || invalidFields.size > 0 || (!spreadPages.includes(visibleIndex) && !canSpread)} aria-describedby="spacing-help" onClick={toggleSpacing}>

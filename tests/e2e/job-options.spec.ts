@@ -108,7 +108,7 @@ test('presupuesto persiste, protege ediciones y permite ampliar sin perder dise�
   const dialog = page.getByRole('dialog', { name: 'Importar páginas PDF' });
   await expect(budget).toBeDisabled();
   await dialog.getByRole('button', { name: 'Importar seleccionadas (3)' }).click();
-  await expect(page.getByRole('alert')).toContainText('60 megapíxeles');
+  await expect(page.getByRole('alert').filter({ hasText: '60 megapíxeles' })).toBeVisible();
   await expect(cards).toHaveCount(7);
   await expect(page.getByTestId('image-budget-usage')).toHaveText('42 / 60 MP');
   const first = cards.first();
@@ -131,14 +131,14 @@ test('presupuesto persiste, protege ediciones y permite ampliar sin perder dise�
   await expect(page.getByTestId('image-budget-usage')).toHaveText('66 / 120 MP');
   await budget.selectOption('60');
   await expect(budget).toHaveValue('120');
-  await expect(page.getByRole('alert')).toContainText('Quita diseños');
+  await expect(page.getByRole('alert').filter({ hasText: 'Quita diseños' })).toBeVisible();
   await first.getByRole('button', { name: 'Deshacer', exact: true }).click();
   await expect(page.getByTestId('image-budget-usage')).toHaveText('42 / 120 MP');
   await budget.selectOption('60'); await expect(budget).toHaveValue('60');
   await page.getByLabel('Subir diseños PNG').setInputFiles(Array.from({ length: 4 }, (_, i) => ({ ...source, name: `extra-${i}.png` })));
   await expect(cards).toHaveCount(10, { timeout: 60000 });
   await expect(page.getByTestId('image-budget-usage')).toHaveText('60 / 60 MP');
-  await expect(page.getByRole('alert')).toContainText('60 megapíxeles');
+  await expect(page.getByRole('alert').filter({ hasText: '60 megapíxeles' })).toBeVisible();
   await budget.selectOption('120');
   await page.getByLabel('Subir diseños PNG').setInputFiles(source);
   await expect(cards).toHaveCount(11, { timeout: 60000 });
@@ -160,7 +160,7 @@ test('preferencias inválidas y fallo de guardado no impiden trabajar', async ({
   await page.getByLabel('Subir diseños PNG').setInputFiles(image());
   await openWorkspaceOptions(page, 'Ajustes');
   await page.getByLabel('Presupuesto de imágenes').selectOption('120');
-  await expect(page.getByRole('alert')).toContainText('No se ha podido guardar el presupuesto');
+  await expect(page.getByRole('alert').filter({ hasText: 'No se ha podido guardar el presupuesto' })).toBeVisible();
   await expect(page.getByTestId('design-card')).toHaveCount(1);
   await expect(page.getByRole('button', { name: 'Descargar PNG', exact: true })).toBeEnabled();
 });
