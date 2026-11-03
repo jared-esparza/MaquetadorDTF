@@ -351,5 +351,12 @@ desplegada. La autorización se limita a esta entrega.
   Los fallos de carga aparecen junto a la entrada y los de encaje junto al diseño.
 - Se añadieron comprobaciones de espacio y teclado para 1366 × 768, 1280 × 720
   y 390 × 844, y se adaptaron los flujos existentes de web y Electron.
-- Verificación local limitada a la revisión del cambio y `git diff --check`.
-  Las pruebas y la revisión visual quedan pendientes de la PR.
+- La [PR #15](https://github.com/jared-esparza/MaquetadorDTF/pull/15) queda
+  abierta. La [CI 41628939501](https://github.com/jared-esparza/MaquetadorDTF/actions/runs/41628939501)
+  pasó en `119b3d7`: compilación, unitarias, navegador, Electron, empaquetado,
+  ejecutable Windows y verificación independiente de PNG/PDF. Los escenarios
+  de interfaz cubrieron los tres tamaños acordados, el scroll independiente,
+  la carga desde el final de la lista y Ajustes abierto a 500 px de ancho.
+- Las capturas de CI permitieron revisar el ajuste de altura y la exportación
+  móvil. La revisión local se limitó al código y `git diff --check`. Queda
+  pendiente la revisión de uso real en taller. La CI omitió el despliegue.
