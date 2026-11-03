@@ -409,6 +409,8 @@ test('recuerda bienvenida y formatos en el almacén de la aplicación', async ()
 
 test('recuerda el fondo visual de los pliegos en Electron', async () => {
   await closeWelcome();
+  const background = page.getByRole('button', { name: 'Cambiar fondo de vista previa' });
+  await background.click();
   const hex = page.getByLabel('Color hexadecimal del pliego');
   await hex.fill('#147ea1');
   await hex.press('Enter');
@@ -419,9 +421,12 @@ test('recuerda el fondo visual de los pliegos en Electron', async () => {
   const welcome = page.getByRole('button', { name: 'Empezar a maquetar', exact: true });
   await expect(welcome).toBeVisible();
   await closeWelcome();
+  await background.click();
   await expect(hex).toHaveValue('#147EA1');
+  await background.click();
   await importDesign();
   await expect(page.getByRole('img', { name: 'Vista previa del pliego' })).toHaveCSS('background-color', 'rgb(20, 126, 161)');
+  await background.click();
   await page.getByRole('button', { name: 'Restaurar damero' }).click();
   await expect.poll(readColor).toBeNull();
 });

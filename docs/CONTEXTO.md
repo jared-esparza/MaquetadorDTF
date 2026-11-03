@@ -317,3 +317,8 @@ empaquetado y comprobación independiente de PNG/PDF. La primera ejecución
 requirió actualizar las notas de Release y la segunda detectó dos selectores
 de pruebas que se ajustaron al diálogo. El despliegue se omitió en la PR.
 La web de desarrollo se arrancó en 127.0.0.1:5173 para revisión del usuario.
+
+Tras la revisión del usuario, el ajuste de fondo se movió a un botón con
+muestra junto a «Tu pliego». El selector, el hexadecimal y la restauración
+del damero se muestran en un panel flotante. La verificación de este ajuste
+se realiza en la CI de la misma PR.

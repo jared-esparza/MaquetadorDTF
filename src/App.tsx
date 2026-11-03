@@ -399,8 +399,9 @@ export default function App() {
           } finally { setBusy(''); }
         }} />}
       <section className="panel preview-panel" aria-labelledby="preview-title">
-        <div className="panel-heading"><h2 id="preview-title"><span className="step">2</span>Tu pliego</h2><label className="gap-label">Distancia entre diseños<select aria-label="Distancia entre diseños" value={gapMm} disabled={blocked} onChange={e => setGapMm(Number(e.target.value))}>{GAP_OPTIONS.map(gap => <option key={gap} value={gap}>{gap} mm</option>)}</select></label></div>
-        <SheetBackground color={sheetPreviewColor} onChange={changeSheetColor} disabled={blocked} />
+        <div className="panel-heading"><div className="sheet-heading"><h2 id="preview-title"><span className="step">2</span>Tu pliego</h2>
+          <SheetBackground color={sheetPreviewColor} onChange={changeSheetColor} disabled={blocked} />
+        </div><label className="gap-label">Distancia entre diseños<select aria-label="Distancia entre diseños" value={gapMm} disabled={blocked} onChange={e => setGapMm(Number(e.target.value))}>{GAP_OPTIONS.map(gap => <option key={gap} value={gap}>{gap} mm</option>)}</select></label></div>
         {pending && designs.length > 0 && <p className="working" role="status"><span className="spinner" />Buscando el montaje que menos film gasta…</p>}
         {!pending && layoutState.error && <p className="error-box" role="alert">{layoutState.error}</p>}
         {layout?.unplacedIds.map(id => <p key={id} className="error-box" role="alert"><strong>{designs.find(d => d.id === id)?.name}</strong> no cabe en el área imprimible, ni girado. Reduce su ancho o cambia el formato.</p>)}

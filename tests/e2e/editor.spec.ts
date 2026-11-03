@@ -143,11 +143,20 @@ test('rechaza PNG vacío y exceso de tamaño sin dejar diseños parciales', asyn
 test('compara en grande y conserva el encuadre al alternar; arrastrar no activa la varita', async ({ page }) => {
   await page.setViewportSize({ width: 1200, height: 800 });
   await page.goto('/');
+  const background = page.getByRole('button', { name: 'Cambiar fondo de vista previa' });
   const hex = page.getByLabel('Color hexadecimal del pliego');
+  await expect(hex).toBeHidden();
+  await background.click();
   await hex.fill('#e519c7');
   await hex.press('Enter');
   await page.reload();
+  await expect(hex).toBeHidden();
+  await background.click();
   await expect(hex).toHaveValue('#E519C7');
+  await hex.focus();
+  await page.keyboard.press('Escape');
+  await expect(hex).toBeHidden();
+  await expect(background).toBeFocused();
   await page.getByLabel('Subir diseños PNG').setInputFiles({ name: 'detalle.png', mimeType: 'image/png', buffer: samplePng(true) });
   const opener = page.getByRole('button', { name: 'Borrador · fondo y colores' });
   await opener.click();
@@ -195,6 +204,7 @@ test('compara en grande y conserva el encuadre al alternar; arrastrar no activa 
   await edges.getByRole('button', { name: 'Cancelar' }).click();
   await expect(refine).toBeFocused();
   await expect(page.getByText('Bordes afinados.')).toHaveCount(0);
+  await background.click();
   await page.getByRole('button', { name: 'Restaurar damero' }).click();
   await expect(hex).toBeEmpty();
 });
