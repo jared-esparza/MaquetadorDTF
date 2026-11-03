@@ -1,5 +1,10 @@
 # Cambios
 
+## 1.8.0
+
+- Borrador y afinado de bordes en un editor amplio con comparación, zoom y desplazamiento sincronizados. El afinado se revisa antes de aplicar.
+- Fondo de contraste configurable y recordado para los pliegos y sus miniaturas. Se puede usar durante la edición y queda fuera de los archivos exportados.
+
 ## 1.7.0
 
 - «Repartir espacios» aprovecha el sobrante del pliego visible para separar los diseños sin cambiar tamaños, giros, alineaciones, copias ni número de pliegos. La distancia elegida se mantiene como mínimo y el reparto puede superar los 10 mm.

@@ -296,3 +296,33 @@ con siete archivos y el despliegue en IONOS con su verificación automática.
 No se ejecutaron pruebas locales ni se comprobó manualmente la web desplegada.
 El fallo intermitente de preferencias descrito arriba queda como limitación
 conocida. La autorización no se extiende a entregas posteriores.
+
+## Entrega propuesta 1.8.0
+
+Borrador y afinado de bordes comparten un diálogo amplio con comparación y
+encuadre sincronizado. El afinado se revisa antes de aplicar. El fondo de
+contraste se guarda como preferencia visual para todos los pliegos, se puede
+usar temporalmente en el editor y queda fuera del montaje y de la exportación.
+
+Se añadieron comprobaciones de navegador y Electron. Las muestras de reparto
+se exportan con fondo visual activo para que Pillow y PDFium comprueben la salida.
+Validación local limitada a revisión del cambio y `git diff --check`. Las
+pruebas se ejecutaron en GitHub Actions. Los pendientes previos de fidelidad de
+importación PDF siguen abiertos.
+
+La [PR #14](https://github.com/jared-esparza/MaquetadorDTF/pull/14) queda abierta
+para revisión. La [CI 41612416834](https://github.com/jared-esparza/MaquetadorDTF/actions/runs/41612416834)
+pasó en `0d1466d`: compilación, unitarias, navegador, Electron, ejecutable
+empaquetado y comprobación independiente de PNG/PDF. La primera ejecución
+requirió actualizar las notas de Release y la segunda detectó dos selectores
+de pruebas que se ajustaron al diálogo. El despliegue se omitió en la PR.
+La web de desarrollo se arrancó en 127.0.0.1:5173 para revisión del usuario.
+
+Tras la revisión del usuario, el ajuste de fondo se movió a un botón con
+muestra junto a «Tu pliego». El selector, el hexadecimal y la restauración
+del damero se muestran en un panel flotante. La verificación de este ajuste
+se realiza en la CI de la misma PR.
+
+El selector de ambas pantallas muestra y cambia el color guardado del pliego.
+Cada edición abre con damero. Un botón independiente alterna el contraste en
+las imágenes del editor sin modificar la preferencia del pliego.

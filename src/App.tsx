@@ -7,8 +7,10 @@ import { DEFAULT_PROFILE, GAP_OPTIONS, IMAGE_BUDGETS, imageBudget, checkImageBud
 import { defaultExportBaseName, normalizeExportBaseName, exportNameError, exportFilename, exportSelectionFilename } from './core/exportNames';
 import { hasOpaqueBackground } from './core/images';
 import { spreadPage, validateLayout } from './core/layout';
+import { ImageEditor, type EditTool } from './components/ImageEditor';
 import { DesignCard } from './components/DesignCard';
 import { ProfileEditor } from './components/ProfileEditor';
+import { SheetBackground, normalizeSheetColor } from './components/SheetBackground';
 import { SheetPreview } from './components/SheetPreview';
 import { Welcome } from './components/Welcome';
 import { WindowsDownloads } from './components/WindowsDownloads';
@@ -20,6 +22,11 @@ import { MAX_RETAINED_PDF_BYTES, retainedPdfBytes } from './core/pdfSource';
 import type { PrintAsset } from './core/print';
 
 const STORAGE_KEY = 'pkprint-dtf-profiles-v1';
+const COLOR_STORAGE_KEY = 'pkprint-dtf-sheet-color-v1';
+function readSheetColor() {
+  if (!desktop) try { return normalizeSheetColor(localStorage.getItem(COLOR_STORAGE_KEY)); } catch { /* Use the damero. */ }
+  return null;
+}
 const BUDGET_STORAGE_KEY = 'pkprint-dtf-image-budget-v1';
 function readImageBudget() {
   if (!desktop) try { return imageBudget(JSON.parse(localStorage.getItem(BUDGET_STORAGE_KEY) ?? 'null')); } catch { /* Use the default for invalid preferences. */ }
@@ -46,6 +53,7 @@ export default function App() {
   const profile = stored.profiles.find(p => p.id === stored.selected)!;
   const [designs, setDesigns] = useState<Design[]>([]);
   const [imageBudgetMp, setImageBudgetMp] = useState(readImageBudget);
+  const [sheetPreviewColor, setSheetPreviewColor] = useState(readSheetColor);
   const [exportBaseName, setExportBaseName] = useState('');
   const [gapMm, setGapMm] = useState(7);
   const [mirror, setMirror] = useState(false);
@@ -53,11 +61,12 @@ export default function App() {
   const [pdfOrganization,setPdfOrganization] = useState<'separate' | 'combined'>('separate');
   const [pdfImport,setPdfImport] = useState<{ file: File; resolve: (pages: PdfCandidate[], dpi: number) => void } | null>(null);
   const [conversion,setConversion] = useState<{ design: Design; action: 'erase' | 'refine' } | null>(null);
-  const [editingDesign,setEditingDesign] = useState<Design | null>(null);
+  const [edit, setEdit] = useState<{ original: Design; source: Design; tool: EditTool; error: string } | null>(null);
+  const editTrigger = useRef<HTMLElement | null>(null);
+  const editingId = edit?.original.id ?? null;
   const [exportProgress, setExportProgress] = useState<ExportProgress | null>(null);
   const exportController = useRef<AbortController | null>(null);
   const [busy, setBusy] = useState('');
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [formatOpen, setFormatOpen] = useState(false);
   const [preferencesReady, setPreferencesReady] = useState(!desktop);
   const [showWelcome, setShowWelcome] = useState(false);
@@ -131,6 +140,7 @@ export default function App() {
       if (!active) return;
       if (preferences.profileState) setStored(preferences.profileState);
       setImageBudgetMp(imageBudget(preferences.imageBudgetMp));
+      setSheetPreviewColor(normalizeSheetColor(preferences.sheetPreviewColor));
       setShowWelcome(!preferences.hideWelcome); setDesktopVersion(preferences.version); setPreferencesReady(true);
     }).catch(() => { if (active) { setErrors(['No se han podido leer las preferencias. Se usarán los formatos iniciales.']); setShowWelcome(true); setPreferencesReady(true); } });
     const unsubscribe = desktop.onHelp(topic => { if (topic === 'welcome') setShowWelcome(true); });
@@ -236,16 +246,34 @@ export default function App() {
     setDesigns(current => current.map(d => d.id === design.id ? { ...d, pdf: undefined, raster: cropped, url, note, opaque, undo: { raster: d.raster, url: d.url, note: d.note, opaque: d.opaque, pdf: d.pdf } } : d));
     setExported('');
   };
-  const refine = async (design: Design) => {
-    setBusy('Afinando los bordes…'); setErrors([]);
-    try {
-      checkImageBudget(pixelsAfterEdit(designs, design.id, design.raster.width * 2, design.raster.height * 2), imageBudgetMp);
-      const raster = await runImage('refine', design.raster); await applyRaster(design, raster, 'Bordes afinados.', design.opaque);
-    }
-    catch (e) { setErrors([errorText(e)]); }
-    finally { setBusy(''); }
+  const startEdit = (original: Design, source: Design, tool: EditTool) => {
+    let error = '';
+    if (tool === 'refine') try {
+      checkImageBudget(pixelsAfterEdit(designs, original.id, source.raster.width * 2, source.raster.height * 2), imageBudgetMp);
+    } catch (e) { error = errorText(e); }
+    setEdit({ original, source, tool, error });
   };
-  const cancelEdit = () => { if (editingDesign) release(editingDesign.url); setEditingDesign(null); setEditingId(null); };
+  const openEditor = (design: Design, tool: EditTool, trigger: HTMLElement) => {
+    editTrigger.current = trigger;
+    if (design.pdf) setConversion({ design, action: tool });
+    else startEdit(design, design, tool);
+  };
+  const cancelEdit = () => {
+    if (edit && edit.source !== edit.original) release(edit.source.url);
+    setEdit(null);
+    const trigger = editTrigger.current;
+    const card = trigger?.closest<HTMLElement>('.design-card');
+    requestAnimationFrame(() => (trigger?.isConnected ? trigger : card)?.focus());
+  };
+  const changeSheetColor = (color: string | null) => {
+    setSheetPreviewColor(color);
+    const failed = () => setErrors(previous => [...new Set([...previous, 'No se ha podido guardar el fondo de vista previa. Se mantiene durante esta sesión.'])]);
+    if (desktop) { desktop.updatePreferences({ sheetPreviewColor: color }).catch(failed); return; }
+    try {
+      if (color) localStorage.setItem(COLOR_STORAGE_KEY, color);
+      else localStorage.removeItem(COLOR_STORAGE_KEY);
+    } catch { failed(); }
+  };
   const convertPdf = async (dpi: number) => {
     if (!conversion) return;
     const { design,action } = conversion;
@@ -257,12 +285,8 @@ export default function App() {
       if (action === 'refine') checkImageBudget(pixelsAfterEdit(designs, design.id, size.width * 2, size.height * 2), imageBudgetMp);
       const raster = await rasterizePdf(design.pdf!,design.widthMm,dpi,controller.signal);
       checkImageBudget(pixelsAfterEdit(designs,design.id,raster.width,raster.height), imageBudgetMp);
-      if (action === 'erase') {
-        const url = await rememberUrl(raster); setEditingDesign({ ...design,pdf: undefined,raster,url }); setEditingId(design.id);
-      } else {
-        checkImageBudget(pixelsAfterEdit(designs,design.id,raster.width * 2,raster.height * 2), imageBudgetMp);
-        await applyRaster(design,await runImage('refine',raster,undefined,controller.signal),'Bordes afinados.');
-      }
+      const url = await rememberUrl(raster);
+      startEdit(design, { ...design, pdf: undefined, raster, url }, action);
     } catch (error) { if (!controller.signal.aborted) setErrors([errorText(error)]); }
     finally { setBusy(''); exportController.current = null; }
   };
@@ -361,19 +385,27 @@ export default function App() {
           onChange={patch => changeDesign(design.id, patch)}
           onValidity={(field, valid) => validity(`${design.id}:${field}`, valid)}
           onRemove={() => { release(design.url); if (design.undo) release(design.undo.url); if (designs.length === 1) setExportBaseName(''); setDesigns(current => current.filter(d => d.id !== design.id)); clearDesignValidity(design.id); }}
-          onEdit={() => design.pdf ? setConversion({ design,action: 'erase' }) : setEditingId(design.id)} onCancel={cancelEdit} editingDesign={editingDesign?.id === design.id ? editingDesign : undefined}
-          onApply={async raster => { setBusy('Aplicando fondo…'); try { await applyRaster(design, raster, 'Fondo quitado.'); cancelEdit(); } finally { setBusy(''); } }}
-          onRefine={() => design.pdf ? setConversion({ design,action: 'refine' }) : void refine(design)}
+          onEdit={(tool, trigger) => openEditor(design, tool, trigger)}
           onUndo={() => { if (!design.undo) return; release(design.url); const undo = design.undo; setDesigns(current => current.map(d => d.id === design.id ? { ...d, pdf: undo.pdf, raster: undo.raster, url: undo.url, note: undo.note, opaque: undo.opaque, undo: undefined } : d)); setExported(''); }} />)}</div>
         <p className="session-note">Los diseños permanecen en esta sesión. Exporta tu trabajo antes de cerrar.</p>
       </section>
 
+      {edit && <ImageEditor design={edit.source} tool={edit.tool} color={sheetPreviewColor} onColorChange={changeSheetColor} preflightError={edit.error} onCancel={cancelEdit}
+        onApply={async raster => {
+          setBusy(edit.tool === 'erase' ? 'Aplicando fondo…' : 'Aplicando bordes…');
+          try {
+            await applyRaster(edit.original, raster, edit.tool === 'erase' ? 'Fondo quitado.' : 'Bordes afinados.', edit.tool === 'refine' && !edit.original.pdf ? edit.original.opaque : undefined);
+            cancelEdit();
+          } finally { setBusy(''); }
+        }} />}
       <section className="panel preview-panel" aria-labelledby="preview-title">
-        <div className="panel-heading"><h2 id="preview-title"><span className="step">2</span>Tu pliego</h2><label className="gap-label">Distancia entre diseños<select aria-label="Distancia entre diseños" value={gapMm} disabled={blocked} onChange={e => setGapMm(Number(e.target.value))}>{GAP_OPTIONS.map(gap => <option key={gap} value={gap}>{gap} mm</option>)}</select></label></div>
+        <div className="panel-heading"><div className="sheet-heading"><h2 id="preview-title"><span className="step">2</span>Tu pliego</h2>
+          <SheetBackground color={sheetPreviewColor} onChange={changeSheetColor} disabled={blocked} />
+        </div><label className="gap-label">Distancia entre diseños<select aria-label="Distancia entre diseños" value={gapMm} disabled={blocked} onChange={e => setGapMm(Number(e.target.value))}>{GAP_OPTIONS.map(gap => <option key={gap} value={gap}>{gap} mm</option>)}</select></label></div>
         {pending && designs.length > 0 && <p className="working" role="status"><span className="spinner" />Buscando el montaje que menos film gasta…</p>}
         {!pending && layoutState.error && <p className="error-box" role="alert">{layoutState.error}</p>}
         {layout?.unplacedIds.map(id => <p key={id} className="error-box" role="alert"><strong>{designs.find(d => d.id === id)?.name}</strong> no cabe en el área imprimible, ni girado. Reduce su ancho o cambia el formato.</p>)}
-        {layout && layout.pages.length > 0 ? <SheetPreview layout={layout} profile={packingProfile} designs={designs} mirror={mirror} pageIndex={pageIndex} onPage={setPageIndex} excludedPages={excludedPages} canDownloadPdf={canExport} canDownloadPng={canExport && !pngError} busy={blocked || formatOpen} onDownload={(format, index) => void exportSheets(format, index)} onInclude={includePage}
+        {layout && layout.pages.length > 0 ? <SheetPreview color={sheetPreviewColor} layout={layout} profile={packingProfile} designs={designs} mirror={mirror} pageIndex={pageIndex} onPage={setPageIndex} excludedPages={excludedPages} canDownloadPdf={canExport} canDownloadPng={canExport && !pngError} busy={blocked || formatOpen} onDownload={(format, index) => void exportSheets(format, index)} onInclude={includePage}
           spread={spreadPages.includes(visibleIndex)} canSpread={canSpread} spacingDisabled={blocked || formatOpen || pending || invalidFields.size > 0} spacingNotice={spacingNotice} onToggleSpacing={toggleSpacing} /> : !pending && !layoutState.error && !layout?.unplacedIds.length && <div className="empty-preview"><div className="empty-sheet"><span>+</span></div><p>Tu pliego se monta solo<br />en cuanto subas diseños.</p></div>}
       </section>
 

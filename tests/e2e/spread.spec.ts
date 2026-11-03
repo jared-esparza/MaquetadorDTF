@@ -108,11 +108,24 @@ for (const mirror of [false, true]) test(`exporta posiciones repartidas en PNG/P
   await expectSpreadGrid(page, mirror);
   await mkdir('artifacts/qa', { recursive: true });
   const prefix = `artifacts/qa/spread-${mirror ? 'mirror' : 'normal'}`;
+  const background = page.getByRole('button', { name: 'Cambiar fondo de vista previa' });
+  await background.click();
+  const contrast = page.getByLabel('Color hexadecimal del pliego');
+  await contrast.fill('#E519C7');
+  await contrast.press('Enter');
+  await expect(page.getByRole('img', { name: 'Vista previa del pliego' })).toHaveCSS('background-color', 'rgb(229, 25, 199)');
+  await expect(page.getByRole('img', { name: 'Miniatura del pliego' }).last()).toHaveCSS('background-color', 'rgb(229, 25, 199)');
+  await background.click();
   for (const type of ['png', 'pdf']) {
     const file = await download(page, `Descargar este pliego en ${type.toUpperCase()}`, `${prefix}.${type}`);
     expect(file.suggestedFilename()).toBe(`Reparto-pliego-002.${type}`);
     await expect(page.locator('.sheet-frame')).toHaveAttribute('data-excluded', 'true');
   }
+  await background.click();
+  await contrast.fill('#177D25');
+  await contrast.press('Enter');
+  await background.click();
+  await expect(page.locator('.sheet-frame')).toHaveAttribute('data-excluded', 'true');
   await page.getByRole('button', { name: 'Volver a incluir', exact: true }).click();
   await download(page, 'Descargar PNG en ZIP', `${prefix}-png.zip`);
   await download(page, 'Descargar PDF en ZIP', `${prefix}-pdf.zip`);
