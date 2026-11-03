@@ -794,4 +794,6 @@ h1 {
 .sheet-excluded .sheet-svg { opacity:.4; }
 .sheet-download-actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:12px 0; }
 .sheet-download-actions button { font-size:12px; }
+.sheet-spacing-actions { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:12px; }
+.sheet-spacing-actions button { font-size:12px; }
 .sheet-download-status { color:#405b70; font-size:12px; font-weight:700; }

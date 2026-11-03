@@ -8,6 +8,73 @@ import pypdfium2 as pdfium
 root = Path(__file__).resolve().parent.parent / 'artifacts' / 'qa'
 reports = []
 
+# Hand-derived 3 x 3 grid on 100 mm sheets: 20 mm pieces, asymmetric margins.
+# Compact starts: x=3,30,57; y=2,29,56. Spread: x=3,39,75; y=2,39,76.
+def check_spread(image, spread=True, mirror=False):
+    assert image.mode == 'RGBA'
+    assert abs(image.width * 25.4 / 300 - 100) < .15
+    assert abs(image.height * 25.4 / 300 - 100) < .15
+    xs = [3, 39, 75] if spread else [3, 30, 57]
+    ys = [2, 39, 76] if spread else [2, 29, 56]
+    # The mirrored packing swaps the horizontal margins before reflecting.
+    if mirror and not spread:
+        xs = [21, 48, 75]
+    for x in xs:
+        for y in ys:
+            colors = [(2, 3, (255, 0, 0, 255)), (16, 3, (0, 0, 255, 255)), (10, 10, (0, 0, 0, 0))]
+            for dx, dy, expected in colors:
+                if mirror:
+                    dx = 20 - dx
+                actual = image.getpixel((round((x + dx) * 300 / 25.4), round((y + dy) * 300 / 25.4)))
+                assert actual == expected, (spread, mirror, x, y, dx, dy, actual, expected)
+    # Count and measure opaque spans through the first row/column, independently of JS.
+    def spans(values):
+        edges = [i for i in range(len(values)) if values[i] != (values[i-1] if i else False)]
+        if values[-1]: edges.append(len(values))
+        return list(zip(edges[::2], edges[1::2]))
+    horizontal = spans([image.getpixel((x, round(5 * 300 / 25.4)))[3] > 128 for x in range(image.width)])
+    vertical = spans([image.getpixel((round((xs[0] + 2) * 300 / 25.4), y))[3] > 128 for y in range(image.height)])
+    for actual, expected in [(horizontal, xs), (vertical, ys)]:
+        assert len(actual) == 3, actual
+        for (start, end), position in zip(actual, expected):
+            assert abs(start * 25.4 / 300 - position) < .2, (actual, expected)
+            assert abs((end - start) * 25.4 / 300 - 20) < .2, (actual, expected)
+    assert image.getpixel((0, 0))[3] == 0
+
+def check_spread_pdf(data, mirror=False, combined=False):
+    doc = pdfium.PdfDocument(data)
+    assert len(doc) == (3 if combined else 1)
+    for index in ([0, 1] if combined else [0]):
+        page = doc[index]
+        bitmap = page.render(scale=300 / 72, fill_color=(0, 0, 0, 0))
+        check_spread(bitmap.to_pil().convert('RGBA'), spread=not combined or index == 1, mirror=mirror)
+        bitmap.close(); page.close()
+    doc.close()
+
+for mirror in (False, True):
+    prefix = root / ('spread-mirror' if mirror else 'spread-normal')
+    with Image.open(prefix.with_suffix('.png')) as image:
+        image.load(); check_spread(image, mirror=mirror)
+    check_spread_pdf(prefix.with_suffix('.pdf').read_bytes(), mirror)
+    check_spread_pdf(Path(str(prefix) + '-combined.pdf').read_bytes(), mirror, combined=True)
+    for extension in ('png', 'pdf'):
+        with zipfile.ZipFile(Path(str(prefix) + f'-{extension}.zip')) as archive:
+            assert archive.namelist() == [f'Reparto-pliego-{i:03}.{extension}' for i in (1, 2, 3)]
+            for index in (1, 2):
+                data = archive.read(f'Reparto-pliego-{index:03}.{extension}')
+                if extension == 'png':
+                    with Image.open(BytesIO(data)) as image:
+                        image.load(); check_spread(image, spread=index == 2, mirror=mirror)
+                elif index == 2:
+                    check_spread_pdf(data, mirror)
+    reports.append({'spread_mirror': mirror, 'individual_zip_combined_size_positions_colors_alpha': 'PASS'})
+
+if (root / 'desktop-spread.png').exists():
+    with Image.open(root / 'desktop-spread.png') as image:
+        image.load(); check_spread(image)
+    check_spread_pdf((root / 'desktop-spread.pdf').read_bytes())
+    reports.append({'desktop_spread_size_positions_colors_alpha': 'PASS'})
+
 # Selected pages use original numbering and full opacity, independently of the UI.
 def check_selected(image):
     assert image.mode == 'RGBA'

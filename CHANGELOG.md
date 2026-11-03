@@ -1,5 +1,11 @@
 # Cambios
 
+## 1.7.0
+
+- «Repartir espacios» aprovecha el sobrante del pliego visible para separar los diseños sin cambiar tamaños, giros, alineaciones, copias ni número de pliegos. La distancia elegida se mantiene como mínimo y el reparto puede superar los 10 mm.
+- «Restaurar compacto» recupera exactamente el montaje original de ese pliego. Cada pliego se controla por separado; vista previa y exportaciones PDF/PNG comparten las mismas posiciones.
+- Repartir o restaurar reincluye solo el pliego modificado si estaba descargado y deja trabajo pendiente de exportar. Los cambios de contenido o geometría vuelven al montaje compacto; las opciones de salida conservan el reparto durante la sesión.
+
 ## 1.6.0
 
 - Descarga individual del pliego visible en PDF o PNG, con atenuación y opción de volver a incluirlo.

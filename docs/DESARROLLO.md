@@ -128,3 +128,25 @@ Los ZIP y el PDF multipágina incluyen solo los pendientes, en su orden original
 Las marcas duran la sesión y se reinician al añadir, quitar o editar diseños, cambiar medidas/copias, deshacer, cambiar dimensiones/márgenes del formato, separación o espejo. El programa avisa si reinicia marcas existentes. Cambiar nombre, resolución PNG, organización PDF o pliego visible conserva las marcas. Una descarga parcial mantiene el aviso de trabajo pendiente; exportar todos los pendientes o completar todos individualmente permite cerrar sin ese aviso. «Volver a incluir» deja trabajo pendiente de nuevo.
 
 La separación admite 3, 4, 5, 6, 7, 8, 9 y 10 mm; sigue empezando en 7 mm.
+
+
+## Repartir espacios entre diseños (1.7.0)
+
+Después del montaje automático, selecciona un pliego y pulsa **Repartir espacios**.
+El sobrante horizontal y vertical aumenta los huecos entre piezas dentro de los
+márgenes, sin cambiar tamaños, giros, alineaciones, copias, número de pliegos ni
+aprovechamiento. La distancia elegida sigue siendo el mínimo; los huecos pueden
+superar los 10 mm y ser distintos con diseños mezclados. No añade margen exterior.
+Una fila o columna solo se expande en el eje disponible. Una pieza sola queda igual;
+si no hay espacio que repartir, el botón se desactiva.
+
+**Restaurar compacto** recupera exactamente las posiciones originales de ese pliego.
+Cada pliego se controla por separado. Vista previa, miniaturas, PDF y PNG comparten
+el montaje, incluidas las descargas individuales, ZIP y PDF multipágina.
+
+Repartir o restaurar deja trabajo pendiente de exportar y reincluye únicamente ese
+pliego si estaba apartado por descarga individual, con aviso. Los demás conservan
+sus marcas. Cambiar diseños o imágenes, medidas/copias, deshacer, geometría del
+formato, márgenes, separación o espejo reinicia el reparto y las marcas de todo el
+trabajo. Nombre, resolución PNG, organización PDF y navegación conservan el reparto.
+Este estado dura la sesión; no se guarda al cerrar.

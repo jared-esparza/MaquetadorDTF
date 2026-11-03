@@ -1,6 +1,6 @@
 import { test, expect, _electron, type ElectronApplication, type Page } from '@playwright/test';
 import { createRequire } from 'node:module';
-import { copyFile, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
@@ -8,11 +8,13 @@ import os from 'node:os';
 import { PNG } from 'pngjs';
 import { PDFDocument } from 'pdf-lib';
 import { unzipSync } from 'fflate';
+import { expectSpreadGrid, prepareSpread, sheetPositions } from '../helpers/spread';
 
 const require = createRequire(import.meta.url);
 let application: ElectronApplication;
 let page: Page;
 let directory: string;
+let electronStderr: string;
 
 function png() {
   const png = new PNG({ width: 600, height: 300 });
@@ -23,15 +25,21 @@ function png() {
 }
 
 test.beforeEach(async () => {
+  electronStderr = '';
   directory = await mkdtemp(path.join(os.tmpdir(), 'DTF escritorio ñ '));
   const env: Record<string, string> = Object.fromEntries(Object.entries({ ...process.env, DTF_TEST_DATA_DIR: directory }).filter((entry): entry is [string, string] => typeof entry[1] === 'string'));
   delete env.ELECTRON_RUN_AS_NODE;
   if (process.env.DTF_ELECTRON_EXE) env.PORTABLE_EXECUTABLE_DIR = directory;
   application = await _electron.launch({ executablePath: process.env.DTF_ELECTRON_EXE ?? require('electron'), args: process.env.DTF_ELECTRON_EXE ? [] : ['electron/main.mjs'], env });
+  application.process().stderr?.on('data', chunk => { electronStderr += chunk.toString(); });
   page = await application.firstWindow();
   await expect(page.getByRole('heading', { name: 'Maquetador DTF', exact: true })).toBeVisible();
 });
-test.afterEach(async () => {
+test.afterEach(async ({}, info) => {
+  if (info.status !== info.expectedStatus && electronStderr) {
+    console.error(electronStderr);
+    await info.attach('electron-stderr', { body: electronStderr, contentType: 'text/plain' });
+  }
   if (application) {
     // Let Playwright finish tracing before Electron exits, including the updater's separate net session.
     await application.evaluate(({ BrowserWindow }) => { for (const window of BrowserWindow.getAllWindows()) window.removeAllListeners('close'); }).catch(() => {});
@@ -46,6 +54,57 @@ async function closeWelcome() {
   await expect(page.getByLabel('Subir diseños PNG')).toBeEnabled();
 }
 async function importDesign() { await page.getByLabel('Subir diseños PNG').setInputFiles({ name: 'diseño ñ.png', mimeType: 'image/png', buffer: png() }); await expect(page.getByTestId('design-card')).toHaveCount(1); }
+
+test('reparto compartido: guardar, cancelar, fallar y restaurar solo afectan al pliego modificado', async () => {
+  await closeWelcome(); await prepareSpread(page);
+  await application.evaluate(({ ipcMain }) => {
+    ipcMain.on('desktop:document:state', (_event, state) => { (globalThis as unknown as { spreadDocumentState: { dirty: boolean } }).spreadDocumentState = state; });
+  });
+  const dirty = () => application.evaluate(() => (globalThis as unknown as { spreadDocumentState: { dirty: boolean } }).spreadDocumentState?.dirty);
+  const saveTo = (filename: string) => application.evaluate(({ dialog }, filePath) => { dialog.showSaveDialog = async () => ({ canceled: false, filePath }); }, path.join(directory, filename));
+  const compact = await sheetPositions(page);
+  for (const index of [1, 2, 3]) {
+    await page.getByRole('button', { name: `Ver pliego ${index}`, exact: true }).click();
+    await saveTo(`compact-${index}.pdf`);
+    await page.getByRole('button', { name: 'Descargar este pliego en PDF', exact: true }).click();
+    await expect(page.locator('.sheet-frame')).toHaveAttribute('data-excluded', 'true');
+  }
+  await expect.poll(dirty).toBe(false);
+  await page.getByRole('button', { name: 'Ver pliego 2', exact: true }).click();
+  await page.getByRole('button', { name: 'Repartir espacios', exact: true }).click();
+  await expectSpreadGrid(page);
+  await expect.poll(dirty).toBe(true);
+  await expect(page.getByTestId('remaining-sheets')).toContainText('1 de 3');
+  for (const type of ['PNG', 'PDF']) {
+    await application.evaluate(({ dialog }) => { dialog.showSaveDialog = async () => ({ canceled: true, filePath: '' }); });
+    await page.getByRole('button', { name: `Descargar este pliego en ${type}`, exact: true }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'Guardado cancelado' })).toBeVisible();
+    await expectSpreadGrid(page);
+    await expect(page.getByTestId('remaining-sheets')).toContainText('1 de 3');
+    await expect.poll(dirty).toBe(true);
+    await saveTo(`missing/fallo.${type.toLowerCase()}`);
+    await page.getByRole('button', { name: `Descargar este pliego en ${type}`, exact: true }).click();
+    await expect(page.getByRole('alert')).toBeVisible();
+    await expectSpreadGrid(page);
+    await expect(page.locator('.sheet-frame')).toHaveAttribute('data-excluded', 'false');
+    await expect.poll(dirty).toBe(true);
+  }
+  await mkdir('artifacts/qa', { recursive: true });
+  for (const type of ['PNG', 'PDF']) {
+    const filename = `spread.${type.toLowerCase()}`;
+    await saveTo(filename);
+    await page.getByRole('button', { name: `Descargar este pliego en ${type}`, exact: true }).click();
+    await expect(page.getByRole('status').filter({ hasText: `${type} guardado` })).toBeVisible();
+    await expect(page.locator('.sheet-frame')).toHaveAttribute('data-excluded', 'true');
+    await copyFile(path.join(directory, filename), path.resolve(`artifacts/qa/desktop-${filename}`));
+    await expect.poll(dirty).toBe(false);
+  }
+  await page.getByRole('button', { name: 'Restaurar compacto', exact: true }).click();
+  expect(await sheetPositions(page)).toEqual(compact);
+  await expect.poll(dirty).toBe(true);
+  await expect(page.getByTestId('remaining-sheets')).toContainText('1 de 3');
+  for (const index of [1, 3]) await expect(page.getByRole('button', { name: `Ver pliego ${index}`, exact: true })).toHaveAttribute('data-excluded', 'true');
+});
 
 test('descarga individual solo se aparta al guardar y conserva el aviso de trabajo parcial', async () => {
   await closeWelcome();
