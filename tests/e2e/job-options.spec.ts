@@ -131,7 +131,7 @@ test('presupuesto persiste, protege ediciones y permite ampliar sin perder dise�
   await expect(page.getByTestId('image-budget-usage')).toHaveText('66 / 120 MP');
   await budget.selectOption('60');
   await expect(budget).toHaveValue('120');
-  await expect(page.getByRole('alert').filter({ hasText: 'Quita diseños' })).toBeVisible();
+  await expect(page.getByRole('alert').filter({ hasText: /^Quita diseños antes de reducir el presupuesto/ })).toBeVisible();
   await first.getByRole('button', { name: 'Deshacer', exact: true }).click();
   await expect(page.getByTestId('image-budget-usage')).toHaveText('42 / 120 MP');
   await budget.selectOption('60'); await expect(budget).toHaveValue('60');

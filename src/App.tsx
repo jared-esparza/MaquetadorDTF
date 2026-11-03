@@ -84,6 +84,7 @@ export default function App() {
   const [spacingNotice, setSpacingNotice] = useState('');
   const [exported, setExported] = useState('');
   const [dragging, setDragging] = useState(false);
+  const [budgetError, setBudgetError] = useState('');
   const [importErrors, setImportErrors] = useState<string[]>([]);
   const designListRef = useRef<HTMLDivElement>(null);
   const uploadRef = useRef<HTMLButtonElement>(null);
@@ -125,7 +126,7 @@ export default function App() {
 
   useEffect(() => {
     if (!preferencesReady) return;
-    const failed = () => setErrors(previous => [...previous.filter(error => !error.startsWith('No se ha podido guardar el presupuesto')), 'No se ha podido guardar el presupuesto de imágenes. Se mantiene durante esta sesión.']);
+    const failed = () => setBudgetError('No se ha podido guardar el presupuesto de imágenes. Se mantiene durante esta sesión.');
     if (desktop) { desktop.updatePreferences({ imageBudgetMp }).catch(failed); return; }
     try { localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(imageBudgetMp)); } catch { failed(); }
   }, [imageBudgetMp, preferencesReady]);
@@ -371,9 +372,11 @@ export default function App() {
         <div className="image-budget">
           <label>Presupuesto de imágenes<select value={imageBudgetMp} disabled={blocked} onChange={event => {
             const next = imageBudget(Number(event.target.value));
-            if (totalPixels > next * 1_000_000) { setErrors(['Quita diseños antes de reducir el presupuesto por debajo del consumo actual.']); return; }
+            if (totalPixels > next * 1_000_000) { setBudgetError('Quita diseños antes de reducir el presupuesto por debajo del consumo actual.'); return; }
+            setBudgetError('');
             setImageBudgetMp(next);
           }}>{IMAGE_BUDGETS.map(budget => <option key={budget} value={budget}>{budget} MP</option>)}</select></label>
+          {budgetError && <p className="error" role="alert">{budgetError}</p>}
           <p className="muted" data-testid="image-budget-usage">{formatMm(totalPixels / 1_000_000)} / {imageBudgetMp} MP</p>
           <p className="muted">Incluye originales y versiones de edición. Las copias del montaje no multiplican este consumo.</p>
           {imageBudgetMp > 60 && <p className="opaque-warning">Este presupuesto permite más imágenes y puede agotar la memoria del equipo. Exporta tu trabajo antes de cerrar.</p>}
