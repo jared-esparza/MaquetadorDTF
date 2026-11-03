@@ -110,8 +110,10 @@ export function ImageEditor({ design, tool, color, onColorChange, preflightError
         <button onClick={() => { setZoom(1); setPoint(center); }}>Ajustar</button>
         <button aria-label="Acercar" disabled={zoom === 12} onClick={() => setZoom(Math.min(12, zoom * 1.5))}>+</button>
       </div>
-      <SheetBackground color={color} disabled={applying} preview={{ enabled: useColor, onToggle: () => setUseColor(!useColor) }}
-        onChange={next => { onColorChange(next); setUseColor(next !== null); }} />
+      <SheetBackground color={color} disabled={applying} onChange={onColorChange} />
+      <button type="button" aria-pressed={useColor && color !== null} disabled={!color} onClick={() => setUseColor(!useColor)}>
+        Color del pliego
+      </button>
     </div>
     <div className={`editor-views ${view === 'compare' ? 'editor-compare' : ''}`}>
       {view !== 'after' && pane('before', design.url)}

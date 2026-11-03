@@ -157,9 +157,6 @@ test('compara en grande y conserva el encuadre al alternar; arrastrar no activa 
   await page.keyboard.press('Escape');
   await expect(hex).toBeHidden();
   await expect(background).toBeFocused();
-  await background.click();
-  await page.getByRole('button', { name: 'Restaurar damero' }).click();
-  await background.click();
   await page.getByLabel('Subir diseños PNG').setInputFiles({ name: 'detalle.png', mimeType: 'image/png', buffer: samplePng(true) });
   const opener = page.getByRole('button', { name: 'Borrador · fondo y colores' });
   await opener.click();
@@ -173,17 +170,20 @@ test('compara en grande y conserva el encuadre al alternar; arrastrar no activa 
   const editorBackground = editor.getByRole('button', { name: 'Cambiar fondo de vista previa' });
   await editorBackground.click();
   const editorHex = editor.getByLabel('Color hexadecimal del pliego');
-  await expect(editorHex).toBeEmpty();
-  await editorHex.fill('#e519c7');
+  await expect(editorHex).toHaveValue('#E519C7');
+  await expect(editorBackground.locator('span')).toHaveCSS('background-color', 'rgb(229, 25, 199)');
+  await editorHex.fill('#147ea1');
   await editorHex.press('Enter');
   const useColor = editor.getByRole('button', { name: 'Color del pliego' });
+  await editorBackground.click();
+  await expect(useColor).toHaveAttribute('aria-pressed', 'false');
+  await expect(editor.locator('.editor-stage').first()).toHaveCSS('background-color', 'rgb(232, 235, 239)');
+  await useColor.click();
   await expect(useColor).toHaveAttribute('aria-pressed', 'true');
+  await expect(editor.locator('.editor-stage').first()).toHaveCSS('background-color', 'rgb(20, 126, 161)');
   await useColor.click();
   await expect(editor.locator('.editor-stage').first()).toHaveCSS('background-color', 'rgb(232, 235, 239)');
-  await expect(useColor).toHaveAttribute('aria-pressed', 'false');
-  await useColor.click();
-  await editorBackground.click();
-  await expect(editor.locator('.editor-stage').first()).toHaveCSS('background-color', 'rgb(229, 25, 199)');
+  await expect(editorBackground.locator('span')).toHaveCSS('background-color', 'rgb(20, 126, 161)');
   const initial = (await after.boundingBox())!.width;
   await editor.getByRole('button', { name: 'Acercar' }).click();
   expect((await after.boundingBox())!.width).toBeCloseTo(initial * 1.5, 0);
@@ -207,7 +207,7 @@ test('compara en grande y conserva el encuadre al alternar; arrastrar no activa 
   await expect(wand).toHaveAttribute('aria-pressed', 'false');
   await page.keyboard.press('Escape');
   await expect(opener).toBeFocused();
-  await expect(page.getByRole('img', { name: 'Vista previa del pliego' })).toHaveCSS('background-color', 'rgb(229, 25, 199)');
+  await expect(page.getByRole('img', { name: 'Vista previa del pliego' })).toHaveCSS('background-color', 'rgb(20, 126, 161)');
 
   await page.setViewportSize({ width: 390, height: 700 });
   const refine = page.getByRole('button', { name: 'Afinar los bordes' });

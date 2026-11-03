@@ -323,6 +323,6 @@ muestra junto a «Tu pliego». El selector, el hexadecimal y la restauración
 del damero se muestran en un panel flotante. La verificación de este ajuste
 se realiza en la CI de la misma PR.
 
-El mismo selector está disponible dentro del editor. Elegir un color desde
-allí lo guarda para el pliego y activa el contraste en ambas imágenes. Cada
-edición abre con damero y permite alternar el contraste durante la sesión.
+El selector de ambas pantallas muestra y cambia el color guardado del pliego.
+Cada edición abre con damero. Un botón independiente alterna el contraste en
+las imágenes del editor sin modificar la preferencia del pliego.
