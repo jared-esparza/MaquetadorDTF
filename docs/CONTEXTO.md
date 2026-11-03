@@ -368,4 +368,11 @@ Tras la prueba del usuario se recuperan tres columnas desde 1100 px.
 Diseños ocupa 300 px, configuración/exportación 280 px y el pliego el resto.
 Fondo, reparto, formato, separación y herramientas de edición quedan visibles.
 Las opciones secundarias de exportación continúan plegadas.
-La validación de esta revisión queda pendiente de GitHub Actions.
+La [CI 41635919469](https://github.com/jared-esparza/MaquetadorDTF/actions/runs/41635919469)
+pasó en `43f389a`: compilación, unitarias, navegador, Electron, ejecutable
+empaquetado y verificaciones independientes de PDF/PNG. Se revisó la captura
+de tres columnas a 1280 × 720 de la ejecución anterior, también correcta.
+Los escenarios incluyen controles frecuentes visibles, desplazamiento de
+ambas columnas laterales y acceso a Configuración en ventanas estrechas.
+La versión local responde en http://127.0.0.1:5174/ para la revisión del usuario.
+La PR #15 continúa abierta. La revisión con trabajos reales queda pendiente.
