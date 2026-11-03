@@ -654,11 +654,13 @@ strong {
 .image-editor > p { margin:0; }
 .sheet-heading { display:flex; align-items:center; gap:7px; }
 .sheet-background-trigger {
-  display:grid;
-  place-items:center;
-  width:32px;
-  height:32px;
-  padding:0;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  min-height:32px;
+  padding:0 6px;
+  font-size:12px;
+  white-space:nowrap;
   background:transparent;
   border-color:transparent;
 }

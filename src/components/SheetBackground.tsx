@@ -23,6 +23,7 @@ export function SheetBackground({ color, onChange, disabled, preview }: {
     <button type="button" className="sheet-background-trigger" popoverTarget={id}
       aria-label="Cambiar fondo de vista previa" title="Cambiar fondo de vista previa" disabled={disabled}>
       <span aria-hidden="true" className="checker" style={swatch ? { background: swatch } : undefined} />
+      Fondo
     </button>
     <div id={id} className="sheet-background-popover" popover="auto">
       <fieldset className="sheet-background" disabled={disabled}>
