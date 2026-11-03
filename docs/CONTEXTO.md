@@ -326,3 +326,19 @@ se realiza en la CI de la misma PR.
 El selector de ambas pantallas muestra y cambia el color guardado del pliego.
 Cada edición abre con damero. Un botón independiente alterna el contraste en
 las imágenes del editor sin modificar la preferencia del pliego.
+
+## Cierre de la entrega 1.8.0
+
+El usuario probó el ajuste final y autorizó fusionar, publicar Windows y
+desplegar la web. La PR #14 se integró en main como
+`39b1ce8911fc20c7c5e6cde4666b4acd409fa697`. La
+[CI de la PR](https://github.com/jared-esparza/MaquetadorDTF/actions/runs/41619996398)
+pasó en `c820226`. La
+[CI de main](https://github.com/jared-esparza/MaquetadorDTF/actions/runs/41620936143)
+pasó compilación, unitarias, navegador, Electron, empaquetado, ejecutable y
+verificación independiente de PNG/PDF. También publicó la
+[preliminar 1.8.0](https://github.com/jared-esparza/MaquetadorDTF/releases/tag/v1.8.0)
+sin firma y desplegó el mismo commit en IONOS, con verificación automática
+de la web y sus recursos. La API confirmó los siete archivos de Release.
+No se realizaron pruebas locales ni comprobaciones manuales de la web
+desplegada. La autorización se limita a esta entrega.
