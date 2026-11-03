@@ -307,5 +307,13 @@ usar temporalmente en el editor y queda fuera del montaje y de la exportación.
 Se añadieron comprobaciones de navegador y Electron. Las muestras de reparto
 se exportan con fondo visual activo para que Pillow y PDFium comprueben la salida.
 Validación local limitada a revisión del cambio y `git diff --check`. Las
-pruebas y el empaquetado quedan pendientes de GitHub Actions. Los pendientes
-previos de fidelidad de importación PDF siguen abiertos.
+pruebas se ejecutaron en GitHub Actions. Los pendientes previos de fidelidad de
+importación PDF siguen abiertos.
+
+La [PR #14](https://github.com/jared-esparza/MaquetadorDTF/pull/14) queda abierta
+para revisión. La [CI 41612416834](https://github.com/jared-esparza/MaquetadorDTF/actions/runs/41612416834)
+pasó en `0d1466d`: compilación, unitarias, navegador, Electron, ejecutable
+empaquetado y comprobación independiente de PNG/PDF. La primera ejecución
+requirió actualizar las notas de Release y la segunda detectó dos selectores
+de pruebas que se ajustaron al diálogo. El despliegue se omitió en la PR.
+La web de desarrollo se arrancó en 127.0.0.1:5173 para revisión del usuario.
