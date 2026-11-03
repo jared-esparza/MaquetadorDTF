@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { decodeImage, rasterPng, rasterUrl } from './browser/images';
 import { runImage, runLayout, runPngExport, runPdfExport } from './browser/workerClient';
 import { pngDimensions } from './core/png';
+import { calculateJobCosts, formatCost, parseSheetCost, type WasteAllocation } from './core/jobCosts';
 import type { ExportProgress } from './browser/printPng';
 import { DEFAULT_PROFILE, GAP_OPTIONS, IMAGE_BUDGETS, imageBudget, checkImageBudget, designHeight, designMetrics, formatMm, pixelsAfterEdit, profileForLayout, retainedPixelCount, validateProfile, type Design, type LayoutResult, type Raster, type SheetProfile } from './core/model';
 import { defaultExportBaseName, normalizeExportBaseName, exportNameError, exportFilename, exportSelectionFilename } from './core/exportNames';
@@ -23,6 +24,19 @@ import type { PrintAsset } from './core/print';
 
 const STORAGE_KEY = 'pkprint-dtf-profiles-v1';
 const COLOR_STORAGE_KEY = 'pkprint-dtf-sheet-color-v1';
+const COST_STORAGE_KEY = 'pkprint-dtf-sheet-cost-v1';
+function costInput(cents: number | null | undefined) {
+  return typeof cents === 'number' && Number.isSafeInteger(cents) && cents >= 0
+    ? `${Math.floor(cents / 100)},${String(cents % 100).padStart(2, '0')}`
+    : '';
+}
+function readSheetCost() {
+  if (!desktop) try {
+    const saved = localStorage.getItem(COST_STORAGE_KEY);
+    if (saved !== null) return costInput(Number(saved));
+  } catch { /* Start with an empty cost. */ }
+  return '';
+}
 function readSheetColor() {
   if (!desktop) try { return normalizeSheetColor(localStorage.getItem(COLOR_STORAGE_KEY)); } catch { /* Use the damero. */ }
   return null;
@@ -54,6 +68,8 @@ export default function App() {
   const [designs, setDesigns] = useState<Design[]>([]);
   const [imageBudgetMp, setImageBudgetMp] = useState(readImageBudget);
   const [sheetPreviewColor, setSheetPreviewColor] = useState(readSheetColor);
+  const [sheetCost, setSheetCost] = useState(readSheetCost);
+  const [wasteAllocation, setWasteAllocation] = useState<WasteAllocation>('area');
   const [exportBaseName, setExportBaseName] = useState('');
   const [gapMm, setGapMm] = useState(7);
   const [mirror, setMirror] = useState(false);
@@ -114,6 +130,11 @@ export default function App() {
   const totalPixels = retainedPixelCount(designs);
   const canExport = !blocked && !formatOpen && !pending && !nameError && invalidFields.size === 0 && !!layout?.pages.length && layout.unplacedIds.length === 0 && (!lowDpi || acceptedLowDpi);
   const canExportRemaining = canExport && remainingPages.length > 0;
+  const sheetCostCents = parseSheetCost(sheetCost);
+  const costInvalid = sheetCost.trim() !== '' && sheetCostCents === null;
+  const costs = useMemo(() => layout && !layoutState.error && !formatOpen && invalidFields.size === 0 && sheetCostCents !== null
+    ? calculateJobCosts(layout, profile, sheetCostCents, wasteAllocation) : null,
+  [layout, layoutState.error, formatOpen, invalidFields.size, profile, sheetCostCents, wasteAllocation]);
   const pdfType = pdfOrganization === 'separate' && remainingPages.length > 1 ? 'zip' : 'pdf';
   const pngType = remainingPages.length > 1 ? 'zip' : 'png';
   let pngSize = '', pngError = '';
@@ -141,6 +162,7 @@ export default function App() {
       if (preferences.profileState) setStored(preferences.profileState);
       setImageBudgetMp(imageBudget(preferences.imageBudgetMp));
       setSheetPreviewColor(normalizeSheetColor(preferences.sheetPreviewColor));
+      setSheetCost(costInput(preferences.sheetCostCents));
       setShowWelcome(!preferences.hideWelcome); setDesktopVersion(preferences.version); setPreferencesReady(true);
     }).catch(() => { if (active) { setErrors(['No se han podido leer las preferencias. Se usarán los formatos iniciales.']); setShowWelcome(true); setPreferencesReady(true); } });
     const unsubscribe = desktop.onHelp(topic => { if (topic === 'welcome') setShowWelcome(true); });
@@ -381,7 +403,7 @@ export default function App() {
         </div>
         {!designs.length && <p className="empty-instruction">Indica el ancho o el alto y las copias de cada diseño. El pliego se monta automáticamente.</p>}
         {busy && <p className="working" role="status"><span className="spinner" />{busy}</p>}
-        <div className="design-list">{[...designs].reverse().map(design => <DesignCard key={design.id} design={design} busy={blocked && editingId !== design.id} editing={editingId === design.id}
+        <div className="design-list">{[...designs].reverse().map(design => <DesignCard key={design.id} design={design} cost={costs?.byDesign.get(design.id)} busy={blocked && editingId !== design.id} editing={editingId === design.id}
           onChange={patch => changeDesign(design.id, patch)}
           onValidity={(field, valid) => validity(`${design.id}:${field}`, valid)}
           onRemove={() => { release(design.url); if (design.undo) release(design.undo.url); if (designs.length === 1) setExportBaseName(''); setDesigns(current => current.filter(d => d.id !== design.id)); clearDesignValidity(design.id); }}
@@ -418,6 +440,34 @@ export default function App() {
             }
           }} />
         {layout && layout.pages.length > 0 ? <div className="layout-summary" data-testid="layout-summary"><strong>{layout.pages.length} {layout.pages.length === 1 ? 'pliego' : 'pliegos'} · {layout.pieceCount} {layout.pieceCount === 1 ? 'pieza' : 'piezas'}</strong><span>{formatMm(profile.widthMm / 10)} × {formatMm(profile.heightMm / 10)} cm por pliego</span><span>Aprovechamiento {Math.round(layout.pages.reduce((sum, p) => sum + p.utilization, 0) / layout.pages.length * 100)} %</span></div> : <p className="muted summary-empty">Sube tus diseños para preparar el PDF.</p>}
+        <fieldset className="job-costs" disabled={!preferencesReady}>
+          <legend>Costes</legend>
+          <label>Coste por pliego (€)
+            <input inputMode="decimal" value={sheetCost} aria-invalid={costInvalid} aria-describedby={costInvalid ? 'sheet-cost-error' : undefined} onChange={event => {
+              const value = event.currentTarget.value;
+              setSheetCost(value);
+              const cents = parseSheetCost(value);
+              if (cents === null && value.trim() !== '') return;
+              const failed = () => setErrors(previous => [...new Set([...previous, 'No se ha podido guardar el coste por pliego.'])]);
+              if (desktop) { desktop.updatePreferences({ sheetCostCents: cents }).catch(failed); return; }
+              try {
+                if (cents === null) localStorage.removeItem(COST_STORAGE_KEY);
+                else localStorage.setItem(COST_STORAGE_KEY, String(cents));
+              } catch { failed(); }
+            }} />
+          </label>
+          {costInvalid && <p id="sheet-cost-error" className="error-box">Introduce un importe desde 0 € con hasta dos decimales.</p>}
+          <label>Reparto de merma
+            <select value={wasteAllocation} onChange={event => setWasteAllocation(event.currentTarget.value === 'copy' ? 'copy' : 'area')}>
+              <option value="area">Proporcional al tamaño</option>
+              <option value="copy">Por igual entre todas las copias</option>
+            </select>
+          </label>
+          {costs && <div className="layout-summary" data-testid="job-cost-summary">
+            <strong>Coste total del trabajo {formatCost(costs.total)}</strong>
+            <span>Merma {formatMm(costs.wasteArea / 100)} cm² · {formatMm(costs.wasteFraction * 100)} % del film · {formatCost(costs.wasteCost)}</span>
+          </div>}
+        </fieldset>
         <label className="checkbox-label mirror-control"><input type="checkbox" checked={mirror} disabled={blocked} onChange={e => { setMirror(e.target.checked); setExported(''); }} aria-label="Aplicar espejo en el PDF" /><span>Aplicar espejo en el PDF<small>Desactivado si ya lo aplica tu RIP.</small></span></label>
         <div className="print-note"><strong>Preparado para tu RIP</strong><p>PNG en RGB; el PDF conserva el color de sus fuentes. Tu RIP genera la base blanca y gestiona el color.</p><p>Imprime al 100 %, sin ajustar a página.</p></div>
         <div className="export-bottom">

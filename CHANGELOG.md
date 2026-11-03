@@ -1,5 +1,10 @@
 # Cambios
 
+## 1.9.0
+
+- Coste por pliego recordado y resumen del coste total y de la merma del trabajo.
+- Coste por copia y subtotal por diseño, con reparto de la merma proporcional al área o por igual entre las copias.
+
 ## 1.8.0
 
 - Borrador y afinado de bordes en un editor amplio con comparación, zoom y desplazamiento sincronizados. El afinado se revisa antes de aplicar.

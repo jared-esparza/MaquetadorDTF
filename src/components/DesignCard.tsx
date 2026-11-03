@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { designHeight, designMetrics, formatMm, widthFromHeight, type Design } from '../core/model';
 import { NumberField } from './NumberField';
+import { formatCost, formatUnitCost } from '../core/jobCosts';
 import type { EditTool } from './ImageEditor';
 
 interface Props {
   design: Design; busy: boolean; editing: boolean;
+  cost?: { unit: number; subtotal: number };
   onChange: (patch: Partial<Pick<Design, 'widthMm' | 'copies'>>) => void;
   onRemove: () => void; onEdit: (tool: EditTool, trigger: HTMLElement) => void; onUndo: () => void;
   onValidity: (field: string, valid: boolean) => void;
 }
 
-export function DesignCard({ design, busy, editing, onChange, onRemove, onEdit, onUndo, onValidity }: Props) {
+export function DesignCard({ design, cost, busy, editing, onChange, onRemove, onEdit, onUndo, onValidity }: Props) {
   const [expanded, setExpanded] = useState(true);
   const { dpi, quality, recommendedWidthMm } = designMetrics(design.raster, design.widthMm);
   const heightMm = designHeight(design);
@@ -34,6 +36,7 @@ export function DesignCard({ design, busy, editing, onChange, onRemove, onEdit, 
       <button className="icon-button disclosure" aria-label="Ver u ocultar los ajustes de este diseño" aria-expanded={expanded} onClick={() => setExpanded(!expanded)} disabled={editing}>{expanded ? '▴' : '▾'}</button>
     </div>
     <p className="muted proportion-note">Proporción fija · al cambiar una medida se ajusta la otra.</p>
+    {cost && <p data-testid="design-cost">Coste por copia <strong>{formatUnitCost(cost.unit)}</strong> · Subtotal <strong>{formatCost(cost.subtotal)}</strong></p>}
     {expanded && <div className="design-details">
       <p>Medida final <strong>{formatMm(design.widthMm / 10)} × {formatMm(heightMm / 10)} cm</strong></p>
       {design.pdf ? <p className="success-note">PDF original · conserva textos y trazados. Puede contener imágenes de resolución limitada.</p> : <p className={`quality ${quality}`}>{quality === 'good' ? 'Buena calidad' : quality === 'fair' ? 'Calidad justa' : 'Resolución baja: puede verse pixelado'} · {Math.round(dpi)} ppp</p>}

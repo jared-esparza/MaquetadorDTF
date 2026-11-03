@@ -55,6 +55,23 @@ async function closeWelcome() {
 }
 async function importDesign() { await page.getByLabel('Subir diseños PNG').setInputFiles({ name: 'diseño ñ.png', mimeType: 'image/png', buffer: png() }); await expect(page.getByTestId('design-card')).toHaveCount(1); }
 
+test('recupera y borra el coste por pliego en Electron', async () => {
+  await closeWelcome();
+  const cost = page.getByLabel('Coste por pliego (€)');
+  const userData = await application.evaluate(({ app }) => app.getPath('userData'));
+  const saved = async () => JSON.parse(await readFile(path.join(userData, 'preferences.json'), 'utf8')).sheetCostCents ?? null;
+  await cost.fill('12,34');
+  await expect.poll(saved).toBe(1234);
+  await page.reload();
+  await closeWelcome();
+  await expect(cost).toHaveValue('12,34');
+  await cost.clear();
+  await expect.poll(saved).toBeNull();
+  await page.reload();
+  await closeWelcome();
+  await expect(cost).toHaveValue('');
+});
+
 test('reparto compartido: guardar, cancelar, fallar y restaurar solo afectan al pliego modificado', async () => {
   await closeWelcome(); await prepareSpread(page);
   await application.evaluate(({ ipcMain }) => {

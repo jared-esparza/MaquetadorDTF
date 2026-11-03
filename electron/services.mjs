@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 
 const queues = new Map();
 const isSheetColor = value => typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value);
+const isSheetCost = value => Number.isSafeInteger(value) && value >= 0;
 const defaults = () => ({ version: 1, hideWelcome: false, updateMode: 'notify', imageBudgetMp: 60, sheetPreviewColor: null });
 
 export function resolveResource(url, root) {
@@ -44,6 +45,7 @@ export async function readPreferences(directory) {
     if (['manual', 'notify', 'auto'].includes(stored.updateMode)) result.updateMode = stored.updateMode;
     if ([60, 120, 240].includes(stored.imageBudgetMp)) result.imageBudgetMp = stored.imageBudgetMp;
     if (isSheetColor(stored.sheetPreviewColor)) result.sheetPreviewColor = stored.sheetPreviewColor.toUpperCase();
+    if (isSheetCost(stored.sheetCostCents)) Object.assign(result, { sheetCostCents: stored.sheetCostCents });
     if (stored.profileState) result.profileState = validateProfileState(stored.profileState);
     if (typeof stored.lastExportDirectory === 'string' && path.isAbsolute(stored.lastExportDirectory)) result.lastExportDirectory = stored.lastExportDirectory;
     return result;
@@ -71,13 +73,17 @@ function commitPreferences(directory, patch) {
 }
 
 export async function updatePreferences(directory, patch) {
-  if (!patch || typeof patch !== 'object' || Array.isArray(patch) || Object.keys(patch).some(key => !['hideWelcome', 'profileState', 'updateMode', 'imageBudgetMp', 'sheetPreviewColor'].includes(key))) throw new Error('Preferencia no permitida.');
+  if (!patch || typeof patch !== 'object' || Array.isArray(patch) || Object.keys(patch).some(key => !['hideWelcome', 'profileState', 'updateMode', 'imageBudgetMp', 'sheetPreviewColor', 'sheetCostCents'].includes(key))) throw new Error('Preferencia no permitida.');
   const valid = {};
   if ('hideWelcome' in patch) { if (typeof patch.hideWelcome !== 'boolean') throw new Error('Preferencia no válida.'); valid.hideWelcome = patch.hideWelcome; }
   if ('imageBudgetMp' in patch) { if (![60, 120, 240].includes(patch.imageBudgetMp)) throw new Error('Presupuesto de imágenes no válido.'); valid.imageBudgetMp = patch.imageBudgetMp; }
   if ('sheetPreviewColor' in patch) {
     if (patch.sheetPreviewColor !== null && !isSheetColor(patch.sheetPreviewColor)) throw new Error('Color de vista previa no válido.');
     valid.sheetPreviewColor = patch.sheetPreviewColor?.toUpperCase() ?? null;
+  }
+  if ('sheetCostCents' in patch) {
+    if (patch.sheetCostCents !== null && !isSheetCost(patch.sheetCostCents)) throw new Error('Coste por pliego no válido.');
+    valid.sheetCostCents = patch.sheetCostCents;
   }
   if ('profileState' in patch) valid.profileState = validateProfileState(patch.profileState);
   if ('updateMode' in patch) { if (!['manual', 'notify', 'auto'].includes(patch.updateMode)) throw new Error('Modo de actualización no válido.'); valid.updateMode = patch.updateMode; }

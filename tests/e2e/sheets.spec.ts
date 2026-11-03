@@ -30,6 +30,44 @@ async function download(page: Page, button: string) {
   return pending;
 }
 
+test('costes del montaje completo, validación y preferencia global', async ({ page, context }) => {
+  const buffer = await prepare(page);
+  const cost = page.getByLabel('Coste por pliego (€)');
+  const summary = page.getByTestId('job-cost-summary');
+  await expect(summary).toHaveCount(0);
+  await cost.fill('10,50');
+  await expect(summary).toContainText('31,50');
+  await expect(page.getByTestId('design-cost')).toContainText('10,50');
+  await download(page, 'Descargar este pliego en PDF');
+  await expect(page.getByTestId('remaining-sheets')).toContainText('2 de 3');
+  await expect(summary).toContainText('31,50');
+  await cost.fill('10,501');
+  await expect(cost).toHaveAttribute('aria-invalid', 'true');
+  await expect(summary).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Descargar PDF en ZIP', exact: true })).toBeEnabled();
+  await cost.fill('10.50');
+  await page.getByLabel('Ancho (cm)', { exact: true }).fill('500');
+  await expect(page.getByText(/no cabe en el área imprimible/)).toBeVisible();
+  await expect(summary).toHaveCount(0);
+  await page.getByLabel('Ancho (cm)', { exact: true }).fill('5');
+  await page.getByLabel('Perfil de formato').selectOption('a3');
+  await expect(summary).toContainText('10,50');
+  await page.getByLabel('Subir diseños PNG').setInputFiles({ name: 'pequeño.png', mimeType: 'image/png', buffer });
+  const smaller = page.getByTestId('design-card').filter({ hasText: 'pequeño.png' });
+  await smaller.getByLabel('Ancho (cm)', { exact: true }).fill('2');
+  await expect(smaller.getByTestId('design-cost')).toContainText('0,5316');
+  await page.getByLabel('Reparto de merma').selectOption('copy');
+  await expect(smaller.getByTestId('design-cost')).toContainText('2,5587');
+  const reopened = await context.newPage();
+  await reopened.goto('/');
+  const saved = reopened.getByLabel('Coste por pliego (€)');
+  await expect(saved).toHaveValue('10,50');
+  await expect(reopened.getByLabel('Reparto de merma')).toHaveValue('area');
+  await saved.clear();
+  await reopened.reload();
+  await expect(saved).toHaveValue('');
+});
+
 async function bundle(page: Page, info: TestInfo, type: 'PDF' | 'PNG', suffix: string) {
   const file = await download(page, `Descargar ${type} en ZIP`);
   expect(file.suggestedFilename()).toBe('Pliegos.zip');

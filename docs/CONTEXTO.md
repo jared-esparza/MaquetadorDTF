@@ -342,3 +342,14 @@ sin firma y desplegó el mismo commit en IONOS, con verificación automática
 de la web y sus recursos. La API confirmó los siete archivos de Release.
 No se realizaron pruebas locales ni comprobaciones manuales de la web
 desplegada. La autorización se limita a esta entrega.
+
+## Entrega propuesta 1.9.0
+
+El editor compartido muestra el coste de todos los pliegos del trabajo, la
+superficie y el coste de la merma, y los importes unitarios y subtotales por
+diseño. La merma incluye los márgenes y se reparte por área o por copia.
+El último coste válido se guarda como preferencia global independiente del
+formato, en el navegador o en las preferencias de Electron.
+
+Pruebas unitarias, de navegador y de Electron añadidas para GitHub Actions.
+Validación local limitada a revisión del cambio y `git diff --check`.

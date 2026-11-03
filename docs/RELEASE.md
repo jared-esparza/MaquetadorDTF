@@ -1,6 +1,8 @@
-# Maquetador DTF 1.8.0 para Windows 10/11 x64
+# Maquetador DTF 1.9.0 para Windows 10/11 x64
 
 Instalador guiado en español y versión portátil. Entrega preliminar sin firma.
+
+- Coste por pliego, coste total y merma del film, con coste por copia y subtotal por diseño. El reparto puede ser proporcional al tamaño o igual para todas las copias.
 
 - Borrador y afinado de bordes en un editor ampliado con comparación Antes y Después, zoom y desplazamiento sincronizados.
 - Fondo de contraste guardado para la vista previa de los pliegos y disponible durante la edición. El fondo visual queda fuera de los archivos exportados.
