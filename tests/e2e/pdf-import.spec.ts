@@ -38,8 +38,8 @@ test('selección, recorte transparente, blanco real, rotación, cancelar y desha
   expect(Number(await cards.nth(1).getByLabel('Ancho (cm)').inputValue())).toBeCloseTo(2.15,1);
   expect(Number(await cards.nth(2).getByLabel('Ancho (cm)').inputValue())).toBeCloseTo(4.27,1);
   await cards.nth(2).getByRole('button',{ name: 'Borrador · fondo y colores' }).click();
-  await expect(cards.nth(2).getByRole('button',{ name: 'Aplicar', exact: true })).toBeVisible();
-  await cards.nth(2).getByRole('button',{ name: 'Cancelar',exact: true }).click();
+  await expect(page.getByRole('dialog', { name: 'Borrador · fondo y colores' }).getByRole('button',{ name: 'Aplicar', exact: true })).toBeVisible();
+  await page.getByRole('dialog', { name: 'Borrador · fondo y colores' }).getByRole('button',{ name: 'Cancelar',exact: true }).click();
 });
 
 test('PDF por pliego predeterminado, multipágina opcional y PNG desde vectores a 150/300/600 ppp', async ({ page },testInfo) => {
