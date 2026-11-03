@@ -38,12 +38,20 @@ for (const [width, height] of [[1366, 768], [1280, 720], [390, 844]]) {
       await expect(preview).toBeInViewport({ ratio: 1 });
       await expect(pdf).toBeInViewport({ ratio: 1 });
       await expect(add).toBeInViewport({ ratio: 1 });
+      await page.getByLabel('Subir diseños PNG').setInputFiles({ name: 'nuevo.png', mimeType: 'image/png', buffer });
+      const recent = page.getByTestId('design-card').first();
+      await expect(recent).toContainText('nuevo.png');
+      await expect(recent).toBeInViewport({ ratio: 1 });
     } else {
       const navigation = page.getByRole('navigation', { name: 'Espacio de trabajo' });
       await navigation.getByRole('link', { name: 'Exportación' }).click();
       await expect(pdf).toBeInViewport();
       await page.screenshot({ path: info.outputPath('exportacion.png') });
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
+      await page.setViewportSize({ width: 500, height });
+      await page.locator('summary').filter({ hasText: 'Ajustes' }).click();
+      await expect(page.getByLabel('Presupuesto de imágenes')).toBeInViewport({ ratio: 1 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(500);
     }
   });
 }

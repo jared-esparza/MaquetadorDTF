@@ -85,6 +85,7 @@ export default function App() {
   const [exported, setExported] = useState('');
   const [dragging, setDragging] = useState(false);
   const [importErrors, setImportErrors] = useState<string[]>([]);
+  const designListRef = useRef<HTMLDivElement>(null);
   const uploadRef = useRef<HTMLButtonElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const urls = useRef(new Set<string>());
@@ -238,6 +239,7 @@ export default function App() {
       }
       if (!designs.length && added.length) setExportBaseName(defaultExportBaseName());
       setDesigns(current => [...current, ...added]); setImportErrors(problems);
+      if (added.length && designListRef.current) designListRef.current.scrollTop = 0;
     } finally { setBusy(''); }
   };
   const applyRaster = async (design: Design, raster: Raster, note: string, opaque = hasOpaqueBackground(raster)) => {
@@ -391,10 +393,10 @@ export default function App() {
           <button ref={uploadRef} className="upload-button" aria-disabled={blocked} onClick={() => { if (!blocked) inputRef.current?.click(); }}><span className="upload-plus">+</span><strong>Añadir diseños</strong>{!designs.length && <><span>Arrastra archivos o pulsa para elegir.</span><small>PNG, JPEG y WebP hasta 20 MiB. PDF hasta 50 MiB.</small></>}</button>
         </div>
         {!designs.length && <p className="session-note">Los diseños permanecen en esta sesión. Exporta tu trabajo antes de cerrar.</p>}
-        {!!importErrors.length && <div className="error-box" role="alert">{importErrors.map((error, i) => <p key={i}>{error}</p>)}<button className="text-button" onClick={() => setImportErrors([])}>Cerrar aviso</button></div>}
+        {!!importErrors.length && <div className="error-box import-errors" role="alert"><div className="import-error-list" tabIndex={0}>{importErrors.map((error, i) => <p key={i}>{error}</p>)}</div><button className="text-button" onClick={() => setImportErrors([])}>Cerrar aviso</button></div>}
         {!designs.length && <p className="empty-instruction">Indica el ancho o el alto y las copias de cada diseño. El pliego se monta automáticamente.</p>}
         {busy && <p className="working" role="status"><span className="spinner" />{busy}</p>}
-        <div className="design-list">{[...designs].reverse().map(design => <DesignCard key={design.id} design={design} busy={blocked && editingId !== design.id} editing={editingId === design.id}
+        <div className="design-list" ref={designListRef}>{[...designs].reverse().map(design => <DesignCard key={design.id} design={design} busy={blocked && editingId !== design.id} editing={editingId === design.id}
           unplaced={!pending && layout?.unplacedIds.includes(design.id)}
           onChange={patch => changeDesign(design.id, patch)}
           onValidity={(field, valid) => validity(`${design.id}:${field}`, valid)}

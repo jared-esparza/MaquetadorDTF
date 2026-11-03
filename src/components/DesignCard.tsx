@@ -33,12 +33,13 @@ export function DesignCard({ design, busy, editing, unplaced, onChange, onRemove
       </div>
     </div>
     {opaque && <p className="opaque-warning">El fondo también se imprime.</p>}
+    {!design.pdf && quality === 'low' && <p className="quality low">Resolución baja · {Math.round(dpi)} ppp</p>}
     {unplaced && <p className="error" role="alert">No cabe en el área imprimible. Reduce la medida o cambia el formato.</p>}
     <button className="text-button design-disclosure" aria-expanded={expanded} onClick={() => setExpanded(!expanded)} disabled={editing}>{expanded ? 'Cerrar herramientas' : 'Editar diseño'}</button>
     {expanded && <div className="design-details">
       <p>Medida final <strong>{formatMm(design.widthMm / 10)} × {formatMm(heightMm / 10)} cm</strong></p>
       <p className="muted">Las medidas conservan la proporción del diseño.</p>
-      {design.pdf ? <p className="success-note">PDF original · conserva textos y trazados. Puede contener imágenes de resolución limitada.</p> : <p className={`quality ${quality}`}>{quality === 'good' ? 'Buena calidad' : quality === 'fair' ? 'Calidad justa' : 'Resolución baja: puede verse pixelado'} · {Math.round(dpi)} ppp</p>}
+      {design.pdf ? <p className="success-note">PDF original · conserva textos y trazados. Puede contener imágenes de resolución limitada.</p> : quality !== 'low' && <p className={`quality ${quality}`}>{quality === 'good' ? 'Buena calidad' : 'Calidad justa'} · {Math.round(dpi)} ppp</p>}
       {!design.pdf && quality !== 'good' && <button className="small-button" disabled={busy || editing} onClick={() => onChange({ widthMm: recommendedWidthMm })}>Ajustar a {formatMm(recommendedWidthMm / 10)} cm</button>}
       {design.note && <p className="success-note">{design.note}</p>}
       {design.raster.sourceScale > 1 && <p className="muted">Ampliar no añade detalle. Los ppp se calculan desde los píxeles originales.</p>}

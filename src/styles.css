@@ -807,6 +807,7 @@ strong {
 .designs-panel { position:sticky; top:12px; max-height:calc(100dvh - 76px); display:flex; flex-direction:column; }
 .designs-panel > :not(.design-list) { flex-shrink:0; }
 .design-list { min-height:0; overflow:auto; }
+.import-error-list { max-height:min(105px, 20dvh); overflow:auto; overflow-wrap:anywhere; }
 .designs-panel h2 { margin-bottom:8px; }
 .compact-upload { margin-bottom:8px; }
 .compact-upload .upload-button { min-height:0; flex-direction:row; justify-content:center; gap:8px; padding:6px; }
@@ -858,9 +859,10 @@ summary:focus-visible, .workspace-nav a:focus-visible { outline:2px solid var(--
   .workspace { grid-template-columns:minmax(0,1fr); padding:8px; }
   .designs-panel { position:static; max-height:none; }
   .design-list { overflow:visible; }
-  .header-tools { position:relative; margin-left:0; }
+  .app-header { position:relative; }
+  .header-tools { margin-left:0; }
   .header-tools details { position:static; }
-  .header-popover { right:auto; left:0; }
+  .header-popover { right:12px; top:100%; }
   .preview-panel .panel-heading { flex-wrap:wrap; }
   .preview-panel .panel-heading h2 { width:100%; }
   .export-main { grid-template-columns:minmax(0,1fr); }
