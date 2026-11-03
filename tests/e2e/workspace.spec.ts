@@ -32,8 +32,18 @@ for (const [width, height] of [[1366, 768], [1280, 720], [390, 844]]) {
     await expect(pdf).toBeEnabled();
     await expect(png).toBeEnabled();
     await page.screenshot({ path: info.outputPath('espacio-de-trabajo.png') });
-    if (width > 760) {
-      for (const target of [preview, next, pdf, png]) await expect(target).toBeInViewport({ ratio: 1 });
+    if (width >= 1100) {
+      const settings = page.getByRole('region', { name: 'Configuración', exact: true });
+      const designs = page.getByRole('region', { name: 'Diseños', exact: true });
+      const sheet = page.getByRole('region', { name: 'Pliego', exact: true });
+      const boxes = await Promise.all([designs, sheet, settings].map(region => region.boundingBox()));
+      expect(boxes[0]!.x + boxes[0]!.width).toBeLessThan(boxes[1]!.x);
+      expect(boxes[1]!.x + boxes[1]!.width).toBeLessThan(boxes[2]!.x);
+      for (const target of [preview, next, pdf, png, page.getByLabel('Perfil de formato'),
+        page.getByLabel('Distancia entre diseños'), page.getByRole('button', { name: 'Cambiar fondo de vista previa' }),
+        page.getByRole('button', { name: 'Repartir espacios', exact: true }),
+        page.getByTestId('design-card').first().getByRole('button', { name: 'Borrador · fondo y colores' }),
+        page.getByTestId('design-card').first().getByRole('button', { name: 'Afinar los bordes' })]) await expect(target).toBeInViewport({ ratio: 1 });
       await page.getByTestId('design-card').last().scrollIntoViewIfNeeded();
       await expect(preview).toBeInViewport({ ratio: 1 });
       await expect(pdf).toBeInViewport({ ratio: 1 });
@@ -42,6 +52,10 @@ for (const [width, height] of [[1366, 768], [1280, 720], [390, 844]]) {
       const recent = page.getByTestId('design-card').first();
       await expect(recent).toContainText('nuevo.png');
       await expect(recent).toBeInViewport({ ratio: 1 });
+      await page.locator('summary').filter({ hasText: 'Opciones de exportación' }).click();
+      await page.getByLabel('Resolución PNG').scrollIntoViewIfNeeded();
+      await expect(preview).toBeInViewport({ ratio: 1 });
+      await page.getByLabel('Resolución PNG').selectOption('150');
     } else {
       const navigation = page.getByRole('navigation', { name: 'Espacio de trabajo' });
       await navigation.getByRole('link', { name: 'Exportación' }).click();

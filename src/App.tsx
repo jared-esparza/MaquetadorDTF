@@ -419,22 +419,14 @@ export default function App() {
         }} />}
       <section className="panel preview-panel" aria-labelledby="preview-title">
         <div className="panel-heading"><h2 id="preview-title">Pliego</h2>
-        <ProfileEditor profiles={stored.profiles} profile={profile} disabled={blocked} onOpenChange={setFormatOpen} onSelect={selected => setStored(current => ({ ...current, selected }))} onSave={(updated, asNew) => setStored(current => ({ profiles: asNew ? [...current.profiles, updated] : current.profiles.map(p => p.id === updated.id ? updated : p), selected: updated.id }))}
-          resetDisabled={pending} onReset={desktop ? undefined : () => {
-            if (window.confirm('Se restaurarán los nombres, medidas y márgenes de Film 55 × 100 cm, A3 y A4. Los formatos creados con «Guardar como nuevo» se conservarán. ¿Continuar?')) {
-              setStored(current => ({ ...current, profiles: [...initialProfiles, ...current.profiles.filter(p => !initialProfiles.some(base => base.id === p.id))] }));
-            }
-          }} />
-        <label className="gap-label">Distancia entre diseños<select aria-label="Distancia entre diseños" value={gapMm} disabled={blocked} onChange={e => setGapMm(Number(e.target.value))}>{GAP_OPTIONS.map(gap => <option key={gap} value={gap}>{gap} mm</option>)}</select></label></div>
+          <SheetBackground color={sheetPreviewColor} onChange={changeSheetColor} disabled={blocked} />
+        </div>
         {layout && !!layout.pages.length && <p className="layout-summary" data-testid="layout-summary">
           {layout.pages.length} {layout.pages.length === 1 ? 'pliego' : 'pliegos'} · {layout.pieceCount} {layout.pieceCount === 1 ? 'pieza' : 'piezas'} · {formatMm(profile.widthMm / 10)} × {formatMm(profile.heightMm / 10)} cm
         </p>}
         {pending && designs.length > 0 && <p className="working" role="status"><span className="spinner" />Buscando el montaje que menos film gasta…</p>}
         {!pending && layoutState.error && <p className="error-box" role="alert">{layoutState.error}</p>}
-        <details className="view-options">
-          <summary>Opciones de vista y montaje</summary>
-          <SheetBackground color={sheetPreviewColor} onChange={changeSheetColor} disabled={blocked} />
-          <p className="muted">El fondo de vista previa y las guías quedan fuera del archivo exportado.</p>
+        <div className="view-options">
           {!!layout?.pages.length && <>
             <div className="sheet-spacing-actions">
               <button disabled={blocked || formatOpen || pending || invalidFields.size > 0 || (!spreadPages.includes(visibleIndex) && !canSpread)} aria-describedby="spacing-help" onClick={toggleSpacing}>
@@ -444,10 +436,20 @@ export default function App() {
             </div>
             <p id="spacing-help" className="muted">Reparte el espacio libre sin cambiar tamaños ni añadir pliegos. La separación elegida se mantiene como mínimo.</p>
           </>}
-        </details>
+        </div>
         {spacingNotice && <p className="muted" role="status">{spacingNotice}</p>}
         {layout && layout.pages.length > 0 ? <SheetPreview color={sheetPreviewColor} layout={layout} profile={packingProfile} designs={designs} mirror={mirror} pageIndex={pageIndex} onPage={setPageIndex} excludedPages={excludedPages} canDownloadPdf={canExport} canDownloadPng={canExport && !pngError} busy={blocked || formatOpen} onDownload={(format, index) => void exportSheets(format, index)} onInclude={includePage} />
           : !pending && !layoutState.error && !layout?.unplacedIds.length && <div className="empty-preview"><div className="empty-sheet"><span>+</span></div><p>Tu pliego se monta solo<br />en cuanto subas diseños.</p></div>}
+      </section>
+      <section className="panel settings-panel" aria-labelledby="settings-title">
+        <h2 id="settings-title">Configuración</h2>
+        <ProfileEditor profiles={stored.profiles} profile={profile} disabled={blocked} onOpenChange={setFormatOpen} onSelect={selected => setStored(current => ({ ...current, selected }))} onSave={(updated, asNew) => setStored(current => ({ profiles: asNew ? [...current.profiles, updated] : current.profiles.map(p => p.id === updated.id ? updated : p), selected: updated.id }))}
+          resetDisabled={pending} onReset={desktop ? undefined : () => {
+            if (window.confirm('Se restaurarán los nombres, medidas y márgenes de Film 55 × 100 cm, A3 y A4. Los formatos creados con «Guardar como nuevo» se conservarán. ¿Continuar?')) {
+              setStored(current => ({ ...current, profiles: [...initialProfiles, ...current.profiles.filter(p => !initialProfiles.some(base => base.id === p.id))] }));
+            }
+          }} />
+        <label className="gap-label">Distancia entre diseños<select aria-label="Distancia entre diseños" value={gapMm} disabled={blocked} onChange={e => setGapMm(Number(e.target.value))}>{GAP_OPTIONS.map(gap => <option key={gap} value={gap}>{gap} mm</option>)}</select></label>
         <section className="export-panel" aria-labelledby="export-title">
           <div className="export-heading">
             <h2 id="export-title">Exportar</h2>

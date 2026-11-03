@@ -1,9 +1,8 @@
-import { openWorkspaceOptions } from './workspace';
 import { expect, type Page } from '@playwright/test';
 import { PNG } from 'pngjs';
 
 export async function prepareSpread(page: Page) {
-  await page.getByRole('button', { name: 'Configurar formato' }).click();
+  await page.getByRole('button', { name: 'Personalizar' }).click();
   for (const [label, value] of [['Ancho del pliego (mm)', '100'], ['Largo del pliego (mm)', '100'],
     ['Margen izquierdo (mm)', '3'], ['Margen derecho (mm)', '5'], ['Margen superior (mm)', '2'], ['Margen inferior (mm)', '4']]) {
     await page.getByLabel(label).fill(value);
@@ -21,7 +20,6 @@ export async function prepareSpread(page: Page) {
   await page.getByLabel('Copias', { exact: true }).blur();
   await page.getByLabel('Nombre del trabajo').fill('Reparto'); await page.getByLabel('Nombre del trabajo').blur();
   await expect(page.getByTestId('layout-summary')).toContainText('3 pliegos');
-  await openWorkspaceOptions(page, 'Opciones de vista y montaje');
   await expect(page.getByRole('button', { name: 'Repartir espacios', exact: true })).toBeEnabled();
   return buffer;
 }

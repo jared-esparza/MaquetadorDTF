@@ -1,4 +1,4 @@
-import { openWorkspaceOptions, openDesignTools } from '../helpers/workspace';
+import { openWorkspaceOptions } from '../helpers/workspace';
 import { expect, test, type Download, type Page, type TestInfo } from '@playwright/test';
 import { PNG } from 'pngjs';
 import { PDFDocument } from 'pdf-lib';
@@ -7,7 +7,7 @@ import { mkdir, readFile } from 'node:fs/promises';
 
 async function prepare(page: Page) {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Configurar formato' }).click();
+  await page.getByRole('button', { name: 'Personalizar' }).click();
   for (const [label, value] of [['Ancho del pliego (mm)', '60'], ['Largo del pliego (mm)', '40'], ['Margen izquierdo (mm)', '3'], ['Margen superior (mm)', '2']]) await page.getByLabel(label).fill(value);
   await page.getByRole('button', { name: 'Guardar formato', exact: true }).click();
   const png = new PNG({ width: 600, height: 300 });
@@ -116,16 +116,14 @@ test('los cambios reinician marcas, incluidas ediciones del raster con idéntica
     async () => { await page.getByLabel('Copias', { exact: true }).fill('2'); await page.getByLabel('Copias', { exact: true }).blur(); },
     async () => {
       // The red corner pixels preserve the full bounds when the blue is erased.
-      await openDesignTools(page.getByTestId('design-card').first());
       const measure = await page.getByText('Medida final').textContent();
-      await openDesignTools(page.getByTestId('design-card').first());
       await page.getByRole('button', { name: 'Borrador · fondo y colores' }).click();
       await page.getByRole('button', { name: 'Aplicar', exact: true }).click();
       await expect(page.getByText('Medida final')).toHaveText(measure!);
     },
     () => page.getByRole('button', { name: 'Deshacer', exact: true }).click(),
     async () => {
-      await page.getByRole('button', { name: 'Configurar formato' }).click();
+      await page.getByRole('button', { name: 'Personalizar' }).click();
       await page.getByLabel('Margen izquierdo (mm)').fill('4');
       await page.getByRole('button', { name: 'Guardar formato', exact: true }).click();
     },

@@ -7,8 +7,8 @@ Descarga el archivo Setup de la versión elegida desde [Releases](https://github
 Descarga el archivo Portable de la versión elegida desde Releases y ábrelo desde una carpeta con permiso de escritura. Se crea MaquetadorDTF-datos junto al ejecutable. Copia también esa carpeta al moverlo a otro PC si quieres conservar los formatos y preferencias. No es necesario ejecutar el instalador.
 
 ## Tres pasos
-1. Pulsa «Añadir diseños» para subir PNG, JPG/JPEG, WebP estático o PDF. Para PDF, selecciona páginas y elige 300 ppp (inicial) o 600 ppp: se convierten a imágenes, sin conservar vectores. Indica ancho o alto en centímetros, siempre proporcionales, y número de copias. Abre «Editar diseño» y usa el borrador si necesitas quitar fondos; el blanco no se elimina automáticamente.
-2. Junto a la vista del pliego, configura el film y los márgenes en milímetros. La separación inicial es 7 mm; puedes elegir entre 3 y 10 mm. Revisa los pliegos.
+1. Pulsa «Añadir diseños» para subir PNG, JPG/JPEG, WebP estático o PDF. Para PDF, selecciona páginas y elige 300 ppp (inicial) o 600 ppp: se convierten a imágenes, sin conservar vectores. Indica ancho o alto en centímetros, siempre proporcionales, y número de copias. Usa el botón «Borrador · fondo y colores» si necesitas quitar fondos; el blanco no se elimina automáticamente.
+2. En la columna de Configuración, configura el film y los márgenes en milímetros. La separación inicial es 7 mm; puedes elegir entre 3 y 10 mm. Revisa los pliegos.
 3. Revisa el nombre del trabajo, descarga el PDF o PNG/ZIP y elige dónde guardarlo. PDF entrega un archivo por pliego por defecto (ZIP si hay varios), o un único PDF multipágina si lo seleccionas. Imprime desde tu RIP al 100 % o Tamaño real, sin ajustar a página. El RIP debe generar el blanco y gestionar el color. Activa espejo aquí solamente si lo desactivas en el RIP.
 
 Los diseños no se guardan como proyecto editable. Exporta antes de cerrar. Ayuda incluye instrucciones y un PDF de calibración con un cuadrado de 100 × 100 mm. Debes comprobarlo en tu impresora antes de producir.

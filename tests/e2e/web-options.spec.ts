@@ -53,7 +53,7 @@ test('los formatos son privados y restaurar conserva personalizados y selección
     await otherPage.goto('/');
     await openWorkspaceOptions(page, 'Ajustes');
     await expect(page.getByText('Los cambios de formato se guardan solo en este navegador y no afectan a otras personas')).toBeVisible();
-    await page.getByRole('button', { name: 'Configurar formato' }).click();
+    await page.getByRole('button', { name: 'Personalizar' }).click();
     await expect(page.getByRole('button', { name: 'Restaurar formatos predeterminados' })).toBeDisabled();
     await page.getByLabel('Nombre del formato').fill('Mi film');
     await page.getByLabel('Ancho del pliego (mm)').fill('600');
@@ -66,7 +66,7 @@ test('los formatos son privados y restaurar conserva personalizados y selección
     page.once('dialog', dialog => dialog.dismiss());
     await page.getByRole('button', { name: 'Restaurar formatos predeterminados' }).click();
     await expect(page.getByTestId('profile-dimensions')).toContainText('600 × 900 mm');
-    await page.getByRole('button', { name: 'Configurar formato' }).click();
+    await page.getByRole('button', { name: 'Personalizar' }).click();
     await page.getByLabel('Nombre del formato').fill('Mi formato personal');
     await page.getByLabel('Ancho del pliego (mm)').fill('330');
     await page.getByRole('button', { name: 'Guardar como nuevo', exact: true }).click();
@@ -79,14 +79,14 @@ test('los formatos son privados y restaurar conserva personalizados y selección
     await expect(page.getByLabel('Perfil de formato')).toHaveValue(selected);
     await page.getByLabel('Perfil de formato').selectOption('film-55');
     await expect(page.getByTestId('profile-dimensions')).toContainText('550 × 1000 mm');
-    await page.getByRole('button', { name: 'Configurar formato' }).click();
+    await page.getByRole('button', { name: 'Personalizar' }).click();
     await expect(page.getByLabel('Nombre del formato')).toHaveValue('Film 55 × 100 cm');
     await expect(page.getByLabel('Margen izquierdo (mm)')).toHaveValue('0');
     await page.getByRole('button', { name: 'Cerrar formato' }).click();
     const image = new PNG({ width: 20, height: 20 }); image.data.fill(255);
     await page.getByLabel('Subir diseños PNG').setInputFiles({ name: 'montaje.png', mimeType: 'image/png', buffer: PNG.sync.write(image) });
     await expect(page.getByTestId('layout-summary')).toContainText('55 × 100 cm');
-    await page.getByRole('button', { name: 'Configurar formato' }).click();
+    await page.getByRole('button', { name: 'Personalizar' }).click();
     await page.getByLabel('Ancho del pliego (mm)').fill('600');
     await page.getByRole('button', { name: 'Guardar formato', exact: true }).click();
     await expect(page.getByTestId('layout-summary')).toContainText('60 × 100 cm');

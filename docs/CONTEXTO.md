@@ -360,3 +360,12 @@ desplegada. La autorización se limita a esta entrega.
 - Las capturas de CI permitieron revisar el ajuste de altura y la exportación
   móvil. La revisión local se limitó al código y `git diff --check`. Queda
   pendiente la revisión de uso real en taller. La CI omitió el despliegue.
+
+
+### Replanteamiento de la PR #15
+
+Tras la prueba del usuario se recuperan tres columnas desde 1100 px.
+Diseños ocupa 300 px, configuración/exportación 280 px y el pliego el resto.
+Fondo, reparto, formato, separación y herramientas de edición quedan visibles.
+Las opciones secundarias de exportación continúan plegadas.
+La validación de esta revisión queda pendiente de GitHub Actions.

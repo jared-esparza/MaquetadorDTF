@@ -99,7 +99,7 @@ strong {
   border-radius:50%}
 .workspace {
   display:grid;
-  grid-template-columns:320px minmax(0,1fr);
+  grid-template-columns:300px minmax(0,1fr) 280px;
   gap:12px;
   padding:12px;
   align-items:start}
@@ -318,7 +318,7 @@ strong {
   background:#e9edf0;
   border-radius:10px;
   border:1px solid #d3d8dd;
-  width:min(100%,calc(clamp(140px, 100dvh - 445px, 720px) * var(--sheet-ratio) + 18px));
+  width:min(100%,calc(clamp(140px, 100dvh - 340px, 720px) * var(--sheet-ratio) + 18px));
   margin:0 auto}
 .sheet-svg {
   display:block;
@@ -815,7 +815,8 @@ strong {
 .upload-button[aria-disabled="true"] { opacity:.65; cursor:default; }
 .design-card { background:white; border-radius:6px; }
 .design-inputs input { font-variant-numeric:tabular-nums; min-width:0; }
-.design-disclosure { margin-top:4px; }
+.settings-panel { position:sticky; top:12px; max-height:calc(100dvh - 76px); overflow:auto; }
+.settings-panel .gap-label { margin:12px 0; flex-wrap:wrap; }
 .preview-panel { background:#f8fafc; }
 .preview-panel .panel-heading { align-items:flex-start; gap:12px; }
 .profile-block { flex:1; min-width:0; max-width:340px; }
@@ -845,26 +846,25 @@ summary:focus-visible, .workspace-nav a:focus-visible { outline:2px solid var(--
 .export-panel { border-top:1px solid var(--border); padding-top:8px; margin-top:8px; }
 .export-heading { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 12px; }
 .export-bottom { margin:0; padding:0; }
-.export-main { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:10px; }
+.export-main { display:grid; grid-template-columns:minmax(0,1fr); align-items:end; gap:10px; }
 .export-main .export-name { margin:0; min-width:0; }
-.download-actions { display:flex; gap:6px; }
+.download-actions { display:flex; flex-direction:column; gap:6px; }
 .download-actions .download-button { padding:7px 10px; font-size:13px; width:auto; gap:6px; }
 .export-options { margin-top:6px; }
 .options-fields { display:grid; gap:6px; padding:8px 0; overflow-wrap:anywhere; }
 .options-fields label { max-width:100%; }
 .options-fields select { max-width:100%; }
 .options-fields .mirror-control { margin:0; }
-@media(max-width:760px) {
+@media(max-width:1099px) {
   .workspace-nav { display:flex; gap:16px; padding:8px 12px; font-size:13px; }
   .workspace { grid-template-columns:minmax(0,1fr); padding:8px; }
-  .designs-panel { position:static; max-height:none; }
+  .designs-panel, .settings-panel { position:static; max-height:none; overflow:visible; }
   .design-list { overflow:visible; }
   .app-header { position:relative; }
   .header-tools { margin-left:0; }
   .header-tools details { position:static; }
   .header-popover { right:12px; top:100%; }
   .preview-panel .panel-heading { flex-wrap:wrap; }
-  .preview-panel .panel-heading h2 { width:100%; }
   .export-main { grid-template-columns:minmax(0,1fr); }
   .download-actions { flex-wrap:wrap; }
   .sheet-toolbar .page-navigation { flex-basis:100%; }

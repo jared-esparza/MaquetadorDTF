@@ -1,4 +1,4 @@
-import { openWorkspaceOptions, openDesignTools } from '../helpers/workspace';
+import { openWorkspaceOptions } from '../helpers/workspace';
 import { expect, test, type Page } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 import { expectSpreadGrid, prepareSpread, sheetPositions } from '../helpers/spread';
@@ -21,7 +21,6 @@ test('reparte solo el pliego visible, conserva las otras marcas y restaura exact
     await expect(page.locator('.sheet-frame')).toHaveAttribute('data-excluded', 'true');
   }
   await page.getByRole('button', { name: 'Ver pliego 2', exact: true }).click();
-  await openWorkspaceOptions(page, 'Opciones de vista y montaje');
   await page.getByRole('button', { name: 'Repartir espacios', exact: true }).click();
   await expectSpreadGrid(page);
   await expect(page.getByTestId('layout-summary')).toHaveText(summary!);
@@ -31,7 +30,6 @@ test('reparte solo el pliego visible, conserva las otras marcas y restaura exact
   expect(await sheetPositions(page, '.page-thumbnail.active')).toEqual(await sheetPositions(page));
   await page.getByRole('button', { name: 'Ver pliego 1', exact: true }).click();
   expect(await sheetPositions(page)).toEqual(compact);
-  await openWorkspaceOptions(page, 'Opciones de vista y montaje');
   await page.getByRole('button', { name: 'Repartir espacios', exact: true }).click();
   await expectSpreadGrid(page);
   await expect(page.getByTestId('remaining-sheets')).toContainText('2 de 3');
@@ -50,7 +48,6 @@ test('reparte solo el pliego visible, conserva las otras marcas y restaura exact
 
 test('bloqueos, cambios geométricos y de contenido reinician el reparto; opciones de salida lo conservan', async ({ page }) => {
   await page.goto('/'); const buffer = await prepareSpread(page);
-  await openWorkspaceOptions(page, 'Opciones de vista y montaje');
   const spread = () => page.getByRole('button', { name: 'Repartir espacios', exact: true });
   const restore = () => page.getByRole('button', { name: 'Restaurar compacto', exact: true });
   await spread().click();
@@ -64,11 +61,10 @@ test('bloqueos, cambios geométricos y de contenido reinician el reparto; opcion
   await expect(restore()).toBeDisabled();
   await page.getByLabel('Ancho (cm)', { exact: true }).fill('2'); await page.getByLabel('Ancho (cm)', { exact: true }).blur();
   await expect(restore()).toBeEnabled();
-  await page.getByRole('button', { name: 'Configurar formato' }).click();
+  await page.getByRole('button', { name: 'Personalizar' }).click();
   await expect(restore()).toBeDisabled();
   await page.getByRole('button', { name: 'Guardar formato', exact: true }).click();
   await expect(restore()).toBeEnabled();
-  await openDesignTools(page.getByTestId('design-card').first());
   await page.getByRole('button', { name: 'Borrador · fondo y colores', exact: true }).click();
   await expect(restore()).toBeDisabled();
   await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
@@ -79,13 +75,12 @@ test('bloqueos, cambios geométricos y de contenido reinician el reparto; opcion
     async () => { await page.getByLabel('Ancho (cm)', { exact: true }).fill('2.1'); await page.getByLabel('Ancho (cm)', { exact: true }).blur(); },
     async () => { await page.getByLabel('Copias', { exact: true }).fill('21'); await page.getByLabel('Copias', { exact: true }).blur(); },
     async () => {
-      await page.getByRole('button', { name: 'Configurar formato' }).click();
+      await page.getByRole('button', { name: 'Personalizar' }).click();
       await page.getByLabel('Margen izquierdo (mm)').fill('4');
       await page.getByRole('button', { name: 'Guardar formato', exact: true }).click();
     },
     async () => {
       // Aplicar sin borrar conserva medidas y píxeles, pero cambia la versión del raster.
-      await openDesignTools(page.getByTestId('design-card').first());
       await page.getByRole('button', { name: 'Borrador · fondo y colores', exact: true }).click();
       await page.getByRole('button', { name: 'Aplicar', exact: true }).click();
     },
@@ -105,7 +100,6 @@ test('bloqueos, cambios geométricos y de contenido reinician el reparto; opcion
   }
   await page.getByLabel('Copias', { exact: true }).fill('1'); await page.getByLabel('Copias', { exact: true }).blur();
   await expect(spread()).toBeDisabled();
-  await openWorkspaceOptions(page, 'Opciones de vista y montaje');
   await expect(page.getByText('No hay espacio que repartir', { exact: true })).toBeVisible();
 });
 
@@ -114,12 +108,10 @@ for (const mirror of [false, true]) test(`exporta posiciones repartidas en PNG/P
   await openWorkspaceOptions(page, 'Opciones de exportación');
   if (mirror) await page.getByLabel('Aplicar espejo en PDF y PNG').check();
   await page.getByRole('button', { name: 'Ver pliego 2', exact: true }).click();
-  await openWorkspaceOptions(page, 'Opciones de vista y montaje');
   await page.getByRole('button', { name: 'Repartir espacios', exact: true }).click();
   await expectSpreadGrid(page, mirror);
   await mkdir('artifacts/qa', { recursive: true });
   const prefix = `artifacts/qa/spread-${mirror ? 'mirror' : 'normal'}`;
-  await openWorkspaceOptions(page, 'Opciones de vista y montaje');
   const background = page.getByRole('button', { name: 'Cambiar fondo de vista previa' });
   await background.click();
   const contrast = page.getByLabel('Color hexadecimal del pliego');
@@ -150,7 +142,6 @@ for (const mirror of [false, true]) test(`exporta posiciones repartidas en PNG/P
 
 test('cancelar una exportación conserva reparto y marcas y bloquea restaurar mientras trabaja', async ({ page }) => {
   await page.goto('/'); await prepareSpread(page);
-  await openWorkspaceOptions(page, 'Opciones de vista y montaje');
   await page.getByRole('button', { name: 'Repartir espacios', exact: true }).click();
   await download(page, 'Descargar este pliego en PDF');
   await expect(page.locator('.sheet-frame')).toHaveAttribute('data-excluded', 'true');

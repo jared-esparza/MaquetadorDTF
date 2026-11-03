@@ -8,7 +8,7 @@ test('PNG físico a tres resoluciones y ZIP multipágina sin cambiar el montaje'
   await page.goto('/');
   await openWorkspaceOptions(page, 'Opciones de exportación');
   await expect(page.getByLabel('Resolución PNG')).toHaveValue('300');
-  await page.getByRole('button', { name: 'Configurar formato' }).click();
+  await page.getByRole('button', { name: 'Personalizar' }).click();
   await page.getByLabel('Ancho del pliego (mm)').fill('60');
   await page.getByLabel('Largo del pliego (mm)').fill('50');
   await page.getByLabel('Margen izquierdo (mm)').fill('3');
@@ -72,7 +72,7 @@ test('exportación grande se puede cancelar y conserva diseños', async ({ page 
 
 test('rotación y espejo conservan márgenes físicos y coinciden con PDF', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Configurar formato' }).click();
+  await page.getByRole('button', { name: 'Personalizar' }).click();
   for (const [label, value] of [['Ancho del pliego (mm)', '40'], ['Largo del pliego (mm)', '65'], ['Margen izquierdo (mm)', '3'], ['Margen derecho (mm)', '7'], ['Margen superior (mm)', '2'], ['Margen inferior (mm)', '8']]) await page.getByLabel(label).fill(value);
   await page.getByRole('button', { name: 'Guardar formato', exact: true }).click();
   const image = new PNG({ width: 500, height: 200 });

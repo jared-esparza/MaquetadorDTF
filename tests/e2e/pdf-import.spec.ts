@@ -1,4 +1,4 @@
-import { openWorkspaceOptions, openDesignTools } from '../helpers/workspace';
+import { openWorkspaceOptions } from '../helpers/workspace';
 import { expect, test, type Page } from '@playwright/test';
 import { PDFDocument, PDFName, StandardFonts, degrees, rgb } from 'pdf-lib';
 import { unzipSync } from 'fflate';
@@ -38,7 +38,6 @@ test('selección, recorte transparente, blanco real, rotación, cancelar y desha
   expect(Number(await cards.nth(0).getByLabel('Ancho (cm)').inputValue())).toBeCloseTo(4.23,1);
   expect(Number(await cards.nth(1).getByLabel('Ancho (cm)').inputValue())).toBeCloseTo(2.15,1);
   expect(Number(await cards.nth(2).getByLabel('Ancho (cm)').inputValue())).toBeCloseTo(4.27,1);
-  await openDesignTools(cards.nth(2));
   await cards.nth(2).getByRole('button',{ name: 'Borrador · fondo y colores' }).click();
   await expect(page.getByRole('dialog', { name: 'Borrador · fondo y colores' }).getByRole('button',{ name: 'Aplicar', exact: true })).toBeVisible();
   await page.getByRole('dialog', { name: 'Borrador · fondo y colores' }).getByRole('button',{ name: 'Cancelar',exact: true }).click();
@@ -46,7 +45,7 @@ test('selección, recorte transparente, blanco real, rotación, cancelar y desha
 
 test('PDF por pliego predeterminado, multipágina opcional y PNG desde vectores a 150/300/600 ppp', async ({ page },testInfo) => {
   await page.goto('/');
-  await page.getByRole('button',{ name: 'Configurar formato' }).click();
+  await page.getByRole('button',{ name: 'Personalizar' }).click();
   await page.getByLabel('Ancho del pliego (mm)').fill('80'); await page.getByLabel('Largo del pliego (mm)').fill('60');
   await page.getByRole('button',{ name: 'Guardar formato',exact: true }).click();
   const dialog = await importPdf(page);

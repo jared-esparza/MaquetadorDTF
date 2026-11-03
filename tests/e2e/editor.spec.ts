@@ -1,4 +1,4 @@
-import { openWorkspaceOptions, openDesignTools } from '../helpers/workspace';
+import { openWorkspaceOptions } from '../helpers/workspace';
 import { expect, test } from '@playwright/test';
 import { PNG } from 'pngjs';
 import { PDFDocument } from 'pdf-lib';
@@ -58,12 +58,10 @@ test('elimina fondo, permite cancelar y deshacer, y rechaza una pieza demasiado 
   await page.getByLabel('Subir diseños PNG').setInputFiles({ name: 'con-fondo.png', mimeType: 'image/png', buffer: samplePng(true) });
   const card = page.getByTestId('design-card');
   await expect(card.getByText('El fondo también se imprime.')).toBeVisible();
-  await openDesignTools(card);
   await card.getByRole('button', { name: 'Borrador · fondo y colores' }).click();
   await expect(page.getByRole('button', { name: 'Aplicar', exact: true })).toBeEnabled();
   await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
   await expect(card.getByText('El fondo también se imprime.')).toBeVisible();
-  await openDesignTools(card);
   await card.getByRole('button', { name: 'Borrador · fondo y colores' }).click();
   await page.getByRole('button', { name: 'Aplicar', exact: true }).click();
   await expect(card.getByText('Fondo quitado.')).toBeVisible();
@@ -78,7 +76,7 @@ test('elimina fondo, permite cancelar y deshacer, y rechaza una pieza demasiado 
 
 test('configura y conserva el perfil, muestra espejo y valida cantidades y archivos', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Configurar formato' }).click();
+  await page.getByRole('button', { name: 'Personalizar' }).click();
   await page.getByLabel('Ancho del pliego (mm)').fill('300');
   await page.getByLabel('Ancho del pliego (mm)').blur();
   await page.getByLabel('Largo del pliego (mm)').fill('450');
@@ -93,7 +91,7 @@ test('configura y conserva el perfil, muestra espejo y valida cantidades y archi
   const card = page.getByTestId('design-card');
   await expect(card).toHaveCount(1);
   await expect(page.getByRole('button', { name: 'Descargar PDF', exact: true })).toBeEnabled();
-  await page.getByRole('button', { name: 'Configurar formato' }).click();
+  await page.getByRole('button', { name: 'Personalizar' }).click();
   await expect(page.getByRole('button', { name: 'Descargar PDF', exact: true })).toBeDisabled();
   await page.getByRole('button', { name: 'Cerrar formato' }).click();
   await card.getByLabel('Copias', { exact: true }).fill('1.5');
@@ -115,7 +113,6 @@ test('configura y conserva el perfil, muestra espejo y valida cantidades y archi
   await expect(cards.last().getByLabel('Copias', { exact: true })).toHaveValue('2');
   await cards.first().getByLabel('Ancho (cm)').fill('3');
   await cards.first().getByLabel('Ancho (cm)').blur();
-  await openDesignTools(cards.first());
   await expect(cards.first().getByText('Medida final')).toContainText('3 × 1,44 cm');
   await expect(page.getByTestId('layout-summary')).toContainText('4 piezas');
   await cards.first().getByRole('button', { name: 'Quitar tercero.png', exact: true }).click();
@@ -149,17 +146,14 @@ test('rechaza PNG vacío y exceso de tamaño sin dejar diseños parciales', asyn
 test('compara en grande y conserva el encuadre al alternar; arrastrar no activa la varita', async ({ page }) => {
   await page.setViewportSize({ width: 1200, height: 800 });
   await page.goto('/');
-  await openWorkspaceOptions(page, 'Opciones de vista y montaje');
   const background = page.getByRole('button', { name: 'Cambiar fondo de vista previa' });
   const hex = page.getByLabel('Color hexadecimal del pliego');
   await expect(hex).toBeHidden();
-  await openWorkspaceOptions(page, 'Opciones de vista y montaje');
   await background.click();
   await hex.fill('#e519c7');
   await hex.press('Enter');
   await page.reload();
   await expect(hex).toBeHidden();
-  await openWorkspaceOptions(page, 'Opciones de vista y montaje');
   await background.click();
   await expect(hex).toHaveValue('#E519C7');
   await hex.focus();
@@ -167,7 +161,6 @@ test('compara en grande y conserva el encuadre al alternar; arrastrar no activa 
   await expect(hex).toBeHidden();
   await expect(background).toBeFocused();
   await page.getByLabel('Subir diseños PNG').setInputFiles({ name: 'detalle.png', mimeType: 'image/png', buffer: samplePng(true) });
-  await openDesignTools(page.getByTestId('design-card').first());
   const opener = page.getByRole('button', { name: 'Borrador · fondo y colores' });
   await opener.click();
   const editor = page.getByRole('dialog', { name: 'Borrador · fondo y colores' });
@@ -220,7 +213,6 @@ test('compara en grande y conserva el encuadre al alternar; arrastrar no activa 
   await expect(page.getByRole('img', { name: 'Vista previa del pliego' })).toHaveCSS('background-color', 'rgb(20, 126, 161)');
 
   await page.setViewportSize({ width: 390, height: 700 });
-  await openDesignTools(page.getByTestId('design-card').first());
   const refine = page.getByRole('button', { name: 'Afinar los bordes' });
   await refine.click();
   const edges = page.getByRole('dialog', { name: 'Afinar los bordes' });
@@ -231,7 +223,6 @@ test('compara en grande y conserva el encuadre al alternar; arrastrar no activa 
   await edges.getByRole('button', { name: 'Cancelar' }).click();
   await expect(refine).toBeFocused();
   await expect(page.getByText('Bordes afinados.')).toHaveCount(0);
-  await openWorkspaceOptions(page, 'Opciones de vista y montaje');
   await background.click();
   await page.getByRole('button', { name: 'Restaurar damero' }).click();
   await expect(hex).toBeEmpty();

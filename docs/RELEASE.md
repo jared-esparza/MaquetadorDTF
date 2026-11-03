@@ -2,7 +2,7 @@
 
 Instalador guiado en español y versión portátil. Entrega preliminar sin firma.
 
-- Espacio de trabajo con diseños a la izquierda, formato y separación junto al pliego, y descargas generales PDF/PNG bajo la vista previa.
+- Tres columnas con diseños a la izquierda, pliego en el centro y configuración/exportación a la derecha. Fondo, reparto y herramientas de edición directamente visibles.
 - Presupuesto de imágenes en Ajustes, herramientas por diseño y opciones de vista, montaje y exportación agrupadas. Los avisos de carga y encaje aparecen junto al control correspondiente.
 - Borrador y afinado de bordes en un editor ampliado con comparación Antes y Después, zoom y desplazamiento sincronizados.
 - Fondo de contraste guardado para la vista previa de los pliegos y disponible durante la edición. El fondo visual queda fuera de los archivos exportados.

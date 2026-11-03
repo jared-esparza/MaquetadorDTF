@@ -18,7 +18,7 @@ export function ProfileEditor({ profiles, profile, disabled, onOpenChange, onSel
   };
   return <div className="profile-block">
     <label className="select-label">Formato del film<select aria-label="Perfil de formato" value={profile.id} disabled={disabled || open} onChange={e => onSelect(e.target.value)}>{profiles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
-    <div className="profile-line"><strong data-testid="profile-dimensions">{formatMm(profile.widthMm)} × {formatMm(profile.heightMm)} mm</strong><button className="text-button" disabled={disabled} onClick={() => { if (open) { setOpen(false); onOpenChange(false); } else begin(); }}>{open ? 'Cerrar formato' : 'Configurar formato'}</button></div>
+    <div className="profile-line"><strong data-testid="profile-dimensions">{formatMm(profile.widthMm)} × {formatMm(profile.heightMm)} mm</strong><button className="text-button" disabled={disabled} onClick={() => { if (open) { setOpen(false); onOpenChange(false); } else begin(); }}>{open ? 'Cerrar formato' : 'Personalizar'}</button></div>
     {onReset && <div className="local-profile-note">
       <button className="text-button" type="button" disabled={disabled || open || resetDisabled} onClick={onReset}>Restaurar formatos predeterminados</button>
     </div>}

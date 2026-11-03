@@ -2,7 +2,7 @@
 
 ## 1.9.0
 
-- Espacio de trabajo de dos zonas con lista de diseños desplazable, controles de montaje junto al pliego y descargas generales PDF y PNG siempre a mano en el flujo habitual.
+- Tres columnas con diseños, vista previa y configuración/exportación. Fondo, reparto y herramientas de edición directamente visibles.
 - Ajustes y herramientas agrupados, con avisos de carga y encaje cerca de los diseños y opciones de exportación bajo demanda.
 
 ## 1.8.0

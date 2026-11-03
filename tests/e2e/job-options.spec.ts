@@ -1,4 +1,4 @@
-import { openWorkspaceOptions, openDesignTools } from '../helpers/workspace';
+import { openWorkspaceOptions } from '../helpers/workspace';
 import { expect, test, type Page } from '@playwright/test';
 import { PNG } from 'pngjs';
 import { PDFDocument, rgb } from 'pdf-lib';
@@ -15,7 +15,7 @@ function image(width = 600, height = 300) {
 }
 
 async function smallProfile(page: Page) {
-  await page.getByRole('button', { name: 'Configurar formato' }).click();
+  await page.getByRole('button', { name: 'Personalizar' }).click();
   await page.getByLabel('Ancho del pliego (mm)').fill('60');
   await page.getByLabel('Largo del pliego (mm)').fill('30');
   await page.getByLabel('Margen izquierdo (mm)').fill('3');
@@ -114,7 +114,6 @@ test('presupuesto persiste, protege ediciones y permite ampliar sin perder dise√
   const first = cards.first();
   await first.getByLabel('Copias', { exact: true }).fill('2');
   await expect(page.getByTestId('image-budget-usage')).toHaveText('42 / 60 MP');
-  await openDesignTools(first);
   await first.getByRole('button', { name: 'Afinar los bordes' }).click();
   const edgeEditor = page.getByRole('dialog', { name: 'Afinar los bordes' });
   await expect(edgeEditor.getByRole('alert')).toContainText('60 megap√≠xeles');
@@ -122,7 +121,6 @@ test('presupuesto persiste, protege ediciones y permite ampliar sin perder dise√
   await expect(cards).toHaveCount(7);
   await expect(first.getByRole('button', { name: 'Deshacer', exact: true })).toHaveCount(0);
   await budget.selectOption('120');
-  await openDesignTools(first);
   await first.getByRole('button', { name: 'Afinar los bordes' }).click();
   const apply = edgeEditor.getByRole('button', { name: 'Aplicar', exact: true });
   await expect(apply).toBeEnabled({ timeout: 60000 });

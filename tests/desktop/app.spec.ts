@@ -1,4 +1,4 @@
-import { openWorkspaceOptions, openDesignTools } from '../helpers/workspace';
+import { openWorkspaceOptions } from '../helpers/workspace';
 import { test, expect, _electron, type ElectronApplication, type Page } from '@playwright/test';
 import { createRequire } from 'node:module';
 import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
@@ -72,7 +72,6 @@ test('reparto compartido: guardar, cancelar, fallar y restaurar solo afectan al 
   }
   await expect.poll(dirty).toBe(false);
   await page.getByRole('button', { name: 'Ver pliego 2', exact: true }).click();
-  await openWorkspaceOptions(page, 'Opciones de vista y montaje');
   await page.getByRole('button', { name: 'Repartir espacios', exact: true }).click();
   await expectSpreadGrid(page);
   await expect.poll(dirty).toBe(true);
@@ -114,7 +113,7 @@ test('descarga individual solo se aparta al guardar y conserva el aviso de traba
     ipcMain.on('desktop:document:state', (_event, state) => { (globalThis as unknown as { sheetDocumentState: { dirty: boolean } }).sheetDocumentState = state; });
   });
   const dirty = () => application.evaluate(() => (globalThis as unknown as { sheetDocumentState: { dirty: boolean } }).sheetDocumentState?.dirty);
-  await page.getByRole('button', { name: 'Configurar formato' }).click();
+  await page.getByRole('button', { name: 'Personalizar' }).click();
   await page.getByLabel('Ancho del pliego (mm)').fill('60'); await page.getByLabel('Largo del pliego (mm)').fill('40');
   await page.getByRole('button', { name: 'Guardar formato', exact: true }).click();
   await importDesign();
@@ -323,7 +322,7 @@ test('un error de escritura conserva el montaje y permite exportarlo después', 
 
 test('guarda PNG y ZIP con diálogo restringido, cancelación, errores y carpeta recordada', async () => {
   await closeWelcome();
-  await page.getByRole('button', { name: 'Configurar formato' }).click();
+  await page.getByRole('button', { name: 'Personalizar' }).click();
   await page.getByLabel('Ancho del pliego (mm)').fill('60');
   await page.getByLabel('Largo del pliego (mm)').fill('50');
   await page.getByRole('button', { name: 'Guardar formato', exact: true }).click();
@@ -370,7 +369,6 @@ test('guarda PNG y ZIP con diálogo restringido, cancelación, errores y carpeta
 test('borrador, deshacer y ayuda funcionan dentro de Electron', async () => {
   await closeWelcome(); await importDesign();
   const card = page.getByTestId('design-card');
-  await openDesignTools(card);
   await card.getByRole('button', { name: 'Borrador · fondo y colores' }).click();
   await expect(page.getByRole('button', { name: 'Aplicar', exact: true })).toBeEnabled();
   await page.getByRole('button', { name: 'Aplicar', exact: true }).click();
@@ -401,7 +399,7 @@ test('cancelar guardado conserva cambios pendientes y el cierre permite seguir t
 test('recuerda bienvenida y formatos en el almacén de la aplicación', async () => {
   await page.getByLabel('No volver a mostrar').check();
   await closeWelcome();
-  await page.getByRole('button', { name: 'Configurar formato' }).click();
+  await page.getByRole('button', { name: 'Personalizar' }).click();
   await page.getByLabel('Ancho del pliego (mm)').fill('600');
   await page.getByRole('button', { name: 'Guardar formato' }).click();
   const userData = await application.evaluate(({ app }) => app.getPath('userData'));
@@ -416,7 +414,6 @@ test('recuerda bienvenida y formatos en el almacén de la aplicación', async ()
 
 test('recuerda el fondo visual de los pliegos en Electron', async () => {
   await closeWelcome();
-  await openWorkspaceOptions(page, 'Opciones de vista y montaje');
   const background = page.getByRole('button', { name: 'Cambiar fondo de vista previa' });
   await background.click();
   const hex = page.getByLabel('Color hexadecimal del pliego');
@@ -429,7 +426,6 @@ test('recuerda el fondo visual de los pliegos en Electron', async () => {
   const welcome = page.getByRole('button', { name: 'Empezar a maquetar', exact: true });
   await expect(welcome).toBeVisible();
   await closeWelcome();
-  await openWorkspaceOptions(page, 'Opciones de vista y montaje');
   await background.click();
   await expect(hex).toHaveValue('#147EA1');
   await background.click();
