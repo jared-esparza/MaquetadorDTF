@@ -619,7 +619,7 @@ strong {
 }
 .editor-heading h2 { font-size:18px; }
 .editor-heading span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--muted); }
-.editor-toolbar > div { display:flex; gap:4px; }
+.editor-toolbar > div[role="group"] { display:flex; gap:4px; }
 .editor-toolbar button[aria-pressed="true"] { background:var(--brand); border-color:var(--brand); color:white; }
 .editor-views { flex:1; min-height:0; display:grid; grid-template-columns:minmax(0, 1fr); gap:8px; }
 .editor-compare { grid-template-columns:repeat(2, minmax(0, 1fr)); }

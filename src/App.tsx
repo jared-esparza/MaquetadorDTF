@@ -390,7 +390,7 @@ export default function App() {
         <p className="session-note">Los diseños permanecen en esta sesión. Exporta tu trabajo antes de cerrar.</p>
       </section>
 
-      {edit && <ImageEditor design={edit.source} tool={edit.tool} color={sheetPreviewColor} preflightError={edit.error} onCancel={cancelEdit}
+      {edit && <ImageEditor design={edit.source} tool={edit.tool} color={sheetPreviewColor} onColorChange={changeSheetColor} preflightError={edit.error} onCancel={cancelEdit}
         onApply={async raster => {
           setBusy(edit.tool === 'erase' ? 'Aplicando fondo…' : 'Aplicando bordes…');
           try {

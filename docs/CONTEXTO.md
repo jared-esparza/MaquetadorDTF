@@ -322,3 +322,7 @@ Tras la revisión del usuario, el ajuste de fondo se movió a un botón con
 muestra junto a «Tu pliego». El selector, el hexadecimal y la restauración
 del damero se muestran en un panel flotante. La verificación de este ajuste
 se realiza en la CI de la misma PR.
+
+El mismo selector está disponible dentro del editor. Elegir un color desde
+allí lo guarda para el pliego y activa el contraste en ambas imágenes. Cada
+edición abre con damero y permite alternar el contraste durante la sesión.

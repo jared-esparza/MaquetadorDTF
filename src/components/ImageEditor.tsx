@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
 import type { Design, Raster } from '../core/model';
 import { rasterUrl } from '../browser/images';
+import { SheetBackground } from './SheetBackground';
 import { runImage } from '../browser/workerClient';
 
 export type EditTool = 'erase' | 'refine';
@@ -9,8 +10,9 @@ const views = { compare: 'Comparar', before: 'Antes', after: 'Después' } as con
 const center = { x: .5, y: .5 };
 const clamp = (value: number) => Math.max(0, Math.min(1, value));
 
-export function ImageEditor({ design, tool, color, preflightError, onApply, onCancel }: {
+export function ImageEditor({ design, tool, color, onColorChange, preflightError, onApply, onCancel }: {
   design: Design; tool: EditTool; color: string | null; preflightError: string;
+  onColorChange: (color: string | null) => void;
   onApply: (raster: Raster) => Promise<void>; onCancel: () => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -108,7 +110,8 @@ export function ImageEditor({ design, tool, color, preflightError, onApply, onCa
         <button onClick={() => { setZoom(1); setPoint(center); }}>Ajustar</button>
         <button aria-label="Acercar" disabled={zoom === 12} onClick={() => setZoom(Math.min(12, zoom * 1.5))}>+</button>
       </div>
-      {color && <button aria-pressed={useColor} onClick={() => setUseColor(!useColor)}>Color del pliego</button>}
+      <SheetBackground color={color} disabled={applying} preview={{ enabled: useColor, onToggle: () => setUseColor(!useColor) }}
+        onChange={next => { onColorChange(next); setUseColor(next !== null); }} />
     </div>
     <div className={`editor-views ${view === 'compare' ? 'editor-compare' : ''}`}>
       {view !== 'after' && pane('before', design.url)}
