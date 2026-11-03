@@ -6,6 +6,6 @@ export async function openWorkspaceOptions(page: Page, name: string) {
 }
 
 export async function openDesignTools(card: Locator) {
-  const opener = card.getByRole('button', { name: 'Editar diseño', exact: true });
-  if (await opener.isVisible()) await opener.click();
+  const opener = card.getByRole('button', { name: /^(Editar diseño|Cerrar herramientas)$/ });
+  if (await opener.getAttribute('aria-expanded') === 'false') await opener.click();
 }
