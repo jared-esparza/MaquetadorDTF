@@ -7,7 +7,7 @@ para implementar cambios sin acordar la siguiente tarea.
 ## Estado confirmado
 
 - Repositorio: https://github.com/jared-esparza/MaquetadorDTF.
-- Versión en main: **1.7.0**, coincidente en package.json y package-lock.json.
+- Versión en main: **1.9.0**, coincidente en package.json y package-lock.json.
 - [PR #12](https://github.com/jared-esparza/MaquetadorDTF/pull/12): integrada por
   autorización explícita del usuario; merge `c419629b5f95d18d8412e38aeef2573e7117d11e`.
   La API confirmó cero PR abiertas después de integrarla.
@@ -353,3 +353,20 @@ formato, en el navegador o en las preferencias de Electron.
 
 Pruebas unitarias, de navegador y de Electron añadidas para GitHub Actions.
 Validación local limitada a revisión del cambio y `git diff --check`.
+
+La [CI de la PR #16](https://github.com/jared-esparza/MaquetadorDTF/actions/runs/41650406702)
+pasó en el segundo intento sobre `60f3da8`, incluido el ejecutable empaquetado.
+El primer intento reprodujo el fallo de persistencia del presupuesto en
+Electron. El registro confirmó un error `EPERM` al reemplazar
+`preferences.json`. El fallo sigue documentado como intermitente.
+El despliegue quedó omitido en la PR.
+
+## Cierre de la entrega 1.9.0
+
+La PR #16 se fusionó con autorización explícita en `7b510d7`. La
+[CI de main](https://github.com/jared-esparza/MaquetadorDTF/actions/runs/41658455295)
+completó correctamente las pruebas, el empaquetado y la publicación de la
+[preliminar 1.9.0](https://github.com/jared-esparza/MaquetadorDTF/releases/tag/v1.9.0).
+La API confirmó sus siete archivos, incluidos el instalador y el portátil.
+El despliegue a IONOS y su verificación automática también pasaron. No se
+ejecutaron pruebas locales ni comprobaciones manuales de la web desplegada.
