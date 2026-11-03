@@ -1,13 +1,13 @@
 # Relevo de contexto — Maquetador DTF
 
-Última revisión: 27 de octubre de 2026. Punto de entrada para continuar el trabajo.
+Última revisión: 3 de noviembre de 2026. Punto de entrada para continuar el trabajo.
 Describe hechos verificados y decisiones vigentes; los pendientes no son una orden
 para implementar cambios sin acordar la siguiente tarea.
 
 ## Estado confirmado
 
 - Repositorio: https://github.com/jared-esparza/MaquetadorDTF.
-- Versión en main: **1.6.0**, coincidente en package.json y package-lock.json.
+- Versión en main: **1.7.0**, coincidente en package.json y package-lock.json.
 - [PR #12](https://github.com/jared-esparza/MaquetadorDTF/pull/12): integrada por
   autorización explícita del usuario; merge `c419629b5f95d18d8412e38aeef2573e7117d11e`.
   La API confirmó cero PR abiertas después de integrarla.
@@ -274,11 +274,25 @@ Pillow/PDFium, Electron de desarrollo, empaquetado, ejecutable y verificación d
 sus exportaciones. El fallo de presupuesto no se reprodujo; no se ha identificado
 su causa y no se da por corregido. Se conserva el diagnóstico en futuras CI.
 El despliegue quedó omitido por ser PR. Este cierre posterior solo documenta los
-resultados; su propia CI se consulta en el historial de la rama. La PR sigue abierta,
-sin merge, etiqueta, publicación ni despliegue autorizado para 1.7.0.
+resultados de la PR antes de su integración. El cierre de la entrega se recoge abajo.
 
 Pruebas añadidas de geometría, navegador, Electron y muestras PNG/PDF para
 Pillow/PDFium en Actions. No se ejecutan pruebas locales ni se comprueba
 manualmente la web desplegada. Los pendientes anteriores (fidelidad de PDF importado,
 memoria transitoria, formatos de entrada y avisos de terceros) siguen abiertos.
 Las nuevas muestras parten de PNG y no validan la fidelidad de importación PDF.
+
+## Cierre de la entrega 1.7.0
+
+El usuario probó la versión web local y autorizó expresamente la fusión, la
+publicación para Windows y el despliegue web de esta entrega. La PR #13 se
+integró en main como `174d5ada40c7acbce09e4a7cd4c4fea331aa7cc7`. La API de
+GitHub confirmó que no quedaron PR abiertas.
+
+La [CI 41606790581](https://github.com/jared-esparza/MaquetadorDTF/actions/runs/41606790581)
+terminó correctamente. Pasaron las pruebas, el empaquetado, la publicación de la
+[preliminar 1.7.0](https://github.com/jared-esparza/MaquetadorDTF/releases/tag/v1.7.0)
+con siete archivos y el despliegue en IONOS con su verificación automática.
+No se ejecutaron pruebas locales ni se comprobó manualmente la web desplegada.
+El fallo intermitente de preferencias descrito arriba queda como limitación
+conocida. La autorización no se extiende a entregas posteriores.
