@@ -486,6 +486,22 @@ strong {
 .layout-summary span {
   font-size:12px;
   color:#405669}
+.job-costs {
+  display:grid;
+  gap:8px;
+  min-width:0;
+  margin:12px 0;
+  padding:12px;
+  border:1px solid #b9d3e8;
+  border-radius:10px;
+}
+.job-costs label {
+  display:grid;
+  gap:4px;
+}
+.job-costs .layout-summary {
+  margin-top:0;
+}
 .summary-empty {
   margin-top:26px;
   text-align:center;
