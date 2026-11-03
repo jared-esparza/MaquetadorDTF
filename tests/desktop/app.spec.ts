@@ -1,3 +1,4 @@
+import { openWorkspaceOptions, openDesignTools } from '../helpers/workspace';
 import { test, expect, _electron, type ElectronApplication, type Page } from '@playwright/test';
 import { createRequire } from 'node:module';
 import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
@@ -71,6 +72,7 @@ test('reparto compartido: guardar, cancelar, fallar y restaurar solo afectan al 
   }
   await expect.poll(dirty).toBe(false);
   await page.getByRole('button', { name: 'Ver pliego 2', exact: true }).click();
+  await openWorkspaceOptions(page, 'Opciones de vista y montaje');
   await page.getByRole('button', { name: 'Repartir espacios', exact: true }).click();
   await expectSpreadGrid(page);
   await expect.poll(dirty).toBe(true);
@@ -176,10 +178,12 @@ test('descarga individual solo se aparta al guardar y conserva el aviso de traba
 test('recuerda presupuesto y sugiere el nombre elegido sin perderlo al cancelar', async () => {
   await page.getByLabel('No volver a mostrar').check();
   await closeWelcome();
+  await openWorkspaceOptions(page, 'Ajustes');
   await page.getByLabel('Presupuesto de imágenes').selectOption('120');
   const userData = await application.evaluate(({ app }) => app.getPath('userData'));
   await expect.poll(async () => JSON.parse(await readFile(path.join(userData, 'preferences.json'), 'utf8')).imageBudgetMp).toBe(120);
   await page.reload();
+  await openWorkspaceOptions(page, 'Ajustes');
   await expect(page.getByLabel('Presupuesto de imágenes')).toHaveValue('120');
   await importDesign();
   await page.getByLabel('Alto (cm)', { exact: true }).fill('2');
@@ -206,7 +210,7 @@ test('recuerda presupuesto y sugiere el nombre elegido sin perderlo al cancelar'
 test('abre bienvenida y workers locales con renderer aislado y sin Node', async () => {
   await expect(page.getByRole('region', { name: 'Versión para Windows' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Restaurar formatos predeterminados' })).toHaveCount(0);
-  await expect(page.getByText('Los cambios se guardan solo en este navegador')).toHaveCount(0);
+  await expect(page.getByText('Los cambios de formato se guardan solo en este navegador')).toHaveCount(0);
   await expect(page.getByRole('dialog', { name: 'Bienvenido a Maquetador DTF' })).toBeVisible();
   expect(await page.evaluate(() => ({ protocol: location.protocol, node: typeof (window as unknown as { require?: unknown }).require, process: typeof (window as unknown as { process?: unknown }).process }))).toEqual({ protocol: 'app:', node: 'undefined', process: 'undefined' });
   await closeWelcome();
@@ -282,6 +286,7 @@ test('guarda PDF multipágina con diálogo nativo, alfa y tamaño real', async (
   await page.getByLabel('Acepto que los diseños de baja resolución pueden verse pixelados.').check();
   const target = path.join(directory, 'impresión ñ.pdf');
   await application.evaluate(({ dialog }, filePath) => { dialog.showSaveDialog = async () => ({ canceled: false, filePath }); }, target);
+  await openWorkspaceOptions(page, 'Opciones de exportación');
   await page.getByLabel('Organización del PDF').selectOption('combined');
   await page.getByRole('button', { name: 'Descargar PDF', exact: true }).click();
   await expect(page.getByRole('status').filter({ hasText: 'PDF guardado' })).toBeVisible();
@@ -291,7 +296,8 @@ test('guarda PDF multipágina con diálogo nativo, alfa y tamaño real', async (
   expect(pdf.getPage(0).getHeight()).toBeCloseTo(2834.645669, 5);
   await expect(page.getByRole('button', { name: 'Abrir carpeta' })).toBeVisible();
   await application.evaluate(({ ipcMain }) => { ipcMain.on('desktop:document:state', (_event, state) => { (globalThis as unknown as { lastDocumentState: unknown }).lastDocumentState = state; }); });
-  await page.getByLabel('Aplicar espejo en el PDF').check();
+  await openWorkspaceOptions(page, 'Opciones de exportación');
+  await page.getByLabel('Aplicar espejo en PDF y PNG').check();
   await expect.poll(() => application.evaluate(() => (globalThis as unknown as { lastDocumentState: { dirty: boolean } }).lastDocumentState?.dirty)).toBe(true);
   await page.getByLabel('Acepto que los diseños de baja resolución pueden verse pixelados.').check();
   await page.getByRole('button', { name: 'Descargar PDF', exact: true }).click();
@@ -364,6 +370,7 @@ test('guarda PNG y ZIP con diálogo restringido, cancelación, errores y carpeta
 test('borrador, deshacer y ayuda funcionan dentro de Electron', async () => {
   await closeWelcome(); await importDesign();
   const card = page.getByTestId('design-card');
+  await openDesignTools(card);
   await card.getByRole('button', { name: 'Borrador · fondo y colores' }).click();
   await expect(page.getByRole('button', { name: 'Aplicar', exact: true })).toBeEnabled();
   await page.getByRole('button', { name: 'Aplicar', exact: true }).click();
@@ -409,6 +416,7 @@ test('recuerda bienvenida y formatos en el almacén de la aplicación', async ()
 
 test('recuerda el fondo visual de los pliegos en Electron', async () => {
   await closeWelcome();
+  await openWorkspaceOptions(page, 'Opciones de vista y montaje');
   const background = page.getByRole('button', { name: 'Cambiar fondo de vista previa' });
   await background.click();
   const hex = page.getByLabel('Color hexadecimal del pliego');
@@ -421,6 +429,7 @@ test('recuerda el fondo visual de los pliegos en Electron', async () => {
   const welcome = page.getByRole('button', { name: 'Empezar a maquetar', exact: true });
   await expect(welcome).toBeVisible();
   await closeWelcome();
+  await openWorkspaceOptions(page, 'Opciones de vista y montaje');
   await background.click();
   await expect(hex).toHaveValue('#147EA1');
   await background.click();

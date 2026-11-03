@@ -342,3 +342,14 @@ sin firma y desplegó el mismo commit en IONOS, con verificación automática
 de la web y sus recursos. La API confirmó los siete archivos de Release.
 No se realizaron pruebas locales ni comprobaciones manuales de la web
 desplegada. La autorización se limita a esta entrega.
+
+## Rediseño del espacio de trabajo 1.9.0
+
+- Editor compartido con lista de diseños desplazable, formato y separación
+  junto al pliego, y descargas generales PDF/PNG debajo de la vista previa.
+- Ajustes de memoria, herramientas de diseño y opciones de exportación agrupados.
+  Los fallos de carga aparecen junto a la entrada y los de encaje junto al diseño.
+- Se añadieron comprobaciones de espacio y teclado para 1366 × 768, 1280 × 720
+  y 390 × 844, y se adaptaron los flujos existentes de web y Electron.
+- Verificación local limitada a la revisión del cambio y `git diff --check`.
+  Las pruebas y la revisión visual quedan pendientes de la PR.

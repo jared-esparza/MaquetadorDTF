@@ -1,3 +1,4 @@
+import { openWorkspaceOptions } from '../helpers/workspace';
 import { expect, test } from '@playwright/test';
 import { PNG } from 'pngjs';
 import { unzipSync } from 'fflate';
@@ -5,6 +6,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 
 test('PNG físico a tres resoluciones y ZIP multipágina sin cambiar el montaje', async ({ page }, info) => {
   await page.goto('/');
+  await openWorkspaceOptions(page, 'Opciones de exportación');
   await expect(page.getByLabel('Resolución PNG')).toHaveValue('300');
   await page.getByRole('button', { name: 'Configurar formato' }).click();
   await page.getByLabel('Ancho del pliego (mm)').fill('60');
@@ -20,6 +22,7 @@ test('PNG físico a tres resoluciones y ZIP multipágina sin cambiar el montaje'
   await expect(page.getByTestId('layout-summary')).toContainText('1 pieza');
   await mkdir('artifacts/qa', { recursive: true });
   for (const dpi of [150, 300, 600]) {
+    await openWorkspaceOptions(page, 'Opciones de exportación');
     await page.getByLabel('Resolución PNG').selectOption(String(dpi));
     const promise = page.waitForEvent('download');
     await page.getByRole('button', { name: 'Descargar PNG', exact: true }).click();
@@ -52,6 +55,7 @@ test('exportación grande se puede cancelar y conserva diseños', async ({ page 
   await page.goto('/');
   const image = new PNG({ width: 20, height: 20 }); image.data.fill(255);
   await page.getByLabel('Subir diseños PNG').setInputFiles({ name: 'grande.png', mimeType: 'image/png', buffer: PNG.sync.write(image) });
+  await openWorkspaceOptions(page, 'Opciones de exportación');
   await page.getByLabel('Resolución PNG').selectOption('600');
   await expect(page.getByRole('button', { name: 'Descargar PNG', exact: true })).toBeEnabled();
   await page.getByRole('button', { name: 'Descargar PNG', exact: true }).click();
@@ -76,7 +80,8 @@ test('rotación y espejo conservan márgenes físicos y coinciden con PDF', asyn
   await page.getByLabel('Subir diseños PNG').setInputFiles({ name: 'rotación.png', mimeType: 'image/png', buffer: PNG.sync.write(image) });
   await page.getByLabel('Ancho (cm)', { exact: true }).fill('5');
   await page.getByLabel('Ancho (cm)', { exact: true }).blur();
-  await page.getByLabel('Aplicar espejo en el PDF').check();
+  await openWorkspaceOptions(page, 'Opciones de exportación');
+  await page.getByLabel('Aplicar espejo en PDF y PNG').check();
   await expect(page.getByRole('button', { name: 'Descargar PNG', exact: true })).toBeEnabled();
   for (const format of ['PNG', 'PDF']) {
     const promise = page.waitForEvent('download');
@@ -96,6 +101,7 @@ test('completa el film de 55 por 100 cm a 600 ppp por franjas', async ({ page })
   await page.goto('/');
   const image = new PNG({ width: 20, height: 20 }); image.data.fill(255);
   await page.getByLabel('Subir diseños PNG').setInputFiles({ name: 'film.png', mimeType: 'image/png', buffer: PNG.sync.write(image) });
+  await openWorkspaceOptions(page, 'Opciones de exportación');
   await page.getByLabel('Resolución PNG').selectOption('600');
   const promise = page.waitForEvent('download', { timeout: 100000 });
   await expect(page.getByRole('button', { name: 'Descargar PNG', exact: true })).toBeEnabled();

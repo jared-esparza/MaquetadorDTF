@@ -1,5 +1,10 @@
 # Cambios
 
+## 1.9.0
+
+- Espacio de trabajo de dos zonas con lista de diseños desplazable, controles de montaje junto al pliego y descargas generales PDF y PNG siempre a mano en el flujo habitual.
+- Ajustes y herramientas agrupados, con avisos de carga y encaje cerca de los diseños y opciones de exportación bajo demanda.
+
 ## 1.8.0
 
 - Borrador y afinado de bordes en un editor amplio con comparación, zoom y desplazamiento sincronizados. El afinado se revisa antes de aplicar.

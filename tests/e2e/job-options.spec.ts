@@ -1,3 +1,4 @@
+import { openWorkspaceOptions, openDesignTools } from '../helpers/workspace';
 import { expect, test, type Page } from '@playwright/test';
 import { PNG } from 'pngjs';
 import { PDFDocument, rgb } from 'pdf-lib';
@@ -74,6 +75,7 @@ test('medidas enlazadas, validación, nombres y contenido de todos los formatos'
     await download.saveAs(target);
     expect(Object.keys(unzipSync(await readFile(target)))).toEqual([1, 2].map(n => `Impresión ñ-pliego-00${n}.${type.toLowerCase()}`));
   }
+  await openWorkspaceOptions(page, 'Opciones de exportación');
   await page.getByLabel('Organización del PDF').selectOption('combined');
   const pending = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Descargar PDF', exact: true }).click();
@@ -89,10 +91,11 @@ test('medidas enlazadas, validación, nombres y contenido de todos los formatos'
 test('presupuesto persiste, protege ediciones y permite ampliar sin perder diseños', async ({ page }) => {
   test.setTimeout(120000);
   await page.goto('/');
+  await openWorkspaceOptions(page, 'Ajustes');
   const budget = page.getByLabel('Presupuesto de imágenes');
   await expect(budget).toHaveValue('60');
   await budget.selectOption('240');
-  await page.reload(); await expect(budget).toHaveValue('240');
+  await page.reload(); await openWorkspaceOptions(page, 'Ajustes'); await expect(budget).toHaveValue('240');
   await budget.selectOption('60');
   const source = image(3000, 2000);
   await page.getByLabel('Subir diseños PNG').setInputFiles(Array.from({ length: 7 }, (_, i) => ({ ...source, name: `diseño-${i}.png` })));
@@ -111,6 +114,7 @@ test('presupuesto persiste, protege ediciones y permite ampliar sin perder dise�
   const first = cards.first();
   await first.getByLabel('Copias', { exact: true }).fill('2');
   await expect(page.getByTestId('image-budget-usage')).toHaveText('42 / 60 MP');
+  await openDesignTools(first);
   await first.getByRole('button', { name: 'Afinar los bordes' }).click();
   const edgeEditor = page.getByRole('dialog', { name: 'Afinar los bordes' });
   await expect(edgeEditor.getByRole('alert')).toContainText('60 megapíxeles');
@@ -118,6 +122,7 @@ test('presupuesto persiste, protege ediciones y permite ampliar sin perder dise�
   await expect(cards).toHaveCount(7);
   await expect(first.getByRole('button', { name: 'Deshacer', exact: true })).toHaveCount(0);
   await budget.selectOption('120');
+  await openDesignTools(first);
   await first.getByRole('button', { name: 'Afinar los bordes' }).click();
   const apply = edgeEditor.getByRole('button', { name: 'Aplicar', exact: true });
   await expect(apply).toBeEnabled({ timeout: 60000 });
@@ -150,8 +155,10 @@ test('preferencias inválidas y fallo de guardado no impiden trabajar', async ({
     };
   });
   await page.goto('/');
+  await openWorkspaceOptions(page, 'Ajustes');
   await expect(page.getByLabel('Presupuesto de imágenes')).toHaveValue('60');
   await page.getByLabel('Subir diseños PNG').setInputFiles(image());
+  await openWorkspaceOptions(page, 'Ajustes');
   await page.getByLabel('Presupuesto de imágenes').selectOption('120');
   await expect(page.getByRole('alert')).toContainText('No se ha podido guardar el presupuesto');
   await expect(page.getByTestId('design-card')).toHaveCount(1);

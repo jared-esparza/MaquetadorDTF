@@ -1,3 +1,4 @@
+import { openWorkspaceOptions, openDesignTools } from '../helpers/workspace';
 import { expect, test, type Download, type Page, type TestInfo } from '@playwright/test';
 import { PNG } from 'pngjs';
 import { PDFDocument } from 'pdf-lib';
@@ -41,7 +42,8 @@ async function bundle(page: Page, info: TestInfo, type: 'PDF' | 'PNG', suffix: s
 
 test('descargas individuales, ZIP con huecos, PDF único y reinclusión entre formatos', async ({ page }, info) => {
   await prepare(page);
-  await page.getByLabel('Aplicar espejo en el PDF').check();
+  await openWorkspaceOptions(page, 'Opciones de exportación');
+  await page.getByLabel('Aplicar espejo en PDF y PNG').check();
   await page.getByRole('button', { name: 'Ver pliego 2', exact: true }).click();
   await mkdir('artifacts/qa', { recursive: true });
   for (const type of ['PNG', 'PDF']) {
@@ -68,11 +70,13 @@ test('descargas individuales, ZIP con huecos, PDF único y reinclusión entre fo
   await bundle(page, info, 'PNG', 'repeat');
   const pdfZip = await bundle(page, info, 'PDF', 'pdf'); await pdfZip.saveAs('artifacts/qa/selected-pdfs.zip');
   await expect(page.getByTestId('remaining-sheets')).toContainText('2 de 3');
+  await openWorkspaceOptions(page, 'Opciones de exportación');
   await page.getByLabel('Organización del PDF').selectOption('combined');
   const combined = await download(page, 'Descargar PDF');
   expect(combined.suggestedFilename()).toBe('Pliegos.pdf');
   const target = info.outputPath('combined.pdf'); await combined.saveAs(target);
   expect((await PDFDocument.load(await readFile(target))).getPageCount()).toBe(2);
+  await openWorkspaceOptions(page, 'Opciones de exportación');
   await page.getByLabel('Resolución PNG').selectOption('150');
   await page.getByLabel('Nombre del trabajo').fill('Otro'); await page.getByLabel('Nombre del trabajo').blur();
   await page.getByRole('button', { name: 'Ver pliego 1', exact: true }).click();
@@ -107,12 +111,14 @@ test('los cambios reinician marcas, incluidas ediciones del raster con idéntica
   const buffer = await prepare(page);
   const mutations: (() => Promise<unknown>)[] = [
     ...['8', '9', '10'].map(gap => () => page.getByLabel('Distancia entre diseños').selectOption(gap)),
-    () => page.getByLabel('Aplicar espejo en el PDF').check(),
+    async () => { await openWorkspaceOptions(page, 'Opciones de exportación'); await page.getByLabel('Aplicar espejo en PDF y PNG').check(); },
     async () => { await page.getByLabel('Ancho (cm)', { exact: true }).fill('5.1'); await page.getByLabel('Ancho (cm)', { exact: true }).blur(); },
     async () => { await page.getByLabel('Copias', { exact: true }).fill('2'); await page.getByLabel('Copias', { exact: true }).blur(); },
     async () => {
       // The red corner pixels preserve the full bounds when the blue is erased.
+      await openDesignTools(page.getByTestId('design-card').first());
       const measure = await page.getByText('Medida final').textContent();
+      await openDesignTools(page.getByTestId('design-card').first());
       await page.getByRole('button', { name: 'Borrador · fondo y colores' }).click();
       await page.getByRole('button', { name: 'Aplicar', exact: true }).click();
       await expect(page.getByText('Medida final')).toHaveText(measure!);

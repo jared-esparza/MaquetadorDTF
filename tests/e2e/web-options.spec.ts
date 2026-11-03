@@ -1,3 +1,4 @@
+import { openWorkspaceOptions } from '../helpers/workspace';
 import { expect, test } from '@playwright/test';
 import { PNG } from 'pngjs';
 
@@ -50,7 +51,8 @@ test('los formatos son privados y restaurar conserva personalizados y selección
   try {
     const otherPage = await other.newPage(); await otherPage.route(api, route => route.fulfill({ json: [] }));
     await otherPage.goto('/');
-    await expect(page.getByText('Los cambios se guardan solo en este navegador y no afectan a otras personas')).toBeVisible();
+    await openWorkspaceOptions(page, 'Ajustes');
+    await expect(page.getByText('Los cambios de formato se guardan solo en este navegador y no afectan a otras personas')).toBeVisible();
     await page.getByRole('button', { name: 'Configurar formato' }).click();
     await expect(page.getByRole('button', { name: 'Restaurar formatos predeterminados' })).toBeDisabled();
     await page.getByLabel('Nombre del formato').fill('Mi film');

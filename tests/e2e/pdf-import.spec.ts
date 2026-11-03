@@ -1,3 +1,4 @@
+import { openWorkspaceOptions, openDesignTools } from '../helpers/workspace';
 import { expect, test, type Page } from '@playwright/test';
 import { PDFDocument, PDFName, StandardFonts, degrees, rgb } from 'pdf-lib';
 import { unzipSync } from 'fflate';
@@ -37,6 +38,7 @@ test('selección, recorte transparente, blanco real, rotación, cancelar y desha
   expect(Number(await cards.nth(0).getByLabel('Ancho (cm)').inputValue())).toBeCloseTo(4.23,1);
   expect(Number(await cards.nth(1).getByLabel('Ancho (cm)').inputValue())).toBeCloseTo(2.15,1);
   expect(Number(await cards.nth(2).getByLabel('Ancho (cm)').inputValue())).toBeCloseTo(4.27,1);
+  await openDesignTools(cards.nth(2));
   await cards.nth(2).getByRole('button',{ name: 'Borrador · fondo y colores' }).click();
   await expect(page.getByRole('dialog', { name: 'Borrador · fondo y colores' }).getByRole('button',{ name: 'Aplicar', exact: true })).toBeVisible();
   await page.getByRole('dialog', { name: 'Borrador · fondo y colores' }).getByRole('button',{ name: 'Cancelar',exact: true }).click();
@@ -51,6 +53,7 @@ test('PDF por pliego predeterminado, multipágina opcional y PNG desde vectores 
   await dialog.getByLabel('Importar página 2').uncheck(); await dialog.getByLabel('Importar página 3').uncheck();
   await dialog.getByRole('button',{ name: 'Importar seleccionadas (1)' }).click();
   await page.getByLabel('Ancho (cm)',{ exact: true }).fill('3'); await page.getByLabel('Copias',{ exact: true }).fill('7'); await page.getByLabel('Copias',{ exact: true }).blur();
+  await openWorkspaceOptions(page, 'Opciones de exportación');
   await expect(page.getByLabel('Organización del PDF')).toHaveValue('separate');
   await expect(page.getByTestId('layout-summary')).toContainText('2 pliegos');
   let download = page.waitForEvent('download'); await page.getByRole('button',{ name: 'Descargar PDF en ZIP',exact: true }).click();
@@ -58,6 +61,7 @@ test('PDF por pliego predeterminado, multipágina opcional y PNG desde vectores 
   const base = await page.getByLabel('Nombre del trabajo').inputValue();
   const files = unzipSync(await readFile(zipPath)); expect(Object.keys(files)).toEqual([`${base}-pliego-001.pdf`,`${base}-pliego-002.pdf`]);
   for (const bytes of Object.values(files)) expect((await PDFDocument.load(bytes)).getPageCount()).toBe(1);
+  await openWorkspaceOptions(page, 'Opciones de exportación');
   await page.getByLabel('Organización del PDF').selectOption('combined');
   download = page.waitForEvent('download'); await page.getByRole('button',{ name: 'Descargar PDF',exact: true }).click();
   await mkdir('artifacts/qa',{ recursive: true }); await (await download).saveAs('artifacts/qa/imported-vector.pdf');
@@ -65,6 +69,7 @@ test('PDF por pliego predeterminado, multipágina opcional y PNG desde vectores 
   await writeFile('artifacts/qa/imported-source.pdf',await sourcePdf());
   await page.getByLabel('Copias',{ exact: true }).fill('1'); await page.getByLabel('Copias',{ exact: true }).blur();
   for (const dpi of [150,300,600]) {
+    await openWorkspaceOptions(page, 'Opciones de exportación');
     await page.getByLabel('Resolución PNG').selectOption(String(dpi));
     download = page.waitForEvent('download'); await page.getByRole('button',{ name: 'Descargar PNG',exact: true }).click();
     const filename = `artifacts/qa/imported-${dpi}.png`; await (await download).saveAs(filename);

@@ -84,6 +84,8 @@ export default function App() {
   const [spacingNotice, setSpacingNotice] = useState('');
   const [exported, setExported] = useState('');
   const [dragging, setDragging] = useState(false);
+  const [importErrors, setImportErrors] = useState<string[]>([]);
+  const uploadRef = useRef<HTMLButtonElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const urls = useRef(new Set<string>());
   const mounted = useRef(true);
@@ -192,7 +194,7 @@ export default function App() {
   };
   const importFiles = async (files: File[]) => {
     if (blocked || !files.length) return;
-    setBusy('Cargando diseños…'); setErrors([]); setExported('');
+    setBusy('Cargando diseños…'); setImportErrors([]); setErrors([]); setExported('');
     const added: Design[] = [], problems: string[] = [];
     let totalPixels = retainedPixelCount(designs);
     try {
@@ -235,7 +237,7 @@ export default function App() {
         } catch (e) { problems.push(`${file.name}: ${errorText(e)}`); }
       }
       if (!designs.length && added.length) setExportBaseName(defaultExportBaseName());
-      setDesigns(current => [...current, ...added]); setErrors(problems);
+      setDesigns(current => [...current, ...added]); setImportErrors(problems);
     } finally { setBusy(''); }
   };
   const applyRaster = async (design: Design, raster: Raster, note: string, opaque = hasOpaqueBackground(raster)) => {
@@ -361,14 +363,9 @@ export default function App() {
   };
 
   return <div className="app-shell">
-    <header className="app-header"><div className="brand">PK<span>print</span></div><h1>Maquetador DTF</h1><p>Prepara tu film. Descarga tu PDF a tamaño real.</p><span className="local-badge"><i />Todo en tu equipo</span>{desktop && <button className="text-button" onClick={() => void desktop?.showHelp('guide')}>Ayuda</button>}{desktop && <Updates onInstalling={setUpdateInstalling} />}</header>
-    <main className="workspace">
-      <section className="panel designs-panel" aria-labelledby="designs-title">
-        <h2 id="designs-title"><span className="step">1</span>Diseños <span className="panel-count">{designs.length > 0 ? designs.length : ''}</span></h2>
-        <div className={`upload-area ${dragging ? 'dragging' : ''}`} onDragOver={e => { e.preventDefault(); if (!blocked) setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={e => { e.preventDefault(); setDragging(false); void importFiles([...e.dataTransfer.files]); }}>
-          <input ref={inputRef} className="file-input" type="file" accept="image/png,.png,image/jpeg,.jpg,.jpeg,image/webp,.webp,application/pdf,.pdf" multiple aria-label="Subir diseños PNG o PDF" disabled={blocked} onChange={e => { const files = [...(e.target.files ?? [])]; e.target.value = ''; void importFiles(files); }} />
-          <button className="upload-button" disabled={blocked} onClick={() => inputRef.current?.click()}><span className="upload-plus">+</span><strong>Sube tus diseños de imagen o PDF</strong><span>Arrastra aquí o toca para elegir.</span><small>PNG, JPG/JPEG y WebP: 20 MB · PDF: 50 MiB</small></button>
-        </div>
+    <header className="app-header"><div className="brand">PK<span>print</span></div><h1>Maquetador DTF</h1><div className="header-tools">
+      <details><summary>Ajustes</summary><div className="header-popover">
+        {!desktop && <p className="muted">Los cambios de formato se guardan solo en este navegador y no afectan a otras personas. Si borras los datos del sitio, puedes perder tus formatos.</p>}
         <div className="image-budget">
           <label>Presupuesto de imágenes<select value={imageBudgetMp} disabled={blocked} onChange={event => {
             const next = imageBudget(Number(event.target.value));
@@ -379,15 +376,32 @@ export default function App() {
           <p className="muted">Incluye originales y versiones de edición. Las copias del montaje no multiplican este consumo.</p>
           {imageBudgetMp > 60 && <p className="opaque-warning">Este presupuesto permite más imágenes y puede agotar la memoria del equipo. Exporta tu trabajo antes de cerrar.</p>}
         </div>
+</div></details>
+      <details><summary>Ayuda de impresión</summary><div className="header-popover">        <div className="print-note"><strong>Preparado para tu RIP</strong><p>PNG en RGB; el PDF conserva el color de sus fuentes. Tu RIP genera la base blanca y gestiona el color.</p><p>Imprime al 100 %, sin ajustar a página.</p></div>
+</div></details>
+    </div>{desktop && <button className="text-button" onClick={() => void desktop?.showHelp('guide')}>Ayuda</button>}{desktop && <Updates onInstalling={setUpdateInstalling} />}</header>
+    <nav className="workspace-nav" aria-label="Espacio de trabajo">
+      <a href="#designs-title">Diseños</a><a href="#preview-title">Pliego</a><a href="#export-title">Exportación</a>
+    </nav>
+    <main className="workspace">
+      <section className="panel designs-panel" aria-labelledby="designs-title">
+        <h2 id="designs-title">Diseños <span className="panel-count" aria-hidden="true">{designs.length > 0 ? designs.length : ''}</span></h2>
+        <div className={`upload-area ${designs.length ? 'compact-upload' : ''} ${dragging ? 'dragging' : ''}`} onDragOver={e => { e.preventDefault(); if (!blocked) setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={e => { e.preventDefault(); setDragging(false); void importFiles([...e.dataTransfer.files]); }}>
+          <input ref={inputRef} className="file-input" tabIndex={-1} type="file" accept="image/png,.png,image/jpeg,.jpg,.jpeg,image/webp,.webp,application/pdf,.pdf" multiple aria-label="Subir diseños PNG o PDF" disabled={blocked} onChange={e => { const files = [...(e.target.files ?? [])]; e.target.value = ''; void importFiles(files); }} />
+          <button ref={uploadRef} className="upload-button" aria-disabled={blocked} onClick={() => { if (!blocked) inputRef.current?.click(); }}><span className="upload-plus">+</span><strong>Añadir diseños</strong>{!designs.length && <><span>Arrastra archivos o pulsa para elegir.</span><small>PNG, JPEG y WebP hasta 20 MiB. PDF hasta 50 MiB.</small></>}</button>
+        </div>
+        {!designs.length && <p className="session-note">Los diseños permanecen en esta sesión. Exporta tu trabajo antes de cerrar.</p>}
+        {!!importErrors.length && <div className="error-box" role="alert">{importErrors.map((error, i) => <p key={i}>{error}</p>)}<button className="text-button" onClick={() => setImportErrors([])}>Cerrar aviso</button></div>}
         {!designs.length && <p className="empty-instruction">Indica el ancho o el alto y las copias de cada diseño. El pliego se monta automáticamente.</p>}
         {busy && <p className="working" role="status"><span className="spinner" />{busy}</p>}
         <div className="design-list">{[...designs].reverse().map(design => <DesignCard key={design.id} design={design} busy={blocked && editingId !== design.id} editing={editingId === design.id}
+          unplaced={!pending && layout?.unplacedIds.includes(design.id)}
           onChange={patch => changeDesign(design.id, patch)}
           onValidity={(field, valid) => validity(`${design.id}:${field}`, valid)}
           onRemove={() => { release(design.url); if (design.undo) release(design.undo.url); if (designs.length === 1) setExportBaseName(''); setDesigns(current => current.filter(d => d.id !== design.id)); clearDesignValidity(design.id); }}
           onEdit={(tool, trigger) => openEditor(design, tool, trigger)}
           onUndo={() => { if (!design.undo) return; release(design.url); const undo = design.undo; setDesigns(current => current.map(d => d.id === design.id ? { ...d, pdf: undo.pdf, raster: undo.raster, url: undo.url, note: undo.note, opaque: undo.opaque, undo: undefined } : d)); setExported(''); }} />)}</div>
-        <p className="session-note">Los diseños permanecen en esta sesión. Exporta tu trabajo antes de cerrar.</p>
+
       </section>
 
       {edit && <ImageEditor design={edit.source} tool={edit.tool} color={sheetPreviewColor} onColorChange={changeSheetColor} preflightError={edit.error} onCancel={cancelEdit}
@@ -399,58 +413,67 @@ export default function App() {
           } finally { setBusy(''); }
         }} />}
       <section className="panel preview-panel" aria-labelledby="preview-title">
-        <div className="panel-heading"><div className="sheet-heading"><h2 id="preview-title"><span className="step">2</span>Tu pliego</h2>
-          <SheetBackground color={sheetPreviewColor} onChange={changeSheetColor} disabled={blocked} />
-        </div><label className="gap-label">Distancia entre diseños<select aria-label="Distancia entre diseños" value={gapMm} disabled={blocked} onChange={e => setGapMm(Number(e.target.value))}>{GAP_OPTIONS.map(gap => <option key={gap} value={gap}>{gap} mm</option>)}</select></label></div>
-        {pending && designs.length > 0 && <p className="working" role="status"><span className="spinner" />Buscando el montaje que menos film gasta…</p>}
-        {!pending && layoutState.error && <p className="error-box" role="alert">{layoutState.error}</p>}
-        {layout?.unplacedIds.map(id => <p key={id} className="error-box" role="alert"><strong>{designs.find(d => d.id === id)?.name}</strong> no cabe en el área imprimible, ni girado. Reduce su ancho o cambia el formato.</p>)}
-        {layout && layout.pages.length > 0 ? <SheetPreview color={sheetPreviewColor} layout={layout} profile={packingProfile} designs={designs} mirror={mirror} pageIndex={pageIndex} onPage={setPageIndex} excludedPages={excludedPages} canDownloadPdf={canExport} canDownloadPng={canExport && !pngError} busy={blocked || formatOpen} onDownload={(format, index) => void exportSheets(format, index)} onInclude={includePage}
-          spread={spreadPages.includes(visibleIndex)} canSpread={canSpread} spacingDisabled={blocked || formatOpen || pending || invalidFields.size > 0} spacingNotice={spacingNotice} onToggleSpacing={toggleSpacing} /> : !pending && !layoutState.error && !layout?.unplacedIds.length && <div className="empty-preview"><div className="empty-sheet"><span>+</span></div><p>Tu pliego se monta solo<br />en cuanto subas diseños.</p></div>}
-      </section>
-
-      <section className="panel export-panel" aria-labelledby="export-title">
-        <h2 id="export-title"><span className="step">3</span>Exportar</h2>
+        <div className="panel-heading"><h2 id="preview-title">Pliego</h2>
         <ProfileEditor profiles={stored.profiles} profile={profile} disabled={blocked} onOpenChange={setFormatOpen} onSelect={selected => setStored(current => ({ ...current, selected }))} onSave={(updated, asNew) => setStored(current => ({ profiles: asNew ? [...current.profiles, updated] : current.profiles.map(p => p.id === updated.id ? updated : p), selected: updated.id }))}
           resetDisabled={pending} onReset={desktop ? undefined : () => {
             if (window.confirm('Se restaurarán los nombres, medidas y márgenes de Film 55 × 100 cm, A3 y A4. Los formatos creados con «Guardar como nuevo» se conservarán. ¿Continuar?')) {
               setStored(current => ({ ...current, profiles: [...initialProfiles, ...current.profiles.filter(p => !initialProfiles.some(base => base.id === p.id))] }));
             }
           }} />
-        {layout && layout.pages.length > 0 ? <div className="layout-summary" data-testid="layout-summary"><strong>{layout.pages.length} {layout.pages.length === 1 ? 'pliego' : 'pliegos'} · {layout.pieceCount} {layout.pieceCount === 1 ? 'pieza' : 'piezas'}</strong><span>{formatMm(profile.widthMm / 10)} × {formatMm(profile.heightMm / 10)} cm por pliego</span><span>Aprovechamiento {Math.round(layout.pages.reduce((sum, p) => sum + p.utilization, 0) / layout.pages.length * 100)} %</span></div> : <p className="muted summary-empty">Sube tus diseños para preparar el PDF.</p>}
-        <label className="checkbox-label mirror-control"><input type="checkbox" checked={mirror} disabled={blocked} onChange={e => { setMirror(e.target.checked); setExported(''); }} aria-label="Aplicar espejo en el PDF" /><span>Aplicar espejo en el PDF<small>Desactivado si ya lo aplica tu RIP.</small></span></label>
-        <div className="print-note"><strong>Preparado para tu RIP</strong><p>PNG en RGB; el PDF conserva el color de sus fuentes. Tu RIP genera la base blanca y gestiona el color.</p><p>Imprime al 100 %, sin ajustar a página.</p></div>
+        <label className="gap-label">Distancia entre diseños<select aria-label="Distancia entre diseños" value={gapMm} disabled={blocked} onChange={e => setGapMm(Number(e.target.value))}>{GAP_OPTIONS.map(gap => <option key={gap} value={gap}>{gap} mm</option>)}</select></label></div>
+        {layout && !!layout.pages.length && <p className="layout-summary" data-testid="layout-summary">
+          {layout.pages.length} {layout.pages.length === 1 ? 'pliego' : 'pliegos'} · {layout.pieceCount} {layout.pieceCount === 1 ? 'pieza' : 'piezas'} · {formatMm(profile.widthMm / 10)} × {formatMm(profile.heightMm / 10)} cm
+        </p>}
+        {pending && designs.length > 0 && <p className="working" role="status"><span className="spinner" />Buscando el montaje que menos film gasta…</p>}
+        {!pending && layoutState.error && <p className="error-box" role="alert">{layoutState.error}</p>}
+        {layout && layout.pages.length > 0 ? <SheetPreview color={sheetPreviewColor} layout={layout} profile={packingProfile} designs={designs} mirror={mirror} pageIndex={pageIndex} onPage={setPageIndex} excludedPages={excludedPages} canDownloadPdf={canExport} canDownloadPng={canExport && !pngError} busy={blocked || formatOpen} onDownload={(format, index) => void exportSheets(format, index)} onInclude={includePage}
+          backgroundControl={<SheetBackground color={sheetPreviewColor} onChange={changeSheetColor} disabled={blocked} />}
+          spread={spreadPages.includes(visibleIndex)} canSpread={canSpread} spacingDisabled={blocked || formatOpen || pending || invalidFields.size > 0} spacingNotice={spacingNotice} onToggleSpacing={toggleSpacing} /> : <><details className="view-options"><summary>Opciones de vista y montaje</summary><SheetBackground color={sheetPreviewColor} onChange={changeSheetColor} disabled={blocked} /></details>{!pending && !layoutState.error && !layout?.unplacedIds.length && <div className="empty-preview"><div className="empty-sheet"><span>+</span></div><p>Tu pliego se monta solo<br />en cuanto subas diseños.</p></div>}</>}
+      <section className="export-panel" aria-labelledby="export-title">
+        <div className="export-heading">
+          <h2 id="export-title">Exportar</h2>
+          {!!layout?.pages.length && <p className="muted" data-testid="remaining-sheets">{remainingPages.length} de {layout.pages.length} pliegos incluidos en la descarga general.</p>}
+        </div>
         <div className="export-bottom">
           {sheetNotice && <p className="muted" role="status">{sheetNotice}</p>}
-          {!!layout?.pages.length && <p className="muted" data-testid="remaining-sheets">{remainingPages.length} de {layout.pages.length} pliegos incluidos en la descarga general.</p>}
           {!!layout?.pages.length && !remainingPages.length && <p className="muted">Todos los pliegos se han descargado por separado. Selecciona uno y pulsa «Volver a incluir» para añadirlo a la descarga general.</p>}
+          <div className="export-main">
           <label className="export-name">Nombre del trabajo<input value={exportBaseName} disabled={blocked || !designs.length} aria-invalid={!!designs.length && !!nameError} aria-describedby="export-name-help" onChange={event => { setExportBaseName(event.target.value); setExported(''); }} onBlur={() => setExportBaseName(normalizedName)} /></label>
+          <div className="download-actions">
+          <button className="download-button" disabled={!canExportRemaining} onClick={() => void exportSheets('pdf')}>{busy === 'Generando PDF…' ? 'Generando PDF…' : pdfType === 'zip' ? 'Descargar PDF en ZIP' : 'Descargar PDF'}<span aria-hidden="true">↓</span></button>
+            <button className="download-button" disabled={!canExportRemaining || !!pngError} onClick={() => void exportSheets('png')}>{pngType === 'zip' ? 'Descargar PNG en ZIP' : 'Descargar PNG'}<span aria-hidden="true">↓</span></button>
+          </div>
+          </div>
           <div id="export-name-help">
             {!!designs.length && nameError && <p className="error" role="alert">{nameError}</p>}
-            {!nameError && remainingPages.length > 0 && <p className="muted export-name-preview">PDF: {exportSelectionFilename(normalizedName, pdfType, remainingPages, layout?.pages.length ?? 0)}<br />PNG: {exportSelectionFilename(normalizedName, pngType, remainingPages, layout?.pages.length ?? 0)}{remainingPages.length > 1 && <><br />Dentro del ZIP: {exportFilename(normalizedName, 'pdf', remainingPages[0] + 1)} / {exportFilename(normalizedName, 'png', remainingPages[0] + 1)}</>}</p>}
-            <p className="muted">Sin extensión. Se añade automáticamente al descargar.</p>
           </div>
           {lowDpi && <label className="checkbox-label low-dpi"><input type="checkbox" checked={acceptedLowDpi} disabled={blocked || pending} onChange={e => setAcceptedLowDpi(e.target.checked)} /><span>Acepto que los diseños de baja resolución pueden verse pixelados.</span></label>}
+          {pending && <p className="muted">Espera a que termine el montaje.</p>}
+          {!pending && layoutState.error && <p className="muted">Corrige el problema de montaje antes de exportar.</p>}
           {editingId && <p className="muted">Aplica o cancela el borrador antes de exportar.</p>}
+          {!pending && !!layout?.unplacedIds.length && <p className="error" role="alert">Revisa las medidas marcadas en Diseños o cambia el formato del film.</p>}
           {formatOpen && <p className="muted">Guarda o cierra el formato antes de exportar.</p>}
           {invalidFields.size > 0 && <p className="error" role="alert">Corrige las medidas o cantidades marcadas.</p>}
           {errors.length > 0 && <div className="error-box" role="alert">{errors.map((error, i) => <p key={i}>{error}</p>)}<button className="text-button" onClick={() => setErrors([])}>Cerrar aviso</button></div>}
+            <details className="export-options"><summary>Opciones de exportación</summary><div className="options-fields">
           <label className="pdf-organization">Organización del PDF<select value={pdfOrganization} disabled={blocked || formatOpen} onChange={event => setPdfOrganization(event.target.value as 'separate' | 'combined')}><option value="separate">Un PDF por pliego</option><option value="combined">Un único PDF con todos los pliegos</option></select></label>
-          <button className="download-button" disabled={!canExportRemaining} onClick={() => void exportSheets('pdf')}>{busy === 'Generando PDF…' ? 'Generando PDF…' : pdfType === 'zip' ? 'Descargar PDF en ZIP' : 'Descargar PDF'}<span aria-hidden="true">↓</span></button>
-          <div className="png-export">
             <label>Resolución PNG<select aria-label="Resolución PNG" value={pngDpi} disabled={blocked || formatOpen} onChange={event => setPngDpi(Number(event.target.value))}>{[150, 300, 600].map(dpi => <option key={dpi} value={dpi}>{dpi} ppp</option>)}</select></label>
-            <p className="muted">{pngSize || pngError}</p>
-            <p className="muted">Más ppp no recuperan detalle ausente en el original. Se conserva la transparencia y se aplica el mismo espejo que al PDF.</p>
-            <button className="download-button" disabled={!canExportRemaining || !!pngError} onClick={() => void exportSheets('png')}>{pngType === 'zip' ? 'Descargar PNG en ZIP' : 'Descargar PNG'}<span aria-hidden="true">↓</span></button>
-            {exportProgress && <div role="status"><p>Pliego {exportProgress.page} de {exportProgress.pages} · {exportProgress.percent} %</p><progress aria-label="Progreso de exportación" max="100" value={exportProgress.percent} /><button type="button" onClick={() => exportController.current?.abort()}>Cancelar exportación</button></div>}
-          </div>
+            <p className="muted">{pngSize}</p>
+            <p className="muted">Más ppp no recuperan detalle del original. El PNG conserva la transparencia.</p>
+        <label className="checkbox-label mirror-control"><input type="checkbox" checked={mirror} disabled={blocked} onChange={e => { setMirror(e.target.checked); setExported(''); }} aria-label="Aplicar espejo en PDF y PNG" /><span>Aplicar espejo en PDF y PNG<small>Desactivado si ya lo aplica tu RIP.</small></span></label>
+            {!nameError && remainingPages.length > 0 && <p className="muted export-name-preview">PDF: {exportSelectionFilename(normalizedName, pdfType, remainingPages, layout?.pages.length ?? 0)}<br />PNG: {exportSelectionFilename(normalizedName, pngType, remainingPages, layout?.pages.length ?? 0)}{remainingPages.length > 1 && <><br />Dentro del ZIP: {exportFilename(normalizedName, 'pdf', remainingPages[0] + 1)} / {exportFilename(normalizedName, 'png', remainingPages[0] + 1)}</>}</p>}
+            <p className="muted">Sin extensión. Se añade automáticamente al descargar.</p>
+          </div></details>
+          {pngError && <p className="error">{pngError}</p>}
+          {exportProgress && <div role="status"><p>Pliego {exportProgress.page} de {exportProgress.pages} · {exportProgress.percent} %</p><progress aria-label="Progreso de exportación" max="100" value={exportProgress.percent} /><button type="button" onClick={() => exportController.current?.abort()}>Cancelar exportación</button></div>}
           {exported && <p className="success-note" role="status">{exported}</p>}
           {desktop && /^(PDF|PNG|ZIP) guardado:/.test(exported) && <button className="text-button" onClick={() => void desktop?.showExportFolder()}>Abrir carpeta</button>}
-          <p className="export-caption">La descarga general incluye solo los pliegos no apartados. Varios archivos se entregan en ZIP; un único pendiente se descarga directamente. Sin marcas ni guías.</p>
+
         </div>
       </section>
+      </section>
     </main>
-    {pdfImport && <PdfImport file={pdfImport.file} onComplete={(pages,dpi) => { pdfImport.resolve(pages,dpi); setPdfImport(null); }} />}
+    {pdfImport && <PdfImport file={pdfImport.file} onComplete={(pages,dpi) => { pdfImport.resolve(pages,dpi); setPdfImport(null); requestAnimationFrame(() => uploadRef.current?.focus()); }} />}
     {conversion && <PdfConversion name={conversion.design.name} onConfirm={dpi => void convertPdf(dpi)} onCancel={() => setConversion(null)} />}
     {!desktop && <WindowsDownloads />}
     <footer className="app-footer">Maquetador DTF{desktopVersion ? ` ${desktopVersion}` : ''} · PKprint<span>Los archivos se procesan localmente y no se suben a Internet.</span></footer>

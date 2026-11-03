@@ -4,14 +4,14 @@ import { NumberField } from './NumberField';
 import type { EditTool } from './ImageEditor';
 
 interface Props {
-  design: Design; busy: boolean; editing: boolean;
+  design: Design; busy: boolean; editing: boolean; unplaced?: boolean;
   onChange: (patch: Partial<Pick<Design, 'widthMm' | 'copies'>>) => void;
   onRemove: () => void; onEdit: (tool: EditTool, trigger: HTMLElement) => void; onUndo: () => void;
   onValidity: (field: string, valid: boolean) => void;
 }
 
-export function DesignCard({ design, busy, editing, onChange, onRemove, onEdit, onUndo, onValidity }: Props) {
-  const [expanded, setExpanded] = useState(true);
+export function DesignCard({ design, busy, editing, unplaced, onChange, onRemove, onEdit, onUndo, onValidity }: Props) {
+  const [expanded, setExpanded] = useState(false);
   const { dpi, quality, recommendedWidthMm } = designMetrics(design.raster, design.widthMm);
   const heightMm = designHeight(design);
   const opaque = design.opaque;
@@ -31,14 +31,15 @@ export function DesignCard({ design, busy, editing, onChange, onRemove, onEdit, 
           <button aria-label="Más copias" disabled={busy || editing || design.copies >= 3000} onClick={() => onChange({ copies: design.copies + 1 })}>+</button>
         </div>
       </div>
-      <button className="icon-button disclosure" aria-label="Ver u ocultar los ajustes de este diseño" aria-expanded={expanded} onClick={() => setExpanded(!expanded)} disabled={editing}>{expanded ? '▴' : '▾'}</button>
     </div>
-    <p className="muted proportion-note">Proporción fija · al cambiar una medida se ajusta la otra.</p>
+    {opaque && <p className="opaque-warning">El fondo también se imprime.</p>}
+    {unplaced && <p className="error" role="alert">No cabe en el área imprimible. Reduce la medida o cambia el formato.</p>}
+    <button className="text-button design-disclosure" aria-expanded={expanded} onClick={() => setExpanded(!expanded)} disabled={editing}>{expanded ? 'Cerrar herramientas' : 'Editar diseño'}</button>
     {expanded && <div className="design-details">
       <p>Medida final <strong>{formatMm(design.widthMm / 10)} × {formatMm(heightMm / 10)} cm</strong></p>
+      <p className="muted">Las medidas conservan la proporción del diseño.</p>
       {design.pdf ? <p className="success-note">PDF original · conserva textos y trazados. Puede contener imágenes de resolución limitada.</p> : <p className={`quality ${quality}`}>{quality === 'good' ? 'Buena calidad' : quality === 'fair' ? 'Calidad justa' : 'Resolución baja: puede verse pixelado'} · {Math.round(dpi)} ppp</p>}
       {!design.pdf && quality !== 'good' && <button className="small-button" disabled={busy || editing} onClick={() => onChange({ widthMm: recommendedWidthMm })}>Ajustar a {formatMm(recommendedWidthMm / 10)} cm</button>}
-      {opaque && <p className="opaque-warning">El fondo también se imprime.</p>}
       {design.note && <p className="success-note">{design.note}</p>}
       {design.raster.sourceScale > 1 && <p className="muted">Ampliar no añade detalle. Los ppp se calculan desde los píxeles originales.</p>}
       <div className="design-actions">
