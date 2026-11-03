@@ -1,7 +1,9 @@
-# Maquetador DTF 1.8.0 para Windows 10/11 x64
+# Maquetador DTF 1.9.0 para Windows 10/11 x64
 
 Instalador guiado en español y versión portátil. Entrega preliminar sin firma.
 
+- Espacio de trabajo con diseños a la izquierda, formato y separación junto al pliego, y descargas generales PDF/PNG bajo la vista previa.
+- Presupuesto de imágenes en Ajustes, herramientas por diseño y opciones de vista, montaje y exportación agrupadas. Los avisos de carga y encaje aparecen junto al control correspondiente.
 - Borrador y afinado de bordes en un editor ampliado con comparación Antes y Después, zoom y desplazamiento sincronizados.
 - Fondo de contraste guardado para la vista previa de los pliegos y disponible durante la edición. El fondo visual queda fuera de los archivos exportados.
 - «Repartir espacios» separa las piezas del pliego visible usando el sobrante horizontal y vertical dentro de los márgenes. Mantiene tamaños, giros, alineaciones, copias, número de pliegos y aprovechamiento. La separación seleccionada es el mínimo, no un límite al reparto.

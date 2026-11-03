@@ -451,11 +451,11 @@ export default function App() {
             {sheetNotice && <p className="muted" role="status">{sheetNotice}</p>}
             {!!layout?.pages.length && !remainingPages.length && <p className="muted">Todos los pliegos se han descargado por separado. Selecciona uno y pulsa «Volver a incluir» para añadirlo a la descarga general.</p>}
             <div className="export-main">
-            <label className="export-name">Nombre del trabajo<input value={exportBaseName} disabled={blocked || !designs.length} aria-invalid={!!designs.length && !!nameError} aria-describedby="export-name-help" onChange={event => { setExportBaseName(event.target.value); setExported(''); }} onBlur={() => setExportBaseName(normalizedName)} /></label>
-            <div className="download-actions">
-            <button className="download-button" disabled={!canExportRemaining} onClick={() => void exportSheets('pdf')}>{busy === 'Generando PDF…' ? 'Generando PDF…' : pdfType === 'zip' ? 'Descargar PDF en ZIP' : 'Descargar PDF'}<span aria-hidden="true">↓</span></button>
-              <button className="download-button" disabled={!canExportRemaining || !!pngError} onClick={() => void exportSheets('png')}>{pngType === 'zip' ? 'Descargar PNG en ZIP' : 'Descargar PNG'}<span aria-hidden="true">↓</span></button>
-            </div>
+              <label className="export-name">Nombre del trabajo<input value={exportBaseName} disabled={blocked || !designs.length} aria-invalid={!!designs.length && !!nameError} aria-describedby="export-name-help" onChange={event => { setExportBaseName(event.target.value); setExported(''); }} onBlur={() => setExportBaseName(normalizedName)} /></label>
+              <div className="download-actions">
+                <button className="download-button" disabled={!canExportRemaining} onClick={() => void exportSheets('pdf')}>{busy === 'Generando PDF…' ? 'Generando PDF…' : pdfType === 'zip' ? 'Descargar PDF en ZIP' : 'Descargar PDF'}<span aria-hidden="true">↓</span></button>
+                <button className="download-button" disabled={!canExportRemaining || !!pngError} onClick={() => void exportSheets('png')}>{pngType === 'zip' ? 'Descargar PNG en ZIP' : 'Descargar PNG'}<span aria-hidden="true">↓</span></button>
+              </div>
             </div>
             <div id="export-name-help">
               {!!designs.length && nameError && <p className="error" role="alert">{nameError}</p>}
@@ -468,20 +468,22 @@ export default function App() {
             {formatOpen && <p className="muted">Guarda o cierra el formato antes de exportar.</p>}
             {invalidFields.size > 0 && <p className="error" role="alert">Corrige las medidas o cantidades marcadas.</p>}
             {errors.length > 0 && <div className="error-box" role="alert">{errors.map((error, i) => <p key={i}>{error}</p>)}<button className="text-button" onClick={() => setErrors([])}>Cerrar aviso</button></div>}
-              <details className="export-options"><summary>Opciones de exportación</summary><div className="options-fields">
-            <label className="pdf-organization">Organización del PDF<select value={pdfOrganization} disabled={blocked || formatOpen} onChange={event => setPdfOrganization(event.target.value as 'separate' | 'combined')}><option value="separate">Un PDF por pliego</option><option value="combined">Un único PDF con todos los pliegos</option></select></label>
-              <label>Resolución PNG<select aria-label="Resolución PNG" value={pngDpi} disabled={blocked || formatOpen} onChange={event => setPngDpi(Number(event.target.value))}>{[150, 300, 600].map(dpi => <option key={dpi} value={dpi}>{dpi} ppp</option>)}</select></label>
-              <p className="muted">{pngSize}</p>
-              <p className="muted">Más ppp no recuperan detalle del original. El PNG conserva la transparencia.</p>
-          <label className="checkbox-label mirror-control"><input type="checkbox" checked={mirror} disabled={blocked} onChange={e => { setMirror(e.target.checked); setExported(''); }} aria-label="Aplicar espejo en PDF y PNG" /><span>Aplicar espejo en PDF y PNG<small>Desactivado si ya lo aplica tu RIP.</small></span></label>
-              {!nameError && remainingPages.length > 0 && <p className="muted export-name-preview">PDF: {exportSelectionFilename(normalizedName, pdfType, remainingPages, layout?.pages.length ?? 0)}<br />PNG: {exportSelectionFilename(normalizedName, pngType, remainingPages, layout?.pages.length ?? 0)}{remainingPages.length > 1 && <><br />Dentro del ZIP: {exportFilename(normalizedName, 'pdf', remainingPages[0] + 1)} / {exportFilename(normalizedName, 'png', remainingPages[0] + 1)}</>}</p>}
-              <p className="muted">Sin extensión. Se añade automáticamente al descargar.</p>
-            </div></details>
+            <details className="export-options">
+              <summary>Opciones de exportación</summary>
+              <div className="options-fields">
+                <label className="pdf-organization">Organización del PDF<select value={pdfOrganization} disabled={blocked || formatOpen} onChange={event => setPdfOrganization(event.target.value as 'separate' | 'combined')}><option value="separate">Un PDF por pliego</option><option value="combined">Un único PDF con todos los pliegos</option></select></label>
+                <label>Resolución PNG<select aria-label="Resolución PNG" value={pngDpi} disabled={blocked || formatOpen} onChange={event => setPngDpi(Number(event.target.value))}>{[150, 300, 600].map(dpi => <option key={dpi} value={dpi}>{dpi} ppp</option>)}</select></label>
+                <p className="muted">{pngSize}</p>
+                <p className="muted">Más ppp no recuperan detalle del original. El PNG conserva la transparencia.</p>
+                <label className="checkbox-label mirror-control"><input type="checkbox" checked={mirror} disabled={blocked} onChange={e => { setMirror(e.target.checked); setExported(''); }} aria-label="Aplicar espejo en PDF y PNG" /><span>Aplicar espejo en PDF y PNG<small>Desactivado si ya lo aplica tu RIP.</small></span></label>
+                {!nameError && remainingPages.length > 0 && <p className="muted export-name-preview">PDF: {exportSelectionFilename(normalizedName, pdfType, remainingPages, layout?.pages.length ?? 0)}<br />PNG: {exportSelectionFilename(normalizedName, pngType, remainingPages, layout?.pages.length ?? 0)}{remainingPages.length > 1 && <><br />Dentro del ZIP: {exportFilename(normalizedName, 'pdf', remainingPages[0] + 1)} / {exportFilename(normalizedName, 'png', remainingPages[0] + 1)}</>}</p>}
+                <p className="muted">Sin extensión. Se añade automáticamente al descargar.</p>
+              </div>
+            </details>
             {pngError && <p className="error">{pngError}</p>}
             {exportProgress && <div role="status"><p>Pliego {exportProgress.page} de {exportProgress.pages} · {exportProgress.percent} %</p><progress aria-label="Progreso de exportación" max="100" value={exportProgress.percent} /><button type="button" onClick={() => exportController.current?.abort()}>Cancelar exportación</button></div>}
             {exported && <p className="success-note" role="status">{exported}</p>}
             {desktop && /^(PDF|PNG|ZIP) guardado:/.test(exported) && <button className="text-button" onClick={() => void desktop?.showExportFolder()}>Abrir carpeta</button>}
-  
           </div>
         </section>
       </section>

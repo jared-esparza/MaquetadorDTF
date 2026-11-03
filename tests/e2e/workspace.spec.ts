@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { PNG } from 'pngjs';
 
 for (const [width, height] of [[1366, 768], [1280, 720], [390, 844]]) {
-  test(`espacio de trabajo usable a ${width} × ${height}`, async ({ page }) => {
+  test(`espacio de trabajo usable a ${width} × ${height}`, async ({ page }, info) => {
     await page.setViewportSize({ width, height });
     await page.goto('/');
     const add = page.getByRole('button', { name: /Añadir diseños/ });
@@ -31,6 +31,7 @@ for (const [width, height] of [[1366, 768], [1280, 720], [390, 844]]) {
     await expect(next).toBeEnabled();
     await expect(pdf).toBeEnabled();
     await expect(png).toBeEnabled();
+    await page.screenshot({ path: info.outputPath('espacio-de-trabajo.png') });
     if (width > 760) {
       for (const target of [preview, next, pdf, png]) await expect(target).toBeInViewport({ ratio: 1 });
       await page.getByTestId('design-card').last().scrollIntoViewIfNeeded();
