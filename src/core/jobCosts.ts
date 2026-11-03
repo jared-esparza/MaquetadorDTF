@@ -10,7 +10,7 @@ export function parseSheetCost(text: string): number | null {
 }
 
 export const formatCost = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format;
-export const formatUnitCost = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 4 }).format;
+export const formatWasteMeasure = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format;
 
 export function calculateJobCosts(layout: LayoutResult, profile: Pick<SheetProfile, 'widthMm' | 'heightMm'>, cents: number, allocation: WasteAllocation) {
   if (!layout.pages.length || layout.unplacedIds.length) return null;

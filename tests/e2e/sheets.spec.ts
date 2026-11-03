@@ -37,6 +37,7 @@ test('costes del montaje completo, validación y preferencia global', async ({ p
   await expect(summary).toHaveCount(0);
   await cost.fill('10,50');
   await expect(summary).toContainText('31,50');
+  await expect(summary).toContainText('34,50 cm² · 47,92 %');
   await expect(page.getByTestId('design-cost')).toContainText('10,50');
   await download(page, 'Descargar este pliego en PDF');
   await expect(page.getByTestId('remaining-sheets')).toContainText('2 de 3');
@@ -55,9 +56,9 @@ test('costes del montaje completo, validación y preferencia global', async ({ p
   await page.getByLabel('Subir diseños PNG').setInputFiles({ name: 'pequeño.png', mimeType: 'image/png', buffer });
   const smaller = page.getByTestId('design-card').filter({ hasText: 'pequeño.png' });
   await smaller.getByLabel('Ancho (cm)', { exact: true }).fill('2');
-  await expect(smaller.getByTestId('design-cost')).toContainText('0,5316');
+  await expect(smaller.getByTestId('design-cost').locator('strong').first()).toHaveText(/^0,53\s€$/);
   await page.getByLabel('Reparto de merma').selectOption('copy');
-  await expect(smaller.getByTestId('design-cost')).toContainText('2,5587');
+  await expect(smaller.getByTestId('design-cost').locator('strong').first()).toHaveText(/^2,56\s€$/);
   const reopened = await context.newPage();
   await reopened.goto('/');
   const saved = reopened.getByLabel('Coste por pliego (€)');

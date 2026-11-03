@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { decodeImage, rasterPng, rasterUrl } from './browser/images';
 import { runImage, runLayout, runPngExport, runPdfExport } from './browser/workerClient';
 import { pngDimensions } from './core/png';
-import { calculateJobCosts, formatCost, parseSheetCost, type WasteAllocation } from './core/jobCosts';
+import { calculateJobCosts, formatCost, formatWasteMeasure, parseSheetCost, type WasteAllocation } from './core/jobCosts';
 import type { ExportProgress } from './browser/printPng';
 import { DEFAULT_PROFILE, GAP_OPTIONS, IMAGE_BUDGETS, imageBudget, checkImageBudget, designHeight, designMetrics, formatMm, pixelsAfterEdit, profileForLayout, retainedPixelCount, validateProfile, type Design, type LayoutResult, type Raster, type SheetProfile } from './core/model';
 import { defaultExportBaseName, normalizeExportBaseName, exportNameError, exportFilename, exportSelectionFilename } from './core/exportNames';
@@ -465,7 +465,7 @@ export default function App() {
           </label>
           {costs && <div className="layout-summary" data-testid="job-cost-summary">
             <strong>Coste total del trabajo {formatCost(costs.total)}</strong>
-            <span>Merma {formatMm(costs.wasteArea / 100)} cm² · {formatMm(costs.wasteFraction * 100)} % del film · {formatCost(costs.wasteCost)}</span>
+            <span>Merma {formatWasteMeasure(costs.wasteArea / 100)} cm² · {formatWasteMeasure(costs.wasteFraction * 100)} % del film · {formatCost(costs.wasteCost)}</span>
           </div>}
         </fieldset>
         <label className="checkbox-label mirror-control"><input type="checkbox" checked={mirror} disabled={blocked} onChange={e => { setMirror(e.target.checked); setExported(''); }} aria-label="Aplicar espejo en el PDF" /><span>Aplicar espejo en el PDF<small>Desactivado si ya lo aplica tu RIP.</small></span></label>
