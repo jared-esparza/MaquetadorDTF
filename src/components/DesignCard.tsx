@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { designHeight, designMetrics, formatMm, widthFromHeight, type Design } from '../core/model';
 import { NumberField } from './NumberField';
-import { formatCost, formatUnitCost } from '../core/jobCosts';
+import { formatCost } from '../core/jobCosts';
 import type { EditTool } from './ImageEditor';
 
 interface Props {
@@ -36,7 +36,7 @@ export function DesignCard({ design, cost, busy, editing, onChange, onRemove, on
       <button className="icon-button disclosure" aria-label="Ver u ocultar los ajustes de este diseño" aria-expanded={expanded} onClick={() => setExpanded(!expanded)} disabled={editing}>{expanded ? '▴' : '▾'}</button>
     </div>
     <p className="muted proportion-note">Proporción fija · al cambiar una medida se ajusta la otra.</p>
-    {cost && <p data-testid="design-cost">Coste por copia <strong>{formatUnitCost(cost.unit)}</strong> · Subtotal <strong>{formatCost(cost.subtotal)}</strong></p>}
+    {cost && <p data-testid="design-cost">Coste por copia <strong>{formatCost(cost.unit)}</strong> · Subtotal <strong>{formatCost(cost.subtotal)}</strong></p>}
     {expanded && <div className="design-details">
       <p>Medida final <strong>{formatMm(design.widthMm / 10)} × {formatMm(heightMm / 10)} cm</strong></p>
       {design.pdf ? <p className="success-note">PDF original · conserva textos y trazados. Puede contener imágenes de resolución limitada.</p> : <p className={`quality ${quality}`}>{quality === 'good' ? 'Buena calidad' : quality === 'fair' ? 'Calidad justa' : 'Resolución baja: puede verse pixelado'} · {Math.round(dpi)} ppp</p>}

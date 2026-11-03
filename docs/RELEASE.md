@@ -1,6 +1,8 @@
-# Maquetador DTF 1.9.0 para Windows 10/11 x64
+# Maquetador DTF 1.9.1 para Windows 10/11 x64
 
 Instalador guiado en español y versión portátil. Entrega preliminar sin firma.
+
+- Los costes y las medidas de merma se muestran redondeados a dos decimales.
 
 - Coste por pliego, coste total y merma del film, con coste por copia y subtotal por diseño. El reparto puede ser proporcional al tamaño o igual para todas las copias.
 

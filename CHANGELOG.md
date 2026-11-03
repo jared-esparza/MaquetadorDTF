@@ -1,5 +1,9 @@
 # Cambios
 
+## 1.9.1
+
+- Los costes y las medidas de merma se muestran redondeados a dos decimales.
+
 ## 1.9.0
 
 - Coste por pliego recordado y resumen del coste total y de la merma del trabajo.
